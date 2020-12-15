@@ -149,8 +149,10 @@ calcRep::usage="calcRep[sgno,kinfo]  is used to get the irep infos for \"GP\" an
    "used for checking purpose.";
 LGIrepLabel::usage="LGIrepLabel[{m,n}]  gives the informations of BC Tab. 5.8.";
 DLGIrepLabel::usage="DLGIrepLabel[{m,n}]  gives the informations of BC Tab. 6.14.";
-showRepLabel::usage="showRepLabel[{m,n},dsgtag]  gives the table like BC Tab. 5.8 (for \"dsgtab\"=\"s\") or Tab. 5.14 "<>
-   "(for \"dsgtab\"=\"d\" or \"D\") for checking purpose.";
+showRepLabel::usage="showRepLabel[{m,n},dsgtag]  gives the table like BC Tab. 5.8 (for dsgtag=\"s\" which is default) or Tab. 6.14 "<>
+   "(for dsgtag=\"d\" or \"D\") for checking purpose.";
+showLGIrepLabel::usage="showLGIrepLabel[{m,n}]  gives the table like BC Tab. 5.8, which is equivalent to showRepLabel[{m,n},\"s\"]";
+showDLGIrepLabel::usage="showDLGIrepLabel[{m,n}]  gives the table like BC Tab. 6.14, which is equivalent to showRepLabel[{m,n},\"d\"]";
 formatRepMat::usage="formatRepMat[mat]  is used to format the matrix elements of mat.";
 getLGIrepTab::usage="getLGIrepTab[sgno, k]  gives the data for showing the irep table of the little group of k for "<>
    "space group sgno. k can be either its name or coordinates. Option \"abcOrBasVec\"->None is default, and if "<>
@@ -2892,6 +2894,8 @@ showRepLabel[{m_,n_},dsgtag_]:=Module[{allrep, keys, rep, rep2,i,tag,ML,GL},
              Background->{None,{Lighter[Yellow,.9],Lighter[Yellow,.9]}}]
 ]
 showRepLabel[{m_,n_}]:=showRepLabel[{m,n},"s"]
+showLGIrepLabel[{m_,n_}]:=showRepLabel[{m,n}, "s"]
+showDLGIrepLabel[{m_,n_}]:=showRepLabel[{m,n}, "d"]
 
 
 (* ::Section:: *)
