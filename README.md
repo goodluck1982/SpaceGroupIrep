@@ -2,6 +2,9 @@
 A mathematica package for irreducible representations of space group in BC convention. Here, "BC convention" means the convention used in the the famous
 book “The mathematical theory of symmetry in solids” by C. J. Bradley & A. P. Cracknell (called the BC book hereafter).
 
+## Please refer to the following paper for details of the code:
+* [arXiv:2012.08871](http://arxiv.org/abs/2012.08871)
+
 ## Capabilities of SpaceGroupIrep
 * Elements of any space group, little group, Herring little group, or central extension of little co-group can be easily obtained. 
 * Identify k-points. Support the cases in which one k-point may have two different names for different shapes of Brillouin zones due to different ratios of lattice constants.
