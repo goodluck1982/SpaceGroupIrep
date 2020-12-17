@@ -25,7 +25,7 @@ In a word, the package SpaceGroupIrep is a database and tool set for IRs of spac
 * **test/test.nb**  A simple test file or demo file.
 
 ## Installation
-Create a directory **SpaceGroupIrep** containing the four files and place it under any of the following paths:
+Place the directory **SpaceGroupIrep** containing at the four files (SpaceGroupIrep.wl, AbstractGroupData.wl, LittleGroupIrepData.wl, and allBCSkLGdat.mx) under any of the following paths:
 * `$InstallationDirectory`/AddOns/Packages/
 * `$InstallationDirectory`/AddOns/Applications/
 * `$BaseDirectory`/Applications/
