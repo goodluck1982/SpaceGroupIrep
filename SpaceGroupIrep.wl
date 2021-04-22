@@ -1743,8 +1743,9 @@ identifyBCHSKptBySG[sgno_, BZtypeOrBasVec_, klist_, OptionsPattern[]]/;
       If[sec!={},
         op=GSQ[[Sequence@@(Position[GSQ,First[sec]][[1,;;2]])]];
         newk[[7]]=getRotMatOfK[lat,op[[1]]].newk[[5]];
-        newk[[8]]=Rationalize[newk[[1]]-newk[[7]],0.1];  
-        If[Position[newk[[5]],u]!={},newk[[8]]=Rationalize[newk[[8]]/.newk[[-2]],0.1]];
+        (*Note that Rationalize[-0.1, 0.1] returns -1/9 *)
+        tmp=If[Position[newk[[7]],u]!={}, newk[[-2]], {}];
+        newk[[8]]=Rationalize[(newk[[1]]-newk[[7]])/.tmp,0.1];
         (* Print["k=",k,", S0=",R,", S in G0:",sec]; (* for debug *) *)
         tag="in G";
        ]
@@ -1787,7 +1788,7 @@ identifyBCHSKptBySG[sgno_, BZtypeOrBasVec_, k_, OptionsPattern[]]/;VectorQ[k,Num
 (*Group theory utilities*)
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Multiplication of Seitz symbols and elems of central extension*)
 
 
@@ -1818,7 +1819,7 @@ CentExtPower[brav_,adict_][{R_,alpha_},n_Integer]/;n>=0:=If[n==0,{"E",0},
                            Fold[CentExtTimes[brav,adict],{R,alpha},Table[{R,alpha},{i,n-1}]]]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Spin Rotations (Tab. 6.1 and Tab. 6.7) and multiplications for double space group (DSG)*)
 
 
@@ -1908,7 +1909,7 @@ DSGCentExtPower[brav_,adict_][{opname_,alpha_},n_Integer]/;n>=0:=If[n==0,{"E",0}
 (* Give the determinant, axis, and angle of an O(3) rotation matrix. Using the axis angle we can
    construct the SU(2) spin rotation matrix. *)
 rotAxisAngle[O3RotMat_]/;MatrixQ[O3RotMat,NumericQ]:=
- Module[{eps=1.*^-5,mateq,a,sol1,ax,det,so3,eqs,x,y,z,I3,pos,vars,idx,ap1,ap2,X1,X2,X3,tmp},
+ Module[{eps=1.*^-5,mateq,a,sol1,ax,det,so3,eqs,x,y,z,I3,pos,vars,idx,ap1,ap2,X1,X2,X3,tmp,depend},
    I3=IdentityMatrix[3];
    mateq[m1_,m2_]:=Max@Abs@Flatten[N[m1]-m2]<eps;
    If[!mateq[O3RotMat\[Transpose].O3RotMat,I3],
@@ -1918,9 +1919,18 @@ rotAxisAngle[O3RotMat_]/;MatrixQ[O3RotMat,NumericQ]:=
    If[mateq[O3RotMat,-I3], Return[{-1,{0,0,1},0}]];
    det=Round@FullSimplify@Det[O3RotMat];
    so3=det*O3RotMat;  
-   eqs=Thread[so3.{x,y,z}=={x,y,z}]//Simplify;  
+   (*(*-------------find the axis, myown algorithm-----(A)-------*)
+   eqs=so3.{x,y,z}-{x,y,z}//Simplify;
+   depend[eq1_,eq2_]:=Module[{sol,u1,u2},   sol=Solve[eq1\[Equal]u*eq2,u];  
+     If[sol\[Equal]{}, Return[False], sol=sol[[1]]];     If[(u/.sol)\[Equal]0, Return[False]];
+     u1=0; While[u1\[Equal]0,u1=(u/.sol/.({x\[Rule]#1,y\[Rule]#2,z\[Rule]#3}&@@RandomReal[1,3]))];
+     u2=0; While[u2\[Equal]0,u2=(u/.sol/.({x\[Rule]#1,y\[Rule]#2,z\[Rule]#3}&@@RandomReal[1,3]))];
+     Abs[u1-u2]<1*^-14
+   ];
+   tmp=depend[eqs[[#1]],eqs[[#2]]]&@@@{{1,2},{2,3},{1,3}};
+   eqs=If[tmp[[#]],0,eqs[[#]]]&/@{1,2,3};   (* remove dependent equation *)
+   eqs=Thread[eqs\[Equal]{0,0,0}];
    pos=Position[eqs,True]//Flatten;
-   (*idx=If[pos\[Equal]{},{1,2},DeleteCases[{1,2,3},pos[[1]]]];*)
    If[pos!={}, idx=DeleteCases[{1,2,3},pos[[1]]],
       tmp=Length[Position[eqs,#]]&/@{x,y,z};
       If[AllTrue[tmp,#>1&], idx={1,2},
@@ -1929,10 +1939,17 @@ rotAxisAngle[O3RotMat_]/;MatrixQ[O3RotMat,NumericQ]:=
       ]
    ];
    vars={x,y,z}[[idx]];
-   sol1=Solve[eqs[[idx]],vars][[1]];     
+   sol1=Solve[eqs[[idx]],vars][[1]];
+   (*----------------------(B)-------------------------*)
+   (* (* Another algorithm: codes between (A) and (B) can be replaced by codes between (B) and (C). *)
+   eqs=RowReduce[so3-I3,ZeroTest\[Rule](Abs[#]<1*^-12&)].{x,y,z}; (*ZeroTest is essential*)
+   sol1=Quiet@Solve[Thread[eqs\[Equal]{0,0,0}],{x,y,z}][[1]];   *)
+   (*----------------------(C)--------------------------*)
    ap1=({x,y,z}/.sol1)/.{x->1,y->1,z->1};
    ap2=({x,y,z}/.sol1)/.{x->2,y->2,z->2};
    ax=Normalize[ap2-ap1]; 
+   (*---------------------------------------------------*) *)
+   ax=Normalize[NullSpace[so3-I3][[1]]]; (*NullSpace gives the axis directly!*)
    a=FullSimplify@With[{b=Tr[so3]},2ArcTan[Sqrt[1+b]/2,Sqrt[3-b]/2]]; 
    (*\:4e0a\:9762\:662f Sin[3a/2]/Sin[a/2]\[Equal]b \:7684\:4e00\:4e2a\:89e3\:ff0c\:5b9e\:9645\:8f6c\:89d2\:53ef\:80fd\:4e3a\:5176\:8d1f\:503c\:ff0c\:9700\:8981\:8fdb\:4e00\:6b65\:5224\:65ad*)
    X1={{0,0,0},{0,0,-1},{0,1,0}};
@@ -1942,7 +1959,7 @@ rotAxisAngle[O3RotMat_]/;MatrixQ[O3RotMat,NumericQ]:=
    If[mateq[tmp\[Transpose],so3], ax=-ax, If[!mateq[tmp,so3],
       Print["rotAxisAngle: Error occurs when finding the axis and angle of ",O3RotMat]
    ]];
-   {det,ax,a}//Chop
+   {det,ax,a}//Re//Chop
 ]
 
 
@@ -2923,6 +2940,7 @@ formatRepMat[mat_]:=Module[{norm,arg,fl,pu,poth,num},
   fl=FactorList[num];
   pu=Position[fl,u][[1,1]];
   poth=DeleteCases[Range[Length[fl]],pu];
+  If[Head[fl[[pu,1]]]===Power&&fl[[pu,1,1]]==E, fl[[pu,1]]=Simplify@Exp@Expand@ fl[[pu,1,2]]];
   num=formatRepMat[Times@@(#1^#2&@@@fl[[poth]])]*(#1^#2&@@fl[[pu]]);
   formatRepMatDict[mat]=num; 
   num
@@ -2949,7 +2967,7 @@ getLGIrepTab[sgno_, kNameOrCoordOrInfodict_,OptionsPattern[]]:=Block[{u,brav,ks,
   basVec=OptionValue["abcOrBasVec"];
   If[basVec=!=None,
     If[Position[basVec,Rule]!={}, basVec=BasicVectors[brav]/.Flatten[basVec]];
-    If[!MatrixQ[basVec,NumberQ],
+    If[!MatrixQ[basVec,NumericQ],
       Print["getLGIrepTab: The option \"abcOrBasVec\" can be rules which make the basic vectors\n",
             "              numeric, or directly the numeric basic vectors, or just None. \n"
             "              The basic vectors is now ",basVec];
