@@ -3,7 +3,9 @@ A mathematica package for irreducible representations of space group in BC conve
 book “The mathematical theory of symmetry in solids” by C. J. Bradley & A. P. Cracknell (called the BC book hereafter).
 
 ## Please refer to the following paper for details of the code:
-* [arXiv:2012.08871](http://arxiv.org/abs/2012.08871)
+* [Comput. Phys. Commun. **265** , 107993 (2021)](https://doi.org/10.1016/j.cpc.2021.107993)   ([arXiv:2012.08871](http://arxiv.org/abs/2012.08871))
+
+If you use this package in your research, please cite the above paper.
 
 ## Capabilities of SpaceGroupIrep
 * Elements of any space group, little group, Herring little group, or central extension of little co-group can be easily obtained. 
