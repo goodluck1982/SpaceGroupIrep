@@ -24,7 +24,9 @@ In a word, the package SpaceGroupIrep is a database and tool set for IRs of spac
 * **AbstractGroupData.wl** The abstract group data in BC-Tab. 5.1 (meaning the Tab. 5.1 in the BC book).
 * **LittleGroupIrepData.wl** This file contains the data of LG IRs in BC-Tabs. 5.7, 5.11, 6.13, and 6.15.
 * **allBCSkLGdat.mx** This file contains the BCS data of LG IRs collected from the output of [irvsp](https://github.com/zjwang11/irvsp). 
-* **test/test.nb**  A simple test file or demo file.
+* **examples/test.nb**  A simple test file or demo file.
+* **examples/document and examples.nb**  A more detailed example file including some explanations.
+
 
 ## Installation
 Place the directory **SpaceGroupIrep** containing at least the four files, i.e. SpaceGroupIrep.wl, AbstractGroupData.wl, LittleGroupIrepData.wl, and allBCSkLGdat.mx, under any of the following paths:
