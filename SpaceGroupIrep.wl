@@ -6,7 +6,7 @@
    
 (* Package Name: SpaceGroupIrep *)
 (* Author: Gui-Bin Liu *)
-(* Package verseion: 1.0.0 *)
+(* Package verseion: 1.0.1 *)
 (* Mathematica version: 11.2 *)
 (* License: GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt *)
 
@@ -159,6 +159,8 @@ getLGIrepTab::usage="getLGIrepTab[sgno, k]  gives the data for showing the irep 
    "None is replaced by the basic vectors, specific BZ type is selected.";
 getLGCharTab::usage="getLGCharTab[sgno, k]  gives the character table of the k little group of space group sgno, "<>
    "other infomation is the same as getLGIrepTab[sgno, k].";
+showSeitz::usage="showSeitz[{Rname,v}]  shows the Seitz symbol of {Rname,v}. Options: \"format\" can be \"std\""<>
+   "(default), \"simple\", or \"TeX\"; \"fullbar\" is True by default.";
 showLGIrepTab::usage="showLGIrepTab[sgno, k]  shows the table of ireps of k little group of space group sgno in "<>
    "table form. Default options of this function are \"uNumeric\"->False, \"irep\"->All, \"elem\"->All, "<>
    "\"rotmat\"->True, \"trace\"->False, \"spin\"->\"downup\", \"abcOrBasVec\"->None, and \"linewidth\"->2.";
@@ -3145,22 +3147,56 @@ getLGCharTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,irepTabs,mytr,toC
 (*showLGIrepTab and showLGCharTab*)
 
 
+Options[showSeitz]={"format"->"std", "fullbar"->True};
+showSeitz[{R_String,v_}, OptionsPattern[]]/;VectorQ[v]:=Module[{R0,hasbar,vout,fmt,
+  sub,pm,prime,end2,end1,rot,tmp,fullbar},
+  fmt=OptionValue["format"];  fullbar=OptionValue["fullbar"];
+  If[!MemberQ[{"simple","std","TeX"},fmt],
+    Print["showSeitz: option \"format\" should be in ",InputForm/@{"simple","std","TeX"}]; Abort[];
+  ];
+  If[!MemberQ[{True,False},fullbar],
+    Print["showSeitz: option \"fullbar\" should be True or False."]; Abort[];
+  ];  
+  hasbar=StringLength[R]>3&&StringTake[R,3]=="bar";
+  R0=If[hasbar, StringTake[R,{4,-1}], R];
+  vout=Row[If[NumericQ[#]&&#<0,OverBar[-#],#]&/@v,""];
+  If[fmt=="simple", Return[Row[{"{",If[hasbar,OverBar[R0],R0],"|",vout,"}"}]]];
+  sub=pm=prime="";
+  end2=StringTake["x"<>R0,-2];
+  If[end2=="pp", prime=If[fmt=="std","\[DoublePrime]","''"]; R0=StringTake[R0,{1,-3}]; Goto["sup over"]];
+  end1=StringTake[R0,-1];   
+  Switch[end1, "p", prime=If[fmt=="std","\[Prime]","'"], "+"|"-",  pm=end1, _, Goto["sup over"]];
+  R0=StringTake[R0,{1,-2}]; 
+  Label["sup over"];
+  If[StringLength[R0]>1, sub=StringTake[R0,{2,-1}]; R0=StringTake[R0,1]];
+  Switch[fmt,
+   "std", If[hasbar&&fullbar===False, R0=OverBar[R0]];
+          rot=If[sub=="", R0, If[pm<>prime=="",Subscript[R0,sub],Subsuperscript[R0,sub,pm<>prime]]];
+          vout=Row[(If[NumericQ[#],
+               tmp=If[#<0,OverBar[-#],#];If[IntegerQ[#],tmp,Style[tmp,Small]],#])&/@v,""];
+          If[hasbar&&fullbar===True, rot=OverBar[rot]]; 
+          Row[{"{",rot,"|",vout,"}"}],
+   "TeX", R0=StringReplace[ToString@TeXForm[R0], "\\text"->""]; 
+          If[hasbar&&fullbar===False, R0="\\overline{"<>R0<>"}"]; 
+          rot=If[sub=="", R0, tmp=R0<>"_{"<>sub<>"}";If[pm=="", tmp, tmp<>"^"<>pm]]<>prime;
+          vout=StringJoin[(If[NumericQ[#],
+               tmp=ToString@TeXForm[Abs[#]];If[#>=0,tmp,"\\bar{"<>tmp<>"}"], ToString[#]])&/@v];
+          If[hasbar&&fullbar===True, rot="\\overline{"<>rot<>"}"];
+          "$\\{"<>rot<>"|"<>vout<>"\\}$"
+  ]
+]
+
 (* The default linewidth 2 is for display on screen. If export to pdf, a smaller linewith
    such as 0.4 should be used for looking good. *)
 Options[showLGIrepTab]={"uNumeric"->False,"irep"->All,"elem"->All,"rotmat"->True,"trace"->False,
                         "spin"->"downup","abcOrBasVec"->None,"linewidth"->2};
-showLGIrepTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,irepTabs,showOneK,seitz,brav,
+showLGIrepTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,irepTabs,showOneK,brav,
   showmat,idxsir,idxdir,idxelm,showrot,sx,saytwok},
   If[OptionValue["trace"]==False,
     irepTabs=getLGIrepTab[sgno, kNameOrCoord, "abcOrBasVec"->OptionValue["abcOrBasVec"]], 
     irepTabs=getLGCharTab[sgno, kNameOrCoord, "abcOrBasVec"->OptionValue["abcOrBasVec"]]  
   ];
   brav=getSGLatt[sgno];
-  seitz[{R_,v_}]:=Module[{rot},
-    If[StringLength[R]>3&&StringTake[R,3]=="bar",
-      rot=OverBar[StringTake[R,{4,-1}]],  rot=R];
-    Row[{"{",rot,"|",Row[If[#<0,OverBar[-#],#]&/@v,""],"}"}]
-  ];
   showmat[m_]:=If[MatrixQ[m],MatrixForm[m],m];
   showrot=OptionValue["rotmat"];
   sx={{0,1},{1,0}};
@@ -3191,7 +3227,7 @@ showLGIrepTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,irepTabs,showOne
         Row[Row[{"  \!\(\*SubscriptBox[\(k\), \(BC\)]\)=(",Row[#[[2]],","],") for ",Row[#[[3]],","]}]&/@kBZs,"\n"]};
     If[Length[kBZs]==1, h3=Row[h3]];
     If[kname!="GP"&&kname!="UN",
-      h4=Row[{"{S|w}=",seitz[kinfo[[6]]],"("<>kinfo[[-1]]<>") : {S|w\!\(\*SuperscriptBox[\(}\), \(-1\)]\)\!\(\*SubscriptBox[\(G\), \(kin\)]\){S|w}=\!\(\*SubscriptBox[\(G\), \(kBC\)]\) or \!\(\*SubsuperscriptBox[\(G\), \(kBC\), \(d\)]\)"}]; 
+      h4=Row[{"{S|w}=",showSeitz[kinfo[[6]]],"("<>kinfo[[-1]]<>") : {S|w\!\(\*SuperscriptBox[\(}\), \(-1\)]\)\!\(\*SubscriptBox[\(G\), \(kin\)]\){S|w}=\!\(\*SubscriptBox[\(G\), \(kBC\)]\) or \!\(\*SubsuperscriptBox[\(G\), \(kBC\), \(d\)]\)"}]; 
       If[kinfo[[6,1]]=="E",h4={}],
       (*-----else------*)
       h4={};  h3={}];
@@ -3206,11 +3242,11 @@ showLGIrepTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,irepTabs,showOne
     If[OptionValue["spin"]=="updown", srot=sx.#.sx&/@srot];
     srot=MatrixForm[Expand[#]]&/@srot;
     sfl=SpanFromLeft;   sfa=SpanFromAbove;
-    table={idxelm, seitz/@Gkin[[idxelm]], 
+    table={idxelm, showSeitz/@Gkin[[idxelm]], 
            Sequence@@If[showrot,{rot, srot},{}], 
-           Sequence@@If[h4=!={}&&nsir1>0,{seitz/@GkBC[[idxelm]]},{}], 
+           Sequence@@If[h4=!={}&&nsir1>0,{showSeitz/@GkBC[[idxelm]]},{}], 
            Sequence@@Map[showmat,sirep[[idxsir,idxelm]],{2}],
-           Sequence@@If[h4=!={}&&ndir1>0,{seitz/@dGkBC[[idxelm]]},{}], 
+           Sequence@@If[h4=!={}&&ndir1>0,{showSeitz/@dGkBC[[idxelm]]},{}], 
            Sequence@@Map[showmat,direp[[idxdir-nsir,idxelm]],{2}]};
     {nr,nc}=Dimensions[table];   
     table=Join[Table[sfl,4,nr],table\[Transpose]]\[Transpose];
@@ -3417,18 +3453,13 @@ getSGIrepTab[sgno_Integer, kNameOrCoord_, OptionsPattern[]]:=Block[{u,t\:2081,t\
 
 Options[showSGIrepTab]={"uNumeric"->False,"irep"->All,"elem"->All,"rotmat"->True,"trace"->False,
                         "spin"->"downup","maxDim"->4, "abcOrBasVec"->None, "linewidth"->2};
-showSGIrepTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,t\:2081,t\:2082,t\:2083,irepTabs,showOneK,seitz,brav,
+showSGIrepTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,t\:2081,t\:2082,t\:2083,irepTabs,showOneK,brav,
   showmat,idxsir,idxdir,idxelm,showrot,sx,saytwok,dmax,tmp,rmRe0},
   If[OptionValue["trace"]==False,
     irepTabs=getSGIrepTab[sgno, kNameOrCoord, "abcOrBasVec"->OptionValue["abcOrBasVec"]], 
     irepTabs=getSGIrepTab[sgno, kNameOrCoord, "abcOrBasVec"->OptionValue["abcOrBasVec"], "format"->False]  
   ];
   brav=getSGLatt[sgno];
-  seitz[{R_,v_}]:=Module[{rot},
-    If[StringLength[R]>3&&StringTake[R,3]=="bar",
-      rot=OverBar[StringTake[R,{4,-1}]],  rot=R];
-    Row[{"{",rot,"|",Row[If[#<0,OverBar[-#],#,#]&/@v,""],"}"}]
-  ];
   dmax=OptionValue["maxDim"];
   rmRe0=Map[If[MachineNumberQ[#],If[Re[#]==0,Im[#]"\[ImaginaryI]",#],#]&, #, -1]&;
   showmat[m_]:=If[!MatrixQ[m], rmRe0[m], If[Length[m]<=dmax, MatrixForm[rmRe0[m]], 
@@ -3469,7 +3500,7 @@ showSGIrepTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,t\:2081,t\:2082,
     If[kname=="GP"||kname=="UN", h3={}];
     h4="The k start:";
     If[kinfo[[-1]]==="not in G", 
-      h4=Row[{h4," (with \!\(\*SubscriptBox[\(k\), \(1\)]\)=\!\(\*SubscriptBox[\(Sk\), \(BC\)]\) and {S|w}=",seitz[kinfo[[6]]]," not in G)"}]];
+      h4=Row[{h4," (with \!\(\*SubscriptBox[\(k\), \(1\)]\)=\!\(\*SubscriptBox[\(Sk\), \(BC\)]\) and {S|w}=",showSeitz[kinfo[[6]]]," not in G)"}]];
     h5=Row[Row[{Subscript[If[#==1," k","k"], #],"=(",Row[kstar[[#]],","],")"}]&/@Range@Length[kstar],";  "];
     head={h1,h2,h3,h4,h5}//Flatten//Column;
     
@@ -3479,7 +3510,7 @@ showSGIrepTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,t\:2081,t\:2082,
     If[OptionValue["spin"]=="updown", srot=sx.#.sx&/@srot];
     srot=MatrixForm[Expand[#]]&/@srot;
     sfl=SpanFromLeft;   sfa=SpanFromAbove;
-    table={idxelm, seitz/@G[[idxelm]], 
+    table={idxelm, showSeitz/@G[[idxelm]], 
            Sequence@@If[showrot,{rot, srot},{}], 
            Sequence@@Map[showmat,sirep[[idxsir,idxelm]],{2}],
            Sequence@@Map[showmat,direp[[idxdir-nsir,idxelm]],{2}]};
