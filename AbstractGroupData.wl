@@ -18,6 +18,8 @@ getAGIrepMat::usage="getAGIrepMat[m,n,iR,powers] gives the matrix of the iR-th i
 getAGIrepClassMat::usage="getAGIrepClassMat[m,n,iR,ic] gives all the matrices of the iR-th irep in the ic-th class in \!\(\*SubsuperscriptBox[\(G\), \(m\), \(n\)]\)."
 checkAGIrepMat::usage="checkAGIrepMat[m,n] checks if the data in AGCharTab, AGClasses, and AGIrepGen for \!\(\*SubsuperscriptBox[\(G\), \(m\), \(n\)]\) are compatible with each other."
 checkAGGen::usage="checkAGGen[m,n,gens,ie,times,myequal(optional)] checks if the generators gens generate the abstract group  \!\(\*SubsuperscriptBox[\(G\), \(m\), \(n\)]\)."
+checkAGGenRelations::usage="checkAGGenRelations[m,n,relat]  checks if the representation matrices of the generators satisfy the realtions between the generators "<>
+       "of the abstract group  \!\(\*SubsuperscriptBox[\(G\), \(m\), \(n\)]\). relat is a list of (string) relations, e.g. {\"Q2=E\",\"QP3=P3Q\",\"TS=P3ST\"}.";
 
 
 Begin["`Private`"]
@@ -2828,9 +2830,9 @@ AGIrepGen[96,4]={
 {"R4",{1,1,1,-1,-1}},
 {"R5",{im\[Pi],im\[CurlyEpsilon],im\[CurlyEpsilon],im\[Phi],im\[CurlyEpsilon]}},
 {"R6",{im\[Pi],im\[CurlyEpsilon],im\[CurlyEpsilon],im\[Phi],-im\[CurlyEpsilon]}},
-{"R7",{-im\[CurlyEpsilon],-im\[CurlyEpsilon],-im\[CurlyEpsilon],-im\[Lambda],im\[Phi]}},
-{"R8",{-im\[Pi],-im\[CurlyEpsilon],-im\[CurlyEpsilon],im\[Phi],im\[Lambda]}},
-{"R9",{-im\[Pi],-im\[CurlyEpsilon],-im\[CurlyEpsilon],im\[Phi],-im\[Lambda]}},
+{"R7",{-im\[CurlyEpsilon],-im\[CurlyEpsilon],-im\[CurlyEpsilon],im\[Kappa],im\[Phi]}},
+{"R8",{-im\[Pi],-im\[CurlyEpsilon],-im\[CurlyEpsilon],im\[Kappa],im\[Lambda]}},
+{"R9",{-im\[Pi],-im\[CurlyEpsilon],-im\[CurlyEpsilon],im\[Kappa],-im\[Lambda]}},
 {"R10",{imA,imG,imB,imU,imE}},
 {"R11",{imA,imG,imB,imU,imI}},
 {"R12",{imA,imG,imB,imV,imE}},
@@ -3055,7 +3057,7 @@ AGIrepGen[192,2]={
 {"R18",{ArrayFlatten[{{im\[Zeta]p,0},{0,im\[Eta]p}}],
 ArrayFlatten[{{I im\[Phi],0},{0,I im\[Phi]}}],
 ArrayFlatten[{{-im\[Alpha]pp,0},{0,-im\[Alpha]pp}}],
-ArrayFlatten[{{0,im\[CurlyEpsilon]},{-im\[CurlyEpsilon],0}}]}},
+ArrayFlatten[{{0,im\[CurlyEpsilon]},{im\[CurlyEpsilon],0}}]}},
 {"R19",{ArrayFlatten[{{0,im\[Zeta]p},{im\[Zeta]p,0}}],
 ArrayFlatten[{{I im\[Phi],0},{0,I im\[Phi]}}],
 ArrayFlatten[{{im\[Beta]pp,0},{0,im\[Gamma]pp}}],
@@ -3106,10 +3108,18 @@ getAGIrepClassMat[m_,n_,iR_,ic_]:=Module[{cs,gens},
 ]
 
 (* \:7efc\:5408\:68c0\:67e5 AGClasses, AGCharTab, AGIrepGen \:6570\:636e\:662f\:5426\:5f7c\:6b64\:517c\:5bb9 *)
-checkAGIrepMat[m_,n_]:=Module[{cs,ct,reps,nR,gens,ct2,tmp,noteq}, 
+checkAGIrepMat[m_,n_]:=Module[{cs,ct,reps,nR,gens,ct2,tmp,noteq,i,rep,myeq}, 
     cs=AGClasses[m,n]; ct=AGCharTab[m,n];
     nR=Length[ct];
     reps=Table[gens=AGIrepGen[m,n][[i,2]];Map[getAGIrepMat[gens,#]&,cs,{2}],{i,nR}];
+    myeq=Total@Abs@Flatten[{#1-#2}]<1.*^-10&;
+    For[i=1,i<=Length[reps],i++,     (*\:68c0\:67e5\:8868\:793a\:77e9\:9635\:7684\:5b8c\:5907\:6027*)
+      rep=Flatten[reps[[i]],1]//N//Union[#,SameTest->myeq]&;
+      tmp=Table[If[MatrixQ[m1],m1.m2,m1*m2],{m1,rep},{m2,rep}]//Simplify;
+      tmp=Union[Flatten[tmp,1],SameTest->myeq];
+      tmp=Complement[tmp,rep,SameTest->myeq];
+      If[tmp!={}, Print["Error, rep R",i," breaks completeness, matrix(es) ",tmp," not in the rep."]]
+    ];
     ct2=Map[If[!ListQ[#],#,Tr[#]]&,reps,{3}];
     ct2=Map[N,ct2,3]//Chop;
     (* \:5982\:679c\:4e0d\:660e\:786e\:6307\:5b9a SameTest \:7684\:8bdd\:ff0c\:660e\:660e\:76f8\:7b49\:7684\:4e24\:4e2a\:6570\:503c\:7ed3\:679c\:5b83\:5374\:5224\:65ad\:4e0d\:51fa\:6765\:3002\:53e6\:5916\:9700\:6ce8\:610f\:7cbe\:5ea6\:4e0d\:5f71\:54cd\:76f8\:7b49\:ff0c\:5373 N[Pi,4]\[Equal]N[Pi,8] \:8fd4\:56de\:7ed3\:679c\:662f True *)
@@ -3166,6 +3176,39 @@ checkAGGen[m_,n_,gens_,ie_,times_,myequal_]:=Module[{cs,elempower,nir,elem0,tmp,
     ];
     mtab2=Table[elem2pos[times[elem2[[i]],elem2[[j]]]], {i,m},{j,m}];
     If[mtab===mtab2, True, {False,Position[MapThread[SameQ,{mtab,mtab2},2],False]}]
+]
+
+(*\:68c0\:67e5\:8868\:793a\:751f\:6210\:5143\:662f\:5426\:6ee1\:8db3\:8be5\:62bd\:8c61\:7fa4\:7684\:751f\:6210\:5143\:4e4b\:95f4\:7684\:5173\:7cfb\:ff0c\:4f8b\:5982
+  checkAGGenRelations[32,11,{"P8=E","Q4=E","QP=P3Q3","Q2P=PQ2"}] *)
+checkAGGenRelations[m_,n_,relat_]:=Block[{P,Q,R,S,T,e,reps,checkeq,re={}},
+  checkeq[str_]:=Module[{e1,e2,s,s1,s2,n1,n2,p1,p2,sgen,ck,ismat},
+    s=DeleteCases[StringSplit[str,"="],""];
+    {s1,s2}=Characters/@s;
+    n1=Length[s1]; n2=Length[s2];
+    sgen={"P","Q","R","S","T","e","E"};
+    s1=s1/."E"->"e";  s2=s2/."E"->"e";
+    ismat=MatrixQ[ToExpression["AbstractGroupData`Private`"<>s1[[1]]]];
+    (ck[#]=True)&/@sgen;  ck[_]=False;
+    p1=(Position[s1,#]&/@sgen)//Flatten//Sort;
+    e1=If[#+1<=n1,s1[[{#,#+1}]],{s1[[#]],1}]&/@p1;
+    e1=MapAt[If[ck[#],1,#]&,e1,{All,2}];
+    e1={ToExpression["AbstractGroupData`Private`"<>#1],ToExpression[#2]}&@@@e1;
+    e1=If[ismat, Dot@@(MatrixPower[#1,#2]&@@@e1),Times@@(#1^#2&@@@e1)];
+    p2=(Position[s2,#]&/@sgen)//Flatten//Sort;
+    e2=If[#+1<=n2,s2[[{#,#+1}]],{s2[[#]],1}]&/@p2;  
+    e2=MapAt[If[ck[#],1,#]&,e2,{All,2}];
+    e2={ToExpression["AbstractGroupData`Private`"<>#1],ToExpression[#2]}&@@@e2;
+    e2=If[ismat, Dot@@(MatrixPower[#1,#2]&@@@e2),Times@@(#1^#2&@@@e2)];
+    {str,e1==e2//Simplify,e1,e2}
+  ];
+  reps=AGIrepGen[m,n];
+  Do[
+    {P,Q,R,S,T}=PadRight[ir[[2]],5,1];
+    e=If[MatrixQ[P],IdentityMatrix[Length[P]], 1];
+    AppendTo[re,{ir[[1]],Select[checkeq/@relat,#[[2]]=!=True&]}]
+    ,{ir,reps}];
+  re=Select[re,#[[2]]!={}&];
+  If[re=={}, True, re]
 ]
 
 

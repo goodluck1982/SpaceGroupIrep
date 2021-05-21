@@ -6,7 +6,7 @@
    
 (* Package Name: SpaceGroupIrep *)
 (* Author: Gui-Bin Liu *)
-(* Package verseion: 1.0.1 *)
+(* Package verseion: 1.0.2 *)
 (* Mathematica version: 11.2 *)
 (* License: GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt *)
 
@@ -159,6 +159,18 @@ getLGIrepTab::usage="getLGIrepTab[sgno, k]  gives the data for showing the irep 
    "None is replaced by the basic vectors, specific BZ type is selected.";
 getLGCharTab::usage="getLGCharTab[sgno, k]  gives the character table of the k little group of space group sgno, "<>
    "other infomation is the same as getLGIrepTab[sgno, k].";
+checkLGIrep::usage="checkLGIrep[repinfo]  checks whether the representation matrices in the result of getLGIrepTab "<>
+   "satisfy correct multiplications for LG IR. repinfo is the returned value of getLGIrepTab. Things are all right "<>
+   "if all the returned numbers are zero."
+getRepMat::usage="getRepMat[k,Gk,rep][RvOrRvList]  get the representation matrix(es) (or character(s)) of the "<>
+   "element or list of elements RvOrRvList. k is the k-point coordinates. Gk is the list of LG elements. rep is "<>
+   "the representation matrices (or characters) of Gk. rep can be for one representation or a list of representations.";
+getLGIrepMat::usage="getLGIrepMat[repinfo,IRids][RvOrRvList]  get the representation matrix(es) (or character(s)) "<>
+   "of the element or list of elements RvOrRvList "<>
+   "according to repinfo which returned by getLGIrepTab (or getLGCharTab). repinfo can be the List of Association "<>
+   "returned by getLGIrepTab (or getLGCharTab) (in this case the first Association is used) or one Association in "<>
+   "the List. IRids indicates the index(es) of the requested representations, such as 2 or {2,3,4}. IRids is optional, "<>
+   "and if it is omitted all representations are processed. An option \"uNumeric\" is available which is False by default.";
 showSeitz::usage="showSeitz[{Rname,v}]  shows the Seitz symbol of {Rname,v}. Options: \"format\" can be \"std\""<>
    "(default), \"simple\", or \"TeX\"; \"fullbar\" is True by default.";
 showLGIrepTab::usage="showLGIrepTab[sgno, k]  shows the table of ireps of k little group of space group sgno in "<>
@@ -2305,7 +2317,7 @@ detPointGroup[rots_]:=Module[{type, pg, type2, counts},
  
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Calculate the ireps of little group*)
 
 
@@ -2925,6 +2937,7 @@ showDLGIrepLabel[{m_,n_}]:=showRepLabel[{m,n}, "d"]
 (*getLGIrepTab and getLGCharTab*)
 
 
+Clear[formatRepMatDict];
 formatRepMatDict[_]=None
 formatRepMat[mat_]:=Module[{norm,arg,fl,pu,poth,num},
   If[MatrixQ[mat], Return@Map[formatRepMat,mat,{2}]];
@@ -2935,6 +2948,9 @@ formatRepMat[mat_]:=Module[{norm,arg,fl,pu,poth,num},
   num=Simplify[mat];
   If[Position[num,u]=={}, 
     norm=Norm[num]//FullSimplify;   arg=Arg[num]//FullSimplify;
+    (* For AG {48,6},{96,7},{96,8}, there are matrix elements Sqrt[2]+I or Sqrt[2]-I whose arg 
+       contains ArcTan or ArcCot, e.g. SG212, "R". In this case we do not use exp form. *)
+    If[Position[arg,ArcTan]!={}||Position[arg,ArcCot]!={}, formatRepMatDict[mat]=num; Return[num]];
     num=norm*E^(I*arg);
     If[MemberQ[{0,Pi,Pi/2,-Pi/2,Pi/4,3Pi/4,-Pi/4,-3Pi/4},arg], num=ComplexExpand[num]];
     formatRepMatDict[mat]=num;   Return[num]
@@ -3141,6 +3157,103 @@ getLGCharTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,irepTabs,mytr,toC
   ];
   toCT/@irepTabs
 ]
+
+
+(* ::Subsection:: *)
+(*checkLGIrep*)
+
+
+(* Check whether the representation matrices in the result of getLGIrepTab satisfy correct
+   multiplications for LG IR. Things are all right if all the returned numbers are zero.
+   e.g.   rep=getLGIrepTab[222,"R"]; 
+          checkLGIrep[rep]   or  checkLGIrep/@rep   or  checkLGIrep[rep[[1]]]    *)
+checkLGIrep[repinfo_]:=Module[{Gk,mtab,sirep,direp, time, brav, fBZ, rot2elem,n,tmp,sub,k,
+  itab,dvtab,ftab,rot2idx, repmtab, reptime, check, dtime,mtab2, bartab, empty},
+  If[ListQ[repinfo], Return[checkLGIrep/@repinfo]];
+  Gk=repinfo["Gkin"];   n=Length[Gk];
+  If[Position[repinfo["kinfo"],u]!={}, sub=repinfo["kinfo"][[9]], sub={}];
+  rot2elem=#[[1]]->#&/@Gk//Association;
+  rot2idx=Flatten[{Gk[[#,1]]->#,"bar"<>Gk[[#,1]]->#}&/@Range[n]]//Association;
+  sirep=repinfo["sirep"];  direp=repinfo["direp"];
+  fBZ=repinfo["kBZs"][[1,3]];  If[ListQ[fBZ], fBZ=fBZ[[1]]];
+  k=repinfo["kinfo"][[1]]; 
+  brav=If[StringTake[fBZ,-1]==")",StringTake[fBZ,1;;-4],fBZ];
+  time=SeitzTimes[brav];
+  mtab=Table[time[i,j],{i,Gk},{j,Gk}];
+  itab=Table[rot2idx[mtab[[i,j,1]]],{i,n},{j,n}];  
+  dvtab=Table[tmp=mtab[[i,j]];tmp=tmp[[2]]-rot2elem[tmp[[1]]][[2]],{i,n},{j,n}];
+  ftab=Table[Exp[-I*k.dvtab[[i,j]]*2Pi]//Chop,{i,n},{j,n}]; 
+  reptime[rep_,i_,j_]:=Module[{m1,m2},
+     m1=rep[[i]]; m2=rep[[j]];
+     If[MatrixQ[m1],m1.m2, m1*m2]//Simplify[#,u\[Element]Reals]&
+  ];
+  repmtab[rep_]:=Table[reptime[rep,i,j],{i,n},{j,n}];
+
+  dtime=DSGSeitzTimes[brav];
+  mtab2=Table[dtime[i,j],{i,Gk},{j,Gk}];  
+  bartab=Table[If[mtab2[[i,j,1]]==Gk[[itab[[i,j]],1]],1,-1],{i,n},{j,n}]; 
+
+  check[rep_,d_]:=Module[{diff, tab},
+    tab= Table[rep[[itab[[i,j]]]],{i,n},{j,n}]*ftab;
+    If[d=="d",tab=tab*bartab];
+    diff=Flatten[(repmtab[rep]-tab)/.sub];
+    Total@Abs[diff//N//Chop//Simplify]
+  ];
+   
+  empty=If[sirep=={}||direp=={}, 1, 0];
+  {empty, check[#,"s"]&/@sirep, check[#,"d"]&/@direp}//Simplify
+]
+
+
+(* ::Subsection:: *)
+(*getRepMat and getLGIrepMat*)
+
+
+(* Gk is the list of elements of the little group of k, and rep is the corresponding representation
+   matrices (or characters) of each elements in Gk. rep can be one representation or a list of 
+   representations.*)
+getRepMat[k_/;VectorQ[k],Gk_,rep_][RvOrRvList_]:=Module[{trans,ir,id,forOneRv,Rv1},
+  Rv1=If[StringQ[RvOrRvList[[1]]], RvOrRvList, RvOrRvList[[1]]];
+  If[Length[Rv1]==3, id={1,3}, id={1}];  (*compatible with magnetic little group*)
+  trans=Association[#[[id]]->#[[2]]&/@Gk];
+  ir=Association[Rule@@@Transpose[{Gk[[All,id]],rep}]];
+  (trans[MapAt["bar"<>#&,#,1]]=trans[#])&/@Gk[[All,id]];
+  (ir[MapAt["bar"<>#&,#,1]]=-ir[#])&/@Gk[[All,id]]; 
+  forOneRv[Rv_]:=Module[{dv,m}, 
+    m=ir[Rv[[id]]];
+    If[Head[m]===Missing, Print["getRepMat: no rotation ",
+       If[Length[id]==1,Rv[[1]],Rv[[id]]]," in the ",
+       If[Length[id]==1,"","magnetic "], "little group of k=",k,"."]; Abort[]];
+    dv=Rv[[2]]-trans[Rv[[id]]];   
+    If[modone[dv]!={0,0,0}, Print["getRepMat: Warning, the difference between ",Rv," and ",
+       Insert[Rv[[id]],trans[Rv[[id]]],2], " is not a lattice vector."]];
+    m*Exp[-I*k.dv*2Pi]//Simplify
+  ];
+  If[StringQ[RvOrRvList[[1]]], forOneRv[RvOrRvList], forOneRv/@RvOrRvList]
+]
+
+(* repinfo can be the output of getLGIrepTab or getLGCharTab *)
+Options[getLGIrepMat]={"uNumeric"->False};
+getLGIrepMat[repinfo_,OptionsPattern[]][RvOrRvList_]:=
+ getLGIrepMat[repinfo,All,"uNumeric"->OptionValue["uNumeric"]][RvOrRvList]
+getLGIrepMat[repinfo_,IRidx_,OptionsPattern[]][RvOrRvList_]:=
+ Module[{info,k,kinfo,Gk,nsir,ndir,sirep,direp,usub={},idx,reps,re},
+   info=If[ListQ[repinfo], repinfo[[1]], repinfo];
+   kinfo=info["kinfo"];   Gk=info["Gkin"];
+   If[Position[kinfo,Rule]=!={}, k=kinfo[[7]]+kinfo[[8]]; usub=kinfo[[9]], k=kinfo[[1]]];
+   sirep=info["sirep"];   direp=info["direp"];
+   If[Head[sirep]===Missing, sirep=info["scharTab"]; direp=info["dcharTab"]];
+   nsir=Length[sirep];    ndir=Length[direp];
+   If[IntegerQ[IRidx],idx={IRidx}];
+   idx=Check[Range[nsir+ndir][[If[IntegerQ[IRidx], {IRidx}, IRidx]]],
+             Print["getLGIrepMat: index of irep out of range [1,",nsir,"]\[Union][",nsir+1,
+             ",",nsir+ndir,"]."]; Abort[]];
+   reps=Join[sirep,direp][[idx]];
+   If[IntegerQ[IRidx], reps=reps[[1]], reps=reps\[Transpose]];
+   re=getRepMat[k,Gk,reps][RvOrRvList];
+   If[OptionValue["uNumeric"],re=re/.usub];
+   If[IntegerQ[IRidx]||StringQ[RvOrRvList[[1]]], re, re\[Transpose]]
+ ] 
 
 
 (* ::Subsection:: *)
