@@ -3,9 +3,8 @@ A mathematica package for irreducible representations of space group in BC conve
 book “The mathematical theory of symmetry in solids” by C. J. Bradley & A. P. Cracknell (called the BC book hereafter).
 
 ## Communications
-Users can join WeChat group for communications: [the QR code](https://2h437cg9.kuaizhan.com/a/xobAfRbwGe/qrcode)
-If you cannot join the WeChat group, please contact me through gbliu(AT)bit(dot)edu(dot)cn
-点击上面链接加入SpaceGroupIrep使用交流微信群，如无法加入可邮件联系。
+* Users can join WeChat group for communications: [the QR code](https://2h437cg9.kuaizhan.com/a/xobAfRbwGe/qrcode). If you cannot join the WeChat group, please contact me through gbliu(AT)bit(dot)edu(dot)cn.
+* 点击上面链接加入SpaceGroupIrep使用交流微信群，如无法加入可邮件联系。
 
 ## Please refer to the following paper for details of the code:
 * [Comput. Phys. Commun. **265** , 107993 (2021)](https://doi.org/10.1016/j.cpc.2021.107993)   ([arXiv:2012.08871](http://arxiv.org/abs/2012.08871))
