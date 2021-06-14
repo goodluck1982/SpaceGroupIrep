@@ -1772,7 +1772,7 @@ identifyBCHSKptBySG[sgno_, BZtypeOrBasVec_, klist_, OptionsPattern[]]/;
     ]
   ];   
         
-  identifyOneK[outk_]:=Module[{k,newk,op,G0,Gk0,Gk0name,star0,starP,kstar,R,kbd,Rkbd,sec,tag,Zpstar,re},
+  identifyOneK[outk_]:=Module[{k,newk,op,G0,Gk0,Gk0name,star0,starS,starP,kstar,R,kbd,Rkbd,sec,tag,Zpstar,re},
     If[GSQ[[2]]=={}&&GSQ[[3]]=={}, (* For case in which point gorup is holosymmetric. *)
       If[Length[outk]==4, Return[outk]]; (* UN or GP *)
       op=GSQ[[Sequence@@(Position[GSQ,outk[[6]]][[1,;;-2]])]];
@@ -1815,6 +1815,18 @@ identifyBCHSKptBySG[sgno_, BZtypeOrBasVec_, klist_, OptionsPattern[]]/;
         tag="in G";
        ]
      ];
+    (* \:82e5R\:5728Q\:4e2d\:ff0c\:5219\:5c1d\:8bd5\:4ece GSQ[[2]] \:4e2d\:627e\:5230\:64cd\:4f5c\:4f7f\:5176\:540c\:6837\:628ak\:8f6c\:5230 R.k\:3002
+       \:5426\:5219 getLGIRtab[144,{0.2,-0.6,-0.5}] \:4f1a\:51fa\:9519\:ff0c\:5176\:4e2dk\:70b9\:4e3a -S' \:70b9 *)
+    starS={#, getRotMatOfK[lat, #].kbd}&/@GSQ[[2,All,1]]; 
+    If[MemberQ[GSQ[[3]],R],
+      sec=Select[starS,keqmod[Rkbd,#[[2]]]&][[All,1]];
+      If[sec!={},
+        op=GSQ[[Sequence@@(Position[GSQ,First[sec]][[1,;;2]])]];
+        newk[[7]]=getRotMatOfK[lat,op[[1]]].newk[[5]];
+        tmp=If[Position[newk[[7]],u]!={}, newk[[-2]], {}];
+        newk[[8]]=Rationalize[(newk[[1]]-newk[[7]])/.tmp,0.1];
+       ]
+     ];
      
     If[sgno==205&&outk[[2]]=="Z"&&!MemberQ[G0,R],      
       Zpstar=Table[{i, getRotMatOfK[lat,i].{1/2,u,0}}, {i,G0}];
@@ -1837,7 +1849,7 @@ identifyBCHSKptBySG[sgno_, BZtypeOrBasVec_, klist_, OptionsPattern[]]/;
       Return[newk];
     ];
     
-    If[StringQ[op],  Print["k=",k,", S in Q", R]]; (* This case should not appear. *)
+    If[StringQ[op],  Print["k=",k,", S in Q: ", R]]; (* This case should not appear. *)
     newk=Append[newk,tag];   newk[[6]]=op;   newk[[4]]=Gk0name;
     Return[newk]
   ];
@@ -2230,7 +2242,7 @@ getCentExt[sgno_Integer,kname_,OptionsPattern[]]/;1<=sgno<=230&&StringQ[kname]:=
 
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*getSGElemAndSQ*)
 
 
