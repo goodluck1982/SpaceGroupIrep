@@ -66,6 +66,8 @@ BCHighSymKpt::usage="BCHighSymKpt is an association. \nKeys are full BZ types su
    "\nAnd values are informations of the high-symmetry k points given in BC Tab. 3.6.";
 showBCHSKpt::usage="showBCHSKpt[fullBZtype]  shows the informations of BCHighSymKpt[fullBZtype] in table form.";
 checkBCHSKpt::usage="checkBCHSKpt[fullBZtype]  checks whether informations of BCHighSymKpt satisfy necessary condition.";
+kBCcoord::usage="kBCcoord[bravORsgno, kname]  gives the k-point coordinates and corresponding BZs according to kname. "<>
+   "bravORsgno can be either the Bravais lattice or the SG number.";
 WSCell3DMesh::usage="WSCell3DMesh[recilatt]  returns a BoundaryMeshRegion object whichs is the Wigner-Seitz "<>
    "cell of the reciprocal lattice recilatt. ";
 findURange::usage="findURange[fullBZtype, basVec, kname]  retruns the range of u of a high-symmetry k line named "<>
@@ -130,6 +132,7 @@ getHLGElem::usage="Two usages:  getHLGElem[brav,{m,n},gens]  or  getHLGElem[sgno
 getLGElem::usage="getLGElem[sgno,k]  gives the little group of k for space gorup sgno. In fact this is only the coset "<>
    "representatives with respect to translation group. k can be either its name or coordinates. For double space group the "<>
    "option \"DSG\"->True is needed."
+getSGElem::usage="getSGElem[sgno]  gives the elements of space group sgno. This is equivalent to getLGElem[sgno,\"\[CapitalGamma]\"].";
 aCentExt::usage="Three usages:\naCentExt[sgno,kname,BZtype]  or  aCentExt[sgno,kname]  or  aCentExt[brav,Gk,k]\n"<>
    "This function gives the a(Hj,Hk) in the BC eq.(3.7.27) for central extension of little cogroup. kname is a string "<>
    "and k is coordinates. Gk is little group. If BZtype is not given, it is \"a\" by default. For double space group the "<>
@@ -159,6 +162,9 @@ getLGIrepTab::usage="getLGIrepTab[sgno, k]  gives the data for showing the irep 
    "None is replaced by the basic vectors, specific BZ type is selected.";
 getLGCharTab::usage="getLGCharTab[sgno, k]  gives the character table of the k little group of space group sgno, "<>
    "other infomation is the same as getLGIrepTab[sgno, k].";
+LGIRtwokRelation::usage="LGIRtwokRelation[repinfos]  or  LGIRtwokRelation[sgno,k]   gives the correspondence of "<>
+   "the LGIR labels between two knames if repinfos=getLGCharTab[sgno,k] has two items. The returned value is an "<>
+   "association.";
 checkLGIrep::usage="checkLGIrep[repinfo]  checks whether the representation matrices in the result of getLGIrepTab "<>
    "satisfy correct multiplications for LG IR. repinfo is the returned value of getLGIrepTab. Things are all right "<>
    "if all the returned numbers are zero."
@@ -185,6 +191,19 @@ getSGIrepTab::usage="getSGIrepTab[sgno, k]  gives the space group ireps of k sta
 showSGIrepTab::usage="showSGIrepTab[sgno, k]  shows the space group ireps of k star for space group sgno in "<>
    "table form. Default options of this function are \"uNumeric\"->False, \"irep\"->All, \"elem\"->All, "<>
    "\"rotmat\"->True, \"maxDim\"->4, \"trace\"->False, \"spin\"->\"downup\", \"abcOrBasVec\"->None, and \"linewidth\"->2.";
+getFullRepMat::usage="getFullRepMat[G,rep][RvOrRvList]  get the SG IR matrix(es) (or character(s), if "<>
+   "option \"trace\"->True is used) of the element or list of elements RvOrRvList. G is the list of SG elements. rep is "<>
+   "the representation matrices of G. rep can be for one representation or a list of representations. This function also "<>
+   "works for magnetic space group and corepresentations.";
+getSGIrepMat::usage="getSGIrepMat[repinfo,IRids][RvOrRvList]  get the representation matrix(es) (or character(s)) "<>
+   "of the element or list of elements RvOrRvList according to repinfo which returned by getSGIrepTab. repinfo can be "<>
+   "the List of Association returned by getSGIrepTab (in this case the first Association is used) or one Association in "<>
+   "the List. IRids indicates the index(es) of the requested representations, such as 2 or {2,3,4}. IRids is optional, "<>
+   "and if it is omitted all representations are processed. Options \"uNumeric\" and \"trace\" are available which "<>
+   "are both False by default.";
+checkSGIrep::usage="checkSGIrep[repinfo]  checks whether the representation matrices in the result of getSGIrepTab "<>
+   "satisfy correct multiplications for SG IR. repinfo is the returned value of getSGIrepTab. Things are all right "<>
+   "if all the returned numbers are zero."
 SGIrepDirectProduct::usage="SGIrepDirectProduct[sgno, kcoord1, kcoord2]  calculates the decomposition of the "<>
    "direct product of the SG ireps of kcoord1 star and SG ireps of kcoord2 star. Option \"abcOrBasVec\"->None "<>
    "is default, and if None is replaced by the basic vectors, specific BZ type is selected.";
@@ -1307,6 +1326,38 @@ checkBCHSKpt[fullBZtype_]:=Block[{u,keys, hsk, lat, i, j, opnames, op, k, ok=Tru
   If[ok, "OK", "NotOK"]
  ]
 
+kBCcoord[bravORsgno_, kname_String]:=Module[{ks,brav,sgno,tmp,kco,BZs,hsk,hskdict},
+  If[StringQ[bravORsgno], 
+    brav=bravORsgno; tmp=Values[BravLatt];
+    sgno=Association[Rule@@@Transpose[{tmp,{1,3,5,16,20,23,22,75,79,146,143,205,196,197}}]][brav];
+    If[!MemberQ[tmp,brav], Print["Bravais lattice should be one of ",InputForm/@tmp]; Abort[]],
+    (*-------else-------*)
+    sgno=bravORsgno; 
+    If[!IntegerQ[sgno]||sgno<=0||sgno>230, Print["Space group number should be an integer in [1,230]."]; Abort[]];
+    brav=getSGLatt[sgno];
+  ]; 
+  If[sgno==205&&kname=="Z'", Return[{{{1/2,u,0},{"CubiPrim"}}}]];
+  If[brav=="TrigPrim"&&kname=="aF", Return[{{{0,1/2,-1/2},{"TrigPrim(a)"}}}]];
+  If[brav=="TrigPrim"&&kname=="bF", Return[{{{1/2,1/2,0},{"TrigPrim(b)"}}}]];
+  ks=LGIrep[sgno]//Keys;
+  tmp=If[StringQ[bravORsgno]&&brav=="CubiPrim", " (Z' only for SG 205)",""];
+  (* If[brav\[Equal]"TrigPrim",ks=Insert[ks,"F",4]]; *)
+  If[!MemberQ[ks,kname],Print["kBCcoord: kname ",kname," is not in ",ks,tmp]; Abort[]];
+  BZs=Switch[brav,
+    "OrthBase", {"OrthBase(a)","OrthBase(b)"},
+    "OrthBody", {"OrthBody(a)","OrthBody(b)","OrthBody(c)"},
+    "OrthFace", {"OrthFace(a)","OrthFace(b)","OrthFace(c)","OrthFace(d)"},
+    "TetrBody", {"TetrBody(a)","TetrBody(b)"},
+    "TrigPrim", {"TrigPrim(a)","TrigPrim(b)"},
+    _, {brav} ];
+  hskdict=Association[Rule@@@BCHighSymKpt[#][[All,{1,3}]]]&;
+  hsk=hskdict/@BZs;
+  hsk=Select[{#[kname]&/@hsk,BZs}\[Transpose],!MissingQ[#[[1]]]&];
+  hsk=GatherBy[hsk,First];
+  hsk={#[[1,1]],#[[All,2]]}&/@hsk;
+  hsk
+]
+
 (* For certain parameters, this function, in fact the last sentence RegionIntersection,
    will not work correctly in mathematica 11.2, but can work well in mathematica 12.0. *)
 WSCell3DMesh[reciLatt_]/;MatrixQ[reciLatt,NumericQ]&&Dimensions[reciLatt]=={3,3} := 
@@ -2088,6 +2139,8 @@ getLGElem[sgno_Integer, k_, OptionsPattern[]]/;1<=sgno<=230&&VectorQ[k,NumericQ]
     If[OptionValue["DSG"], Gk=Join[Gk,{"bar"<>#1,#2}&@@@Gk]];
     Gk
   ]
+  
+getSGElem[sgno_Integer]/;1<=sgno<=230:=getLGElem[sgno,"\[CapitalGamma]"]
 
 
 (* ::Subsection:: *)
@@ -2946,6 +2999,7 @@ formatRepMat[mat_]:=Module[{norm,arg,fl,pu,poth,num},
   num=formatRepMatDict[mat];
   If[num=!=None, Return[num]];
   num=Simplify[mat];
+  If[Flatten[Position[num,#]&/@{t\:2081,t\:2082,t\:2083}]!={}, formatRepMatDict[mat]=num; Return[num]];
   If[Position[num,u]=={}, 
     norm=Norm[num]//FullSimplify;   arg=Arg[num]//FullSimplify;
     (* For AG {48,6},{96,7},{96,8}, there are matrix elements Sqrt[2]+I or Sqrt[2]-I whose arg 
@@ -3055,6 +3109,7 @@ getLGIrepTab[sgno_, kNameOrCoordOrInfodict_,OptionsPattern[]]:=Block[{u,brav,ks,
   
   If[AssociationQ[kNameOrCoordOrInfodict],   
     kLGrep=<||>;
+    kLGrep["symbol"]={SGSymStd[sgno],sgno};
     {kBZs,kinfo,Gkin}=Values[kNameOrCoordOrInfodict];
     kLGrep["kBZs"]=kBZs;   kLGrep["kinfo"]=kinfo;   kLGrep["Gkin"]=Gkin;
     kname=kBZs[[1,1]];   kstd=kBZs[[1,2]];
@@ -3205,18 +3260,18 @@ checkLGIrep[repinfo_]:=Module[{Gk,mtab,sirep,direp, time, brav, fBZ, rot2elem,n,
 ]
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*getRepMat and getLGIrepMat*)
 
 
 (* Gk is the list of elements of the little group of k, and rep is the corresponding representation
    matrices (or characters) of each elements in Gk. rep can be one representation or a list of 
    representations.*)
-getRepMat[k_/;VectorQ[k],Gk_,rep_][RvOrRvList_]:=Module[{trans,ir,id,forOneRv,Rv1},
-  Rv1=If[StringQ[RvOrRvList[[1]]], RvOrRvList, RvOrRvList[[1]]];
-  If[Length[Rv1]==3, id={1,3}, id={1}];  (*compatible with magnetic little group*)
+getRepMat[k_/;VectorQ[k],Gk_,rep_][RvOrRvList_]:=Module[{trans,ir,id,forOneRv,reps,oneRep,re},
+  If[Length[Gk[[1]]]==3, id={1,3}, id={1}];  (*compatible with magnetic little group*)
   trans=Association[#[[id]]->#[[2]]&/@Gk];
-  ir=Association[Rule@@@Transpose[{Gk[[All,id]],rep}]];
+  oneRep=Mod[Length@Dimensions[rep],2]==1;   reps=If[oneRep, rep, rep\[Transpose]];
+  ir=Association[Rule@@@Transpose[{Gk[[All,id]],reps}]];
   (trans[MapAt["bar"<>#&,#,1]]=trans[#])&/@Gk[[All,id]];
   (ir[MapAt["bar"<>#&,#,1]]=-ir[#])&/@Gk[[All,id]]; 
   forOneRv[Rv_]:=Module[{dv,m}, 
@@ -3229,7 +3284,8 @@ getRepMat[k_/;VectorQ[k],Gk_,rep_][RvOrRvList_]:=Module[{trans,ir,id,forOneRv,Rv
        Insert[Rv[[id]],trans[Rv[[id]]],2], " is not a lattice vector."]];
     m*Exp[-I*k.dv*2Pi]//Simplify
   ];
-  If[StringQ[RvOrRvList[[1]]], forOneRv[RvOrRvList], forOneRv/@RvOrRvList]
+  re=If[StringQ[RvOrRvList[[1]]], forOneRv[RvOrRvList], forOneRv/@RvOrRvList];
+  If[StringQ[RvOrRvList[[1]]]||oneRep, re, re\[Transpose]]
 ]
 
 (* repinfo can be the output of getLGIrepTab or getLGCharTab *)
@@ -3249,10 +3305,10 @@ getLGIrepMat[repinfo_,IRidx_,OptionsPattern[]][RvOrRvList_]:=
              Print["getLGIrepMat: index of irep out of range [1,",nsir,"]\[Union][",nsir+1,
              ",",nsir+ndir,"]."]; Abort[]];
    reps=Join[sirep,direp][[idx]];
-   If[IntegerQ[IRidx], reps=reps[[1]], reps=reps\[Transpose]];
+   If[IntegerQ[IRidx], reps=reps[[1]]];
    re=getRepMat[k,Gk,reps][RvOrRvList];
    If[OptionValue["uNumeric"],re=re/.usub];
-   If[IntegerQ[IRidx]||StringQ[RvOrRvList[[1]]], re, re\[Transpose]]
+   re
  ] 
 
 
@@ -3424,6 +3480,28 @@ Options[showLGCharTab]={"uNumeric"->False,"irep"->All,"elem"->All,"rotmat"->True
      "abcOrBasVec"->None, "linewidth"->2};
 showLGCharTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=showLGIrepTab[sgno,kNameOrCoord,
   Sequence@@(#->OptionValue[#]&/@{"uNumeric","irep","elem","rotmat","spin","abcOrBasVec","linewidth"}), "trace"->True]
+  
+
+LGIRtwokRelation[sgno_Integer,k_]:=LGIRtwokRelation[getLGCharTab[sgno,k]]
+LGIRtwokRelation[repinfos_]/;AllTrue[repinfos,AssociationQ]:=Module[{reps1,reps2,key,lbs1,lbs2,
+  sub1,sub2,idx,as1},
+  key=If[MissingQ[repinfos[[1]]["sirep"]], "charTab", "irep"];
+  lbs1=Join[repinfos[[1]]["slabel"],repinfos[[1]]["dlabel"]][[All,2]];
+  If[Length[repinfos]==1, Return[Association[(#->#)&/@lbs1]]];
+  lbs2=Join[repinfos[[2]]["slabel"],repinfos[[2]]["dlabel"]][[All,2]];
+  sub1=repinfos[[1]]["kinfo"][[9]];    sub2=repinfos[[2]]["kinfo"][[9]];
+  reps1=Join[repinfos[[1]]["s"<>key],repinfos[[1]]["d"<>key]]/.sub1;
+  reps2=Join[repinfos[[2]]["s"<>key],repinfos[[2]]["d"<>key]]/.sub2;
+  If[key=="irep",
+    reps1=Map[If[MatrixQ[#],Tr[#],#]&, reps1, {2}]//Simplify;
+    reps2=Map[If[MatrixQ[#],Tr[#],#]&, reps2, {2}]//Simplify;
+  ];
+  idx=Table[Position[Total@Abs[i-#]<1*^-5&/@reps2,True][[1,1]],{i,reps1}];
+  as1=Association@Thread[lbs1->lbs2[[idx]]];
+  If[repinfos[[1]]["kBZs"][[1,1]]!=repinfos[[2]]["kBZs"][[1,1]],
+    Join[as1, Association@Thread[lbs2[[idx]]->lbs1]],  as1
+  ]
+]
 
 
 (* ::Subsection:: *)
@@ -3549,6 +3627,7 @@ getSGIrepTab[sgno_Integer, kNameOrCoord_, OptionsPattern[]]:=Block[{u,t\:2081,t\
     Print[direp\[Equal]direp0];
     *)
     
+    SGtab["symbol"]={SGSymStd[sgno],sgno};
     SGtab["kBZs"]=LGtab["kBZs"];      SGtab["kinfo"]=LGtab["kinfo"];     
     G[[1]]=Ettt;   SGtab["elements"]=G; 
     SGtab["k1"]=k1;    SGtab["Gk1"]=Gk1;
@@ -3574,7 +3653,7 @@ showSGIrepTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,t\:2081,t\:2082,
   ];
   brav=getSGLatt[sgno];
   dmax=OptionValue["maxDim"];
-  rmRe0=Map[If[MachineNumberQ[#],If[Re[#]==0,Im[#]"\[ImaginaryI]",#],#]&, #, -1]&;
+  rmRe0=Map[If[MachineNumberQ[#],If[Re[#]==0,Which[Im[#]==1,I,Im[#]==-1,-I,True,Im[#]"\[ImaginaryI]"],#],#]&, #, -1]&;
   showmat[m_]:=If[!MatrixQ[m], rmRe0[m], If[Length[m]<=dmax, MatrixForm[rmRe0[m]], 
       tmp=Row[{"("<>ToString[#[[1,1]]]<>","<>ToString[#[[1,2]]]<>")",#[[2]]},":"]&;
       Partition[tmp/@ArrayRules[rmRe0[m]][[;;-2]],UpTo[2]]//Grid[#,Alignment->Left,ItemSize->Full]&
@@ -3611,7 +3690,7 @@ showSGIrepTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,t\:2081,t\:2082,
         Row[Row[{"  \!\(\*SubscriptBox[\(k\), \(BC\)]\)=(",Row[#[[2]],","],") for ",Row[#[[3]],","]}]&/@kBZs,"\n"]};
     If[Length[kBZs]==1, h3=Row[h3]];
     If[kname=="GP"||kname=="UN", h3={}];
-    h4="The k start:";
+    h4="The k star:";
     If[kinfo[[-1]]==="not in G", 
       h4=Row[{h4," (with \!\(\*SubscriptBox[\(k\), \(1\)]\)=\!\(\*SubscriptBox[\(Sk\), \(BC\)]\) and {S|w}=",showSeitz[kinfo[[6]]]," not in G)"}]];
     h5=Row[Row[{Subscript[If[#==1," k","k"], #],"=(",Row[kstar[[#]],","],")"}]&/@Range@Length[kstar],";  "];
@@ -3674,6 +3753,109 @@ showSGIrepTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,t\:2081,t\:2082,
     saytwok=Nothing
     ];
   Column[Prepend[showOneK/@irepTabs,saytwok], Spacings->2]
+]
+
+
+(* ::Subsection:: *)
+(*getFullRepMat and getSGIrepMat*)
+
+
+(* G is the list of elements of a (magnetic) space group, and rep is the corresponding representation
+   matrices of each elements in G. rep can be one representation or a list of representations.*)
+Options[getFullRepMat]={"trace"->False};
+getFullRepMat[G_,rep_,OptionsPattern[]][RvOrRvList_]:=Module[{trans,ir,id,forOneRv,
+  reps,oneRep,Ettt,re,times},
+  If[Length[G[[1]]]==3, id={1,3}, id={1}];  (*compatible with magnetic space group*)
+  trans=Association[#[[id]]->#[[2]]&/@G];
+  oneRep=Mod[Length@Dimensions[rep],2]==1;   reps=If[oneRep, rep, rep\[Transpose]];
+  ir=Association[Rule@@@Transpose[{G[[All,id]],reps}]];
+  (trans[MapAt["bar"<>#&,#,1]]=trans[#])&/@G[[All,id]];
+  (ir[MapAt["bar"<>#&,#,1]]=-ir[#])&/@G[[All,id]]; 
+  Ettt[{v1_,v2_,v3_}]:=reps[[1]]/.{t\:2081->v1,t\:2082->v2,t\:2083->v3};
+  times=If[MatrixQ[#1],#1.#2,#1*#2]&;
+  forOneRv[Rv_]:=Module[{dv,m,m2,tr}, 
+    m=ir[Rv[[id]]];
+    If[Head[m]===Missing, Print["getFullRepMat: no rotation ",
+       If[Length[id]==1,Rv[[1]],Rv[[id]]]," in the ",
+       If[Length[id]==1,"","magnetic "], "space group."]; Abort[]];
+    dv=Rv[[2]]-trans[Rv[[id]]];   
+    If[(Rv[[1]]=="E"||Rv[[1]]=="barE")&&modone[Rv[[2]]]!={0,0,0}||modone[dv]!={0,0,0}, 
+       Print["getFullRepMat: Warning, the difference between ",Rv," and ",
+       Insert[Rv[[id]],trans[Rv[[id]]],2], " is not a lattice vector."]];
+    m2=If[dv=={0,0,0}||Rv[[1]]=="E"||Rv[[1]]=="barE", m/.Thread[{t\:2081,t\:2082,t\:2083}->Rv[[2]]], 
+         If[oneRep, times[Ettt[dv],m], times@@@Transpose[{Ettt[dv],m}]]]//Simplify;
+    If[OptionValue["trace"]=!=True, m2,
+      tr=If[MatrixQ[#],Tr[#],#]&; If[oneRep, tr[m2], tr/@m2]
+    ]
+  ];
+  re=If[StringQ[RvOrRvList[[1]]], forOneRv[RvOrRvList], forOneRv/@RvOrRvList];
+  If[StringQ[RvOrRvList[[1]]]||oneRep, re, re\[Transpose]]
+]
+
+(* repinfo can be the output of getSGIrepTab *)
+Options[getSGIrepMat]={"uNumeric"->False,"trace"->False};
+getSGIrepMat[repinfo_,OptionsPattern[]][RvOrRvList_]:=
+ getSGIrepMat[repinfo,All,#->OptionValue[#]&/@{"uNumeric","trace"}][RvOrRvList]
+getSGIrepMat[repinfo_,IRidx_,OptionsPattern[]][RvOrRvList_]:=
+ Module[{info,G,kinfo,nsir,ndir,sirep,direp,usub={},idx,reps,re},
+   info=If[ListQ[repinfo], repinfo[[1]], repinfo];
+   G=info["elements"];  kinfo=info["kinfo"];
+   If[Position[kinfo,Rule]=!={}, usub=kinfo[[9]]];
+   sirep=info["sirep"];   direp=info["direp"];
+   nsir=Length[sirep];    ndir=Length[direp];
+   If[IntegerQ[IRidx],idx={IRidx}];
+   idx=Check[Range[nsir+ndir][[If[IntegerQ[IRidx], {IRidx}, IRidx]]],
+             Print["getSGIrepMat: index of irep out of range [1,",nsir,"]\[Union][",nsir+1,
+             ",",nsir+ndir,"]."]; Abort[]];
+   reps=Join[sirep,direp][[idx]];
+   If[IntegerQ[IRidx], reps=reps[[1]]];
+   re=getFullRepMat[G,reps,"trace"->OptionValue["trace"]][RvOrRvList];
+   If[OptionValue["uNumeric"],re=re/.usub];
+   re
+ ] 
+
+
+(* ::Subsection:: *)
+(*checkSGIrep*)
+
+
+(* Check whether the representation matrices in the result of getSGIrepTab satisfy correct
+   multiplications for SG IR. Things are all right if all the returned numbers are zero.
+   e.g.   rep=getSGIrepTab[222,"R"]; 
+          checkSGIrep[rep]   or  checkSGIrep/@rep   or  checkSGIrep[rep[[1]]]    *)
+checkSGIrep[repinfo_]:=Module[{G,mtab,sirep,direp, time, brav, fBZ, rot2elem,n,tmp,sub,
+  itab,dvtab,rot2idx, repmtab, reptime, check, dtime,mtab2, bartab, empty},
+  If[ListQ[repinfo], Return[checkSGIrep/@repinfo]];
+  G=repinfo["elements"]/.Thread[{t\:2081,t\:2082,t\:2083}->{0,0,0}];   n=Length[G];
+  (* If[Position[repinfo["kinfo"],u]!={}, sub=repinfo["kinfo"][[9]], sub={}]; *)
+  sub=u->0.1;
+  rot2elem=#[[1]]->#&/@G//Association;
+  rot2idx=Flatten[{G[[#,1]]->#,"bar"<>G[[#,1]]->#}&/@Range[n]]//Association;
+  sirep=repinfo["sirep"];  direp=repinfo["direp"];
+  fBZ=repinfo["kBZs"][[1,3]];  If[ListQ[fBZ], fBZ=fBZ[[1]]];
+  brav=If[StringTake[fBZ,-1]==")",StringTake[fBZ,1;;-4],fBZ];
+  time=SeitzTimes[brav];
+  mtab=Table[time[i,j],{i,G},{j,G}];
+  itab=Table[rot2idx[mtab[[i,j,1]]],{i,n},{j,n}];  
+  dvtab=Table[tmp=mtab[[i,j]];tmp=tmp[[2]]-rot2elem[tmp[[1]]][[2]],{i,n},{j,n}];
+  reptime[m1_,m2_]:=If[MatrixQ[m1],m1.m2, m1*m2]//Simplify[#,u\[Element]Reals]&;
+  repmtab[rep_]:=Table[reptime[rep[[i]],rep[[j]]],{i,n},{j,n}];
+
+  dtime=DSGSeitzTimes[brav];
+  mtab2=Table[dtime[i,j],{i,G},{j,G}];  
+  bartab=Table[If[mtab2[[i,j,1]]==G[[itab[[i,j]],1]],1,-1],{i,n},{j,n}]; 
+
+  check[rep_,d_]:=Module[{diff, tab, Ettt,rep1},
+    Ettt=rep[[1]]/.Thread[{t\:2081,t\:2082,t\:2083}->#]&;
+    rep1=rep;  rep1[[1]]=Ettt[{0,0,0}];
+    tab=Table[reptime[Ettt[dvtab[[i,j]]],rep1[[itab[[i,j]]]]],{i,n},{j,n}];
+    If[d=="d",tab=tab*bartab];
+    diff=Flatten[(repmtab[rep1]-tab)/.sub];
+    Total@Abs[diff//N//Chop//Simplify]
+  ];
+   
+  empty=If[sirep=={}||direp=={}, 1, 0];
+  {empty, check[#,"s"]&/@sirep, check[#,"d"]&/@direp}//Simplify
 ]
 
 
@@ -4272,10 +4454,11 @@ readPOSCAR[filename_String]:=Module[{poscar,basVec,a,pos,elem,nelem,type,n,ch,at
   If[ch=="S"||ch=="s", n++];   type=StringTake[poscar[[n++,1]],1];
   pos=poscar[[n;;,1;;3]];
   If[MemberQ[{"c","C","k","K"},type], pos=#.Inverse[basVec]&/@pos];
-  If[Length[pos]!=Total[nelem], 
+  If[Length[pos]<Total[nelem], 
     Print["readPOSCAR: Error! The number of atomic positions ",Length[pos]," does not equal to the ",
           "sum of numbers of atoms for each element ",nelem,"."];
     Abort[] ];
+  pos=pos[[;;Total[nelem]]];
   atsym=Flatten[Table[#1,#2]&@@@Transpose[{elem,nelem}]];
   sym2num=<|"H"->1,"He"->2,"Li"->3,"Be"->4,"B"->5,"C"->6,"N"->7,"O"->8,"F"->9,"Ne"->10,
     "Na"->11,"Mg"->12,"Al"->13,"Si"->14,"P"->15,"S"->16,"Cl"->17,"Ar"->18,"K"->19,"Ca"->20,
