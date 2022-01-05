@@ -6,7 +6,7 @@
    
 (* Package Name: SpaceGroupIrep *)
 (* Author: Gui-Bin Liu *)
-(* Package verseion: 1.0.4 *)
+(* Package verseion: 1.0.5 *)
 (* Mathematica version: >=11.2 *)
 (* License: GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt *)
 
@@ -127,6 +127,8 @@ DSGCentExtTimes::usage="DSGCentExtTimes[brav,adict][{Rname1,alpha},{Rname2,beta}
 DSGCentExtPower::usage="DSGCentExtPower[brav,adict][{Rname,alpha},n]  gives {Rname,alpha}^n for a central extension of "<>
    "little cogroup for double space group.";
 rotAxisAngle::usage="rotAxisAngle[O3RotMat]  gives the rotation axis and angle of an O(3) rotation matrix O3RotMat.";
+getKStar::usage="getKStar[sgno,kin]  gives the star of kin for space group sgno. kin can be the coordinates or name of the "<>
+   "k-point. Option \"cosets\"->True (default: False) will also gives the cosets.";
 generateGroup::usage="generateGroup[gens,identityElement,multiply]  gives all the elements of a group according to its "<>
    "generators, identity element, and multiplication.";
 modone::usage="modone[x]  is my version of Mod[x,1] in which x can be anything. For non-numeric quantity nothing is done.";
@@ -611,7 +613,7 @@ checkBasVec[brav_,bvec_]/;MatrixQ[bvec,NumericQ]&&Dimensions[bvec]=={3,3}:=
  ]
 
 
-(* ::Section::Closed:: *)
+(* ::Section:: *)
 (*Rotation matrices for each Bravais lattice (Tab. 3.2 and Tab. 3.4)*)
 
 
@@ -723,7 +725,7 @@ TMspglibToBC[brav_]:=Module[{spgbvec=<||>,BCbvec,rotBCbvec,Q,S1,BCrotMats=<||>,L
    120\:5ea6\:ff0c\:4e14a\:5728xy\:9762\:5185\:7684\:6295\:5f71a_xy\:6307\:5411+x\:65b9\:5411\:3002\:7136\:800c\:7a0b\:5e8f\:7684\:884c\:4e3a\:5e76\:975e\:5982\:6b64\:ff0cget_symmetry_dataset \:4e2d\:7ed9\:51fa\:7684 std_lattice\:ff0c
    \:4e5f\:5c31\:662f refine_cell \:7ed9\:51fa\:7684\:57fa\:77e2\:5e76\:975eR\:683c\:5b50\:ff0c\:800c\:662f\:4f20\:7edf\:516d\:89d2\:7684H\:683c\:5b50\:3002\:5373\:4f7f\:7528 find_primitive \:5f97\:5230\:7684R\:683c\:5b50\:57fa\:77e2\:5176\:53d6\:5411
    \:4e5f\:5e76\:975e\:5982\:7f51\:9875\:4e0a\:6240\:8bf4a_xy\:6307\:5411+x\:65b9\:5411\:ff0c\:800c\:662f\:6307\:5411\:4e0e+x\:65b9\:5411\:5939\:89d230\:5ea6\:7684\:65b9\:5411\:3002\:6545\:6700\:521d\:6309\:7f51\:9875\:4e0a\:8bf4\:7684\:53d6\:5411\:53bb\:5904\:7406\:5f97\:51fa\:7684\:7ed3\:679c\:4e0d\:5bf9\:3002
-   \:5173\:4e8e\:6b64\:95ee\:9898\:5df2\:5411 spglib \:63d0\:4ea4 bug\:ff0c\:5f97\:5230\:4e86\:80af\:5b9a\:7684\:56de\:590d\:ff0c\:540e\:7eed\:7248\:672c\:5982\:4f55\:4fee\:6539\:5c1a\:4e0d\:6e05\:695a\:3002
+   \:5173\:4e8e\:6b64\:95ee\:9898\:5df2\:5411 spglib \:63d0\:4ea4 bug\:ff0c\:5f97\:5230\:4e86\:80af\:5b9a\:7684\:56de\:590d\:ff0c\:540e\:7eed\:7248\:672c\:4e2d\:4fee\:6539\:4e86\:7f51\:9875\:63cf\:8ff0\:3002
      spgbvec["Trig"]={{a,0,c},{-a/2,a Sqrt[3]/2,c},{-a/2,-a Sqrt[3]/2,c}};
    BCrotMats["Trig"]=RotationMatrix[Pi/2,{0,0,1}]//Transpose;  *)
    (* \:6ce8\:610f\:ff1a BC\:4e66\:4e2dTab.3.1\:4e2dR\:683c\:5b50\:91cc\:7684 a,c \:5e76\:975e\:5bf9\:5e94\:4f20\:7edfH\:6676\:80de\:7684a\:548cc\:ff0c\:540e\:8005\:5206\:522b\:662f\:524d\:8005\:7684Sqrt[3]\:548c3\:500d\:3002 *)
@@ -1473,7 +1475,7 @@ findURange0[basVec_, kOrList_, bz_]/;MatrixQ[basVec,NumericQ]&&Dimensions[basVec
 findURange[fullBZtype_String, basVec_, kname_String]:=Block[{a,b,c,kumax,ks,brav,ckbv},
    kumax=doubleKuMax[fullBZtype];
    ks=Keys[kumax];
-   If[!MemberQ[ks,kname], Return[1/2]];
+   If[!MemberQ[ks,kname], Return@If[MemberQ[uMaxQuarter[fullBZtype],kname], 1/4, 1/2]];
    brav=StringTake[fullBZtype,8];
    ckbv=checkBasVec[brav,basVec];
    If[!(ckbv[[1]]&&brav<>If[ckbv[[2]]!="","("<>ckbv[[2]]<>")",""]==fullBZtype), 
@@ -1605,8 +1607,28 @@ keqmod[k1_,k2_]:=keqmod[k1,k2,1.0*^-5]
  
  {{{0.5,0.4,0.3},"GP","","C1"}}
 *)
-identifyBCHSKpt[fullBZtype_, klist_]/;MatrixQ[klist,NumericQ]&&Dimensions[klist][[2]]==3 :=
- Block[{u, keys, hsk, lat, stars0, stars, nstars, kstar, kstar0, Gk, G0, i, j, k1, iu, 
+(* 
+  When version<=1.0.4, the behavior is "selectNoTranslation"\[Rule]True, that is for high-symmetry line
+  the items with no rotation are first selected and then the items with no translations are selected.
+  However, when "items with no rotation" do not exist this may lead to items with different rotations
+  are selected for wave vectors differing by a reciprocal lattice vector (RLV). For example, 
+  identifyBCHSKpt["OrthFace(a)",{-0.1,-0.6,-0.5}][[2]]  gives
+  {{-0.1,-0.6,-0.5},"H","YH","C2v",{u,-(1/2)+u,-(1/2)},"C2y",{-u,-(1/2)-u,-(1/2)},{0,0,0},u\[Rule]0.1}
+  identifyBCHSKpt["OrthFace(a)",{ 0.9,-0.6,-0.5}][[2]]  gives
+  {{0.9,-0.6,-0.5},"H","YH","C2v",{u,-(1/2)+u,-(1/2)},"C2x",{-u,1/2-u,1/2},{1,-1,-1},u\[Rule]0.1}
+  The first selects "C2y" and the second selects "C2x". This will leads to different {S|w}.
+  And different {S|w} may leads to differnt labels for LGIR.
+  In fact, {-0.1,-0.6,-0.5} is equvilent to {0.9,-0.6,-0.5} and they should have the same LGIR labels.
+  To achieve this, we change the default behavior to "selectNoTranslation"\[Rule]False, that is only items 
+  with no rotation are selected first and whether translations are zero is not cared. 
+  This makes sure that k-points differing by RLV all have the same {S|w}.
+  Fortunately, after system check it's found that this change will not affect the result of krepBCStoBC.
+  Note that:
+  SetOptions[identifyBCHSKpt,"selectNoTranslation"\[Rule]True] will change the behavior to the former (\[LessEqual]v1.0.4). 
+*)
+Options[identifyBCHSKpt]={"selectNoTranslation"->False};
+identifyBCHSKpt[fullBZtype_, klist_, OptionsPattern[]]/;MatrixQ[klist,NumericQ]&&Dimensions[klist][[2]]==3 :=
+ Block[{u, keys, hsk, lat, stars0, stars, nstars, kstar, kstar0, Gk, G0, i, j, k1, iu,
          keq, sub, identifyOneK, hskp, prec = 1*^-5},
   keys = Keys[BCHighSymKpt];
   If[!MemberQ[keys,fullBZtype],
@@ -1635,29 +1657,31 @@ identifyBCHSKpt[fullBZtype_, klist_]/;MatrixQ[klist,NumericQ]&&Dimensions[klist]
       For[j = 1, j <= Length[stars0[[i]]], j++, k1=stars0[[i,j,2]];
        If[keq[k, k1],
         re=Append[re, Join@@{hsk[[i,{1,2,4,3}]], stars0[[i,j]], {Rationalize[k-k1,prec]}}];
-        (* Goto["endfor"] *)
         ]];  
       (* The 2nd round: equal after mod *)
       For[j = 1, j <= Length[stars[[i]]], j++, k1=stars[[i,j,2]];
        If[keqmod[k, k1],
         re=Append[re, Join@@{hsk[[i,{1,2,4,3}]], stars[[i,j]], {Rationalize[k-k1,prec]}}]; 
-        (* Goto["endfor"] *)
         ]];
       re=DeleteDuplicates[re];
       If[re!={},Break[]],
       (*-------- Else:  for High-symmetry k line --------*) 
       hskp=False;
       For[j = 1, j <= Length[stars0[[i]]], j++, k1=stars0[[i,j,2]];
-       iu=Position[k1,u][[1,1]];
-       sub=Solve[{k[[iu]]==k1[[iu]]}, u];
-       If[sub == {}, Continue[]];
-       sub=sub[[1, 1]];
-       sub=sub[[1]]->Mod[sub[[2]],1];
-       If[keqmod[k, k1/.sub],
-        re=Append[re, Join@@{hsk[[i,{1,2,4,3}]], stars0[[i,j]], {Rationalize[k-k1/.sub,prec], sub}}]
-       ]];
-      ];  (* end if *)
-     ]; (* end for *)
+      (* identifyBCHSKpt["HexaPrim",{4/5,1/10,1/2}] should return two items "S" and "S'", but if
+         iu takes only Position[k1,u][[1,1]] the output only has the "S'" term. *)
+       Do[
+        sub=Solve[{k[[iu]]==k1[[iu]]}, u];
+        If[sub == {}, Continue[]];
+        sub=sub[[1, 1]];
+        sub=sub[[1]]->Mod[sub[[2]],1];
+        If[keqmod[k, k1/.sub],
+         re=Append[re, Join@@{hsk[[i,{1,2,4,3}]], stars0[[i,j]], {Rationalize[k-k1/.sub,prec], sub}}]; Break[]
+        ];
+       ,{iu, Position[k1,u][[All,1]]}]; (* end do*)
+       ]; (* end for j *)
+      ];  (* end if hskp *)
+     ]; (* end for i *)
     Label["endfor"];    
     (* There may be more than one high-symmetry-line point matching a given k. 
        In this case we choose for each kname the one with smallest u. *)
@@ -1668,13 +1692,14 @@ identifyBCHSKpt[fullBZtype_, klist_]/;MatrixQ[klist,NumericQ]&&Dimensions[klist]
         (*------else: hskp\[Equal]False------*)
         re=Gather[re,First[#1]==First[#2]&];  
         re=MinimalBy[#, Round[Last[#][[2]],1.*^-14] &]&/@re; 
-        (*re=With[{s=Select[#,#[[-2]]=={0,0,0}&]}, If[s!={},{First[s]},{First[#]}]]&/@re;*)
-        (*re=With[{s=Select[#,#[[5]]\[Equal]"E"&]}, If[s!={},{First[s]},{First[#]}]]&/@re*);
-        (*For hskp\[Equal]False, we prefer to first select the one with no rotation, then the one
-                           with no translation. *)
+        (*For hskp\[Equal]False, we prefer to first select the one with no rotation, then whether to select the one
+                           with no translation depends on the option "selectNoTranslation". *)
         re=With[{s=Select[#,#[[5]]=="E"&]}, 
              If[s!={},{First[s]},
-               With[{s2=Select[#,#[[-2]]=={0,0,0}&]}, If[s2!={},{First[s2]},{First[#]}]]
+               If[OptionValue["selectNoTranslation"]===True,
+                 With[{s2=Select[#,#[[-2]]=={0,0,0}&]}, If[s2!={},{First[s2]},{First[#]}]], (*the behavior of version\[LessEqual]v1.0.4*)
+                 {First[#]} (*default behavior of version \[GreaterEqual] v1.0.5*)
+               ]
            ]]&/@re;
         re=Flatten[re,1];      
         ];
@@ -1685,8 +1710,9 @@ identifyBCHSKpt[fullBZtype_, klist_]/;MatrixQ[klist,NumericQ]&&Dimensions[klist]
   identifyOneK /@ klist
  ]
 
-identifyBCHSKpt[fullBZtype_, k_]/;VectorQ[k,NumericQ]&&Dimensions[k]=={3} :=
-  With[{re = identifyBCHSKpt[fullBZtype, {k}]}, If[re === Null, re, re[[1]]]]
+identifyBCHSKpt[fullBZtype_, k_, OptionsPattern[]]/;VectorQ[k,NumericQ]&&Dimensions[k]=={3} :=
+  With[{re = identifyBCHSKpt[fullBZtype, {k}, "selectNoTranslation"->OptionValue["selectNoTranslation"]]}, 
+       If[re === Null, re, re[[1]]]]
 
 
 (* These kpoints are all in high-symmetry lines and each pair are in the same k-star.
@@ -1749,6 +1775,13 @@ doubleKuMax[fullBZtype_]:=Block[{a,b,c,tri={1,1,1}},
  ]
 ]
 
+(*List of klines which have umax=1/4 but are not have double knames.*)
+uMaxQuarter[bravOrFullBZtype_String]:=Switch[StringTake[bravOrFullBZtype,8],
+  "OrthBody", {"P","D","Q"},    "TetrBody", {"W","Q"},
+  "CubiFace", {"Z","Q"},        "CubiBody", {"D"},
+  _, {}
+]
+
 
 (* Identify k-points according to a certain space group. The 2nd parameter BZtypeOrBasVec may be 
    either "a","b","c","d" or the basic vectors of the lattice. 
@@ -1778,7 +1811,8 @@ identifyBCHSKptBySG[sgno_, BZtypeOrBasVec_, klist_, OptionsPattern[]]/;
   
   (* Initialize all uRange=0.5 first, and then set them to the right value. *)
   hslk=hsk[[Select[Range[Length[hsk]],hsk[[#,2]]!=""&],1]];
-  (uRange[#]=0.5)&/@hslk;
+  (uRange[#]=0.5)&/@hslk; 
+  (uRange[#]=0.25)&/@uMaxQuarter[fullBZtype];
   dbkn=Keys@doubleKuMax[fullBZtype];
   If[dbkn!={},
     If[MatrixQ[BZtypeOrBasVec,NumericQ],
@@ -1796,7 +1830,6 @@ identifyBCHSKptBySG[sgno_, BZtypeOrBasVec_, klist_, OptionsPattern[]]/;
       If[fullBZtype=="HexaPrim",uRange["T"]=uRange["S"]=1/3; uRange["T'"]=uRange["S'"]=1/6]
     ];
   ];
-
   (* Process outklist. Select one k for each item of outklist according to uRange. *)
   For[i=1,i<=Length[outklist],i++,
     kk=outklist[[i,All,2]]; 
@@ -2088,7 +2121,7 @@ rotAxisAngle[O3RotMat_]/;MatrixQ[O3RotMat,NumericQ]:=
 ]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Generate a group using generators*)
 
 
@@ -2395,6 +2428,21 @@ getSGElemAndSQ[sgno_Integer]/;1<=sgno<=230:=Block[{times,inv,G,SGiS,Q,P,gens,AGn
   ,{S,tryS}];
 
   {G,selectedS,Q}
+]
+
+
+(* ::Subsection:: *)
+(*Get the star of a k-point*)
+
+
+Options[getKStar]={"cosets"->False};
+getKStar[sgno_Integer, kin_, OptionsPattern[]]:=Module[{k,SG,brav,kall,star0,star,cosets},
+  k=If[!StringQ[kin], kin, kBCcoord[sgno,kin][[1,1]]];
+  SG=getSGElem[sgno];   brav=getSGLatt[sgno];
+  kall={getRotMatOfK[brav,#[[1]]].k, #}&/@SG;
+  star0=Gather[kall,keqmod[#1[[1]],#2[[1]]]&];
+  star=star0[[All,1,1]];   cosets=star0[[All,All,2]];
+  If[OptionValue["cosets"]===True, {star,cosets}, star]
 ]
 
 
@@ -3145,7 +3193,9 @@ getLGIrepTab[sgno_, kNameOrCoordOrInfodict_,OptionsPattern[]]:=Block[{u,brav,ks,
     If[kname=="aF", kBZs={{"F",{0,1/2,-1/2},{"TrigPrim(a)"}}}; Goto["end kname"]];
     If[kname=="bF", kBZs={{"F",{1/2,1/2,0}, {"TrigPrim(b)"}}}; Goto["end kname"]];
     tmp={#,Select[BCHighSymKpt[#],#[[1]]==kname&]}&/@BZtypes;
-    tmp={#[[2,1,3]],#[[1]]}&/@Select[tmp,#[[2]]!={}&];
+    tmp=Select[tmp,#[[2]]!={}&];
+    If[tmp=={}, Print["getLGCharTab: kpoint ",kname," does not exist in ",BZtypes]; Abort[]];
+    tmp={#[[2,1,3]],#[[1]]}&/@tmp;
     tmp=Gather[tmp,First[#1]==First[#2]&];
     kBZs={kname,#[[1,1]],#[[All,2]]}&/@tmp;
     Label["end kname"];
@@ -3197,10 +3247,16 @@ getLGIrepTab[sgno_, kNameOrCoordOrInfodict_,OptionsPattern[]]:=Block[{u,brav,ks,
   
   If[AssociationQ[kNameOrCoordOrInfodict],   
     kLGrep=<||>;
-    kLGrep["symbol"]={SGSymStd[sgno],sgno};
+    kLGrep["symbol"]={SGSymStd[sgno],sgno,SGSymBC[sgno]};
     {kBZs,kinfo,Gkin}=Values[kNameOrCoordOrInfodict];
     kLGrep["kBZs"]=kBZs;   kLGrep["kinfo"]=kinfo;   kLGrep["Gkin"]=Gkin;
     kname=kBZs[[1,1]];   kstd=kBZs[[1,2]];
+    (*fix20211227: 
+    \:5bf9\:4e8e\:591aBZ\:60c5\:51b5\:4e0b\:540c\:4e00k\:540d\:79f0\:4e0d\:540cBZ\:7c7b\:578b\:4e0b\:7684k\:70b9\:5750\:6807\:76f8\:5dee\:5012\:683c\:77e2\:7684\:60c5\:51b5\:ff08\:53ea\:6709\:4ee5\:4e0b\:56db\:79cd\:ff09\:ff0c\:5bf9\:4e0d\:540cBZ\:8981\:9009\:62e9
+    \:76f8\:540c\:7684kstd\:ff0c\:8fd9\:6837\:624d\:80fd\:4fdd\:8bc1\:540c\:4e00\:5c0f\:8868\:793a\:540d\:79f0\:5bf9\:5e94\:7684\:5c0f\:8868\:793a\:4e00\:6837\:ff0c\:5426\:5219\:53ef\:80fd\:4e0d\:4e00\:6837\:ff0c\:539f\:56e0\:5728\:4e8eBC\:662f\:5bf9\:4e2d\:5fc3\:6269\:5c55\:7684
+    \:8868\:793a\:547d\:540d\:7684\:ff0c\:4f46\:5b9e\:9645\:63cf\:8ff0\:7684\:5374\:662f\:5c0f\:8868\:793a\:ff0c\:6545\:6362\:7b97\:6210\:5c0f\:8868\:793a\:65f6\:76f8\:5dee\:5012\:683c\:77e2\:7684k\:70b9\:5f97\:51fa\:7684\:7ed3\:679c\:53ef\:80fd\:4e0d\:540c\:3002*)
+    If[MemberQ[{{"OrthBase","H"},{"OrthBody","G"},{"OrthBody","F"},{"OrthBody","U"}},{brav,kname}],
+      kstd=kBCcoord[sgno,kname][[1,1]]];
     kname2=If[brav=="TrigPrim"&&kname=="F", StringTake[kBZs[[1,3]],{-2,-2}]<>"F", kname];
     
     If[kname=="GP"||kname=="UN", hskp=False;  
@@ -3348,7 +3404,7 @@ checkLGIrep[repinfo_]:=Module[{Gk,mtab,sirep,direp, time, brav, fBZ, rot2elem,n,
 ]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*getRepMat and getLGIrepMat*)
 
 
@@ -3378,9 +3434,9 @@ getRepMat[k_/;VectorQ[k],Gk_,rep_][RvOrRvList_]:=Module[{trans,ir,id,forOneRv,re
 
 (* repinfo can be the output of getLGIrepTab or getLGCharTab *)
 Options[getLGIrepMat]={"uNumeric"->False};
-getLGIrepMat[repinfo_,OptionsPattern[]][RvOrRvList_]:=
+getLGIrepMat[repinfo_,OptionsPattern[]][RvOrRvList_]/;AssociationQ[repinfo]||VectorQ[repinfo,AssociationQ]:=
  getLGIrepMat[repinfo,All,"uNumeric"->OptionValue["uNumeric"]][RvOrRvList]
-getLGIrepMat[repinfo_,IRidx_,OptionsPattern[]][RvOrRvList_]:=
+getLGIrepMat[repinfo_,IRidx_,OptionsPattern[]][RvOrRvList_]/;AssociationQ[repinfo]||VectorQ[repinfo,AssociationQ]:=
  Module[{info,k,kinfo,Gk,nsir,ndir,sirep,direp,usub={},idx,reps,re},
    info=If[ListQ[repinfo], repinfo[[1]], repinfo];
    kinfo=info["kinfo"];   Gk=info["Gkin"];
@@ -3460,7 +3516,7 @@ showLGIrepTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,irepTabs,showOne
 
   showOneK[irepTab_]:=Module[{kname,kBZs,kinfo,Gkin,GkBC,dGkBC,slbl,sre,sirep,dlbl,dre,direp,
     rot,trans,srot,table,nelem,nsir,ndir,sfl,sfa,nc,nr,nfrom,head,h1,h2,h3,h4,h5,grid,sty1,sty2,
-    thickHLines,tmp,nsir1,ndir1,bg1,bg2,bg3,bg4,bg5,bg6,nstart},
+    thickHLines,tmp,nsir1,ndir1,bg1,bg2,bg3,bg4,bg5,bg6,nstart,symstd,symBC},
     kBZs=irepTab["kBZs"];      kinfo=irepTab["kinfo"];     kname=kinfo[[2]];
     Gkin=irepTab["Gkin"];        GkBC=irepTab["GkBC"];         dGkBC=irepTab["dGkBC"];
     slbl=irepTab["slabel"];    sre=irepTab["sreality"];    
@@ -3476,8 +3532,10 @@ showLGIrepTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,irepTabs,showOne
     nsir1=Length[idxsir];    ndir1=Length[idxdir];
     idxelm=Check[Range[nelem][[If[IntegerQ[tmp=OptionValue["elem"]], {tmp}, tmp]]],
                Print["showLGIrepTab: index of element out of range [1,",nelem,"]"]; Abort[]];
-    
-    h1=Row[{"No.",sgno," ",SGSymStd[sgno],":  k-point name is ",kname}," "];
+
+    {symstd,symBC}=irepTab["symbol"][[{1,3}]];
+    tmp=If[symBC=!=symstd,Row[{"","(","BC:",symBC,")"}," "], Nothing];    
+    h1=Row[{"No.",sgno," ",symstd,tmp,":  k-point name is ",kname}," "];
     h2=If[VectorQ[kNameOrCoord], Row[{"Input: \!\(\*SubscriptBox[\(k\), \(in\)]\)=(",Row[kNameOrCoord,","],")"}], {}];
     If[h2=!={}&&Position[kinfo,Rule]!={}, h2=Row[{h2,"  (u=",kinfo[[9,2]],")"}]];
     h3={"BC standard:", 
@@ -3715,7 +3773,7 @@ getSGIrepTab[sgno_Integer, kNameOrCoord_, OptionsPattern[]]:=Block[{u,t\:2081,t\
     Print[direp\[Equal]direp0];
     *)
     
-    SGtab["symbol"]={SGSymStd[sgno],sgno};
+    SGtab["symbol"]=LGtab["symbol"];
     SGtab["kBZs"]=LGtab["kBZs"];      SGtab["kinfo"]=LGtab["kinfo"];     
     G[[1]]=Ettt;   SGtab["elements"]=G; 
     SGtab["k1"]=k1;    SGtab["Gk1"]=Gk1;
@@ -3757,7 +3815,7 @@ showSGIrepTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,t\:2081,t\:2082,
 
   showOneK[irepTab_]:=Module[{kname,kBZs,kinfo,Gk1,k1,slbl,sre,sirep,dlbl,dre,direp,kstar,G,
     rot,trans,srot,table,nelem,nsir,ndir,sfl,sfa,nc,nr,nfrom,head,h1,h2,h3,h4,h5,grid,sty1,sty2,
-    thickHLines,nsir1,ndir1,bg1,bg2,bg3,bg4,nstart},
+    thickHLines,nsir1,ndir1,bg1,bg2,bg3,bg4,nstart,symstd,symBC},
     kBZs=irepTab["kBZs"];      kinfo=irepTab["kinfo"];     kname=kinfo[[2]];
     k1=irepTab["k1"];          Gk1=irepTab["Gk1"];         kstar=irepTab["kstar"];
     slbl=irepTab["slabel"];    sre=irepTab["sreality"];    sirep=irepTab["sirep"]//Chop;
@@ -3777,7 +3835,9 @@ showSGIrepTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,t\:2081,t\:2082,
     idxelm=Check[Range[nelem][[If[IntegerQ[tmp=OptionValue["elem"]], {tmp}, tmp]]],
                Print["showLGIrepTab: index of element out of range [1,",nelem,"]"]; Abort[]];
     
-    h1=Row[{"No.",sgno," ",SGSymStd[sgno],":  k-point name is ",kname}," "];
+    {symstd,symBC}=irepTab["symbol"][[{1,3}]];
+    tmp=If[symBC=!=symstd,Row[{"","(","BC:",symBC,")"}," "], Nothing];    
+    h1=Row[{"No.",sgno," ",symstd,tmp,":  k-point name is ",kname}," "];
     h2=If[VectorQ[kNameOrCoord], Row[{"Input: \!\(\*SubscriptBox[\(k\), \(in\)]\)=(",Row[kNameOrCoord,","],")"}], {}];
     If[h2=!={}&&Position[kinfo,Rule]!={}, h2=Row[{h2,"  (u=",kinfo[[9,2]],")"}]];
     h3={"BC standard:", 
@@ -4338,16 +4398,20 @@ readVasp2trace[filename_String]:=Module[{dat,nelec,soc,nsym,i,j,rot,trans,srot,n
 ]
 
 Protect[CompressDegeneracy];
-Options[getBandRep]={CompressDegeneracy->True};
+Options[getBandRep]={CompressDegeneracy->True, "showdim"->True};
 (* Note that the parameter traceData here corresponds to primitive cell of BC setting. *)
 getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, ikOrListOrSpan_, ibOrListOrSpan_, OptionsPattern[]]/;
- And@@(IntegerQ[#]||ListQ[#]||Head[#]==Span||#==All&/@{ikOrListOrSpan,ibOrListOrSpan}):=
- Block[{u,a,c,bandRepOneK,kinfoList,bv,BZtype="",brav,rotName,iks,iik,ibs0,iball,kpathstr,re,dsg,sx},
-  iks=If[IntegerQ[ikOrListOrSpan],{ikOrListOrSpan},Range[traceData["nk"]][[ikOrListOrSpan]]];
+ And@@(Position[#,Rule]=={}&&(IntegerQ[#]||ListQ[#]||Head[#]==Span||#==All)&/@{ikOrListOrSpan,ibOrListOrSpan}):=
+ Module[{bandRepOneK,kinfoList,bv,BZtype="",brav,rotName,iks,iik,ibs0,iball,kpathstr,re,dsg,sx},
+  iks=Check[Range[traceData["nk"]][[ikOrListOrSpan]],
+        Print["getBandRep: ik ",ikOrListOrSpan," out of range [1,",traceData["nk"],"]."]; Abort[],
+        {Part::partw,Part::pkspec1,Part::take}];
+  If[IntegerQ[ikOrListOrSpan], iks={iks}];
   iball=Range[traceData["nband"]];
-  ibs0=If[IntegerQ[ibOrListOrSpan], {ibOrListOrSpan}, iball[[ibOrListOrSpan]]];
-  If[Max[iks]>traceData["nk"], Print["Max ik ",Max[iks]," should not > ",traceData["nk"]]; Abort[]];
-  If[Max[ibs0]>traceData["nband"], Print["Max ib ",Max[ibs0]," should not > ",traceData["nband"]]; Abort[]];
+  ibs0=Check[iball[[ibOrListOrSpan]],
+        Print["getBandRep: ib ",ibOrListOrSpan," out of range [1,",traceData["nband"],"]."]; Abort[],
+        {Part::partw,Part::pkspec1,Part::take}];
+  If[IntegerQ[ibOrListOrSpan], ibs0={ibs0}]; 
   iik=Association[Rule@@@Transpose[{iks,Range[Length[iks]]}]]; 
   kinfoList=identifyBCHSKptBySG[sgno,BZtypeOrBasVec,traceData["kpt"][[iks]]];
   brav=getSGLatt[sgno];
@@ -4382,6 +4446,7 @@ getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, ikOrListOrSpan_, ibOrListOrS
     kisym=traceData["kisym"][[ik]];
     Gk={rotName[[kisym]],traceData["trans"][[kisym]]}\[Transpose];
     deg=traceData["deg"][[ik]];
+    ibs=ibs0;
     If[OptionValue[CompressDegeneracy],
       {ibs2,deg2}=Transpose@
            ((Reap@For[i=1,i<=Last[iball],i++,Sow[{i,deg[[i]]}];i+=deg[[i]]-1;])[[2,1]]);
@@ -4445,7 +4510,11 @@ getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, ikOrListOrSpan_, ibOrListOrS
     ];
     
     If[IntegerQ[gens[[1,2]]],  (* for high-symmetry line *)
-      kBD=kinfo[[5]]/.kinfo[[-3]]; (* the k in basic domain *)
+      (*see fix20211227*)
+      If[MemberQ[{{"OrthBase","H"},{"OrthBody","G"},{"OrthBody","F"},{"OrthBody","U"}},{brav,kname}],
+        kBD=kBCcoord[sgno,kname][[1,1]]/.kinfo[[-3]],
+        kBD=kinfo[[5]]/.kinfo[[-3]]; 
+      ]; (* the k in basic domain *)
       CE=getCentExt[sgno,kname,"DSG"->dsg];  g=Max[CE[[All,2]]]+1;
       idx=Position[Gk1rots,#[[1]]][[1,1]]&/@CE;
       facbar=Table[1,Length[CE]];
@@ -4497,7 +4566,10 @@ getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, ikOrListOrSpan_, ibOrListOrS
       as=If[#==1,"",ToString[#,InputForm]]&/@repR[[i,2,iR]];
       rs=repLabel/@iR;  
       tmp=StringRiffle[#1<>#2&@@@Transpose[{as,rs[[All,1]]}],"\[CirclePlus]"];
-      tmp={tmp,StringRiffle[#1<>#2<>"("<>ToString[#3]<>")"&@@@Transpose[{as,rs[[All,2]],rs[[All,3]]}],"\[CirclePlus]"]};
+      If[OptionValue["showdim"],
+        tmp={tmp,StringRiffle[#1<>#2<>"("<>ToString[#3]<>")"&@@@Transpose[{as,rs[[All,2]],rs[[All,3]]}],"\[CirclePlus]"]},
+        tmp={tmp,StringRiffle[#1<>#2&@@@Transpose[{as,rs[[All,2]]}],"\[CirclePlus]"]}
+      ];
       If[VectorQ[repR[[i,2]],IntegerQ], (* The multiplicities of reps should be integers. *)
         rep[[i]]={tmp1,traceData["ene"][[ik,ib]],deg[[ib]],tmp},
         (* rep[[i]]={tmp1,traceData["ene"][[ik,ib]],deg[[ib]],"??"<>#<>"??"&/@tmp}; (*for debug*);
@@ -4517,10 +4589,11 @@ getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, ikOrListOrSpan_, ibOrListOrS
   re
 ]
 
-getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, ikOrListOrSpan_, OptionsPattern[]]:=
-  getBandRep[sgno,BZtypeOrBasVec,traceData, ikOrListOrSpan, All, CompressDegeneracy->OptionValue[CompressDegeneracy]]
+getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, ikOrListOrSpan_, OptionsPattern[]]/;
+  And@@(Position[#,Rule]=={}&&(IntegerQ[#]||ListQ[#]||Head[#]==Span||#==All)&@ikOrListOrSpan):=
+  getBandRep[sgno,BZtypeOrBasVec,traceData, ikOrListOrSpan, All, CompressDegeneracy->OptionValue[CompressDegeneracy], "showdim"->OptionValue["showdim"]]
 getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, OptionsPattern[]]:= 
-  getBandRep[sgno,BZtypeOrBasVec,traceData, All, All, CompressDegeneracy->OptionValue[CompressDegeneracy]]
+  getBandRep[sgno,BZtypeOrBasVec,traceData, All, All, CompressDegeneracy->OptionValue[CompressDegeneracy], "showdim"->OptionValue["showdim"]]
   
 (* Convert the traceData from any primitive input cell to the trace data for BC cell. 
    P, p0, and stdR are the dataset['transformation_matrix'], dataset['origin_shift'] 
@@ -4616,8 +4689,8 @@ autoConvTraceToBC[poscarFile_,traceData_,prec_,OptionsPattern[]]:=
  Module[{cell,BCcell,sym,ops1,ops2,ops3,brav,ckbv,trdat,sgno,U,Q,t0,S,R},
   cell=readPOSCAR[poscarFile];
   sym=spglibGetSym[Values[cell][[1;;3]],prec];
-  ops1=Transpose[{sym["rot"],Round[modone[sym["trans"]],prec]}];
-  ops2=Transpose[{traceData["rot"],Round[modone[traceData["trans"]],prec]}];
+  ops1=Transpose[{sym["rot"],modone@Round[sym["trans"],prec]}];
+  ops2=Transpose[{traceData["rot"],modone@Round[traceData["trans"],prec]}];
   If[!seteq[ops1,ops2], 
     Print["autoConvTraceToBC: symmetry operations for POSCAR are not equal to those in trace.txt: ",
       Complement[ops1,ops2],"!=",Complement[ops2,ops1]];

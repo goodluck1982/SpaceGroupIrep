@@ -1,0 +1,101 @@
+009. 2022-01-05 22:16:00  v1.1.0
+    
+    Add new function: getKStar[sgno,kin]
+
+    Bug fix: 
+      1. findURange and identifyBCHSKptBySG:
+         The umax in the followings cases is 1/4, not 1/2.
+         "OrthBody": "P","D","Q";    "TetrBody": "W","Q";
+         "CubiFace": "Z","Q";        "CubiBody": "D"
+      2. identifyBCHSKpt: Add an option "selectNoTranslation"->False
+         This makes sure that k-points differing by integers all have the same {S|w}.
+         Or else, the old behavior (<=v1.0.4) is as following
+         identifyBCHSKpt["OrthFace(a)",{-0.1,-0.6,-0.5}][[2]]  gives
+         {{-0.1,-0.6,-0.5},"H","YH","C2v",{u,-(1/2)+u,-(1/2)},"C2y",{-u,-(1/2)-u,-(1/2)},{0,0,0},u->0.1}
+         identifyBCHSKpt["OrthFace(a)",{ 0.9,-0.6,-0.5}][[2]]  gives
+         {{ 0.9,-0.6,-0.5},"H","YH","C2v",{u,-(1/2)+u,-(1/2)},"C2x",{-u,1/2-u,1/2},{1,-1,-1},u->0.1}
+      3. identifyBCHSKpt["HexaPrim",{4/5,1/10,1/2}] should return two items "S" and "S'",
+      4. getLGIrepTab and getBandRep: 
+         For "H" in "OrthBase" and "G", "F", "U" in "OrthBody", the same BC-standard coordiantes 
+         should be used for all BZ types in order to avoid different IRs for the same label.
+         In practice, only the coordinates of (a) type of BZ is used.
+      5. autoConvTraceToBC: Fix a bug relating to numerical precision.
+
+   Change:
+      1. showLGIrepTab and showSGIrepTab now give the SG symbol conforming to the BC 
+         orientation if it is different with the standard symbol.
+      2. Add an option "showdim" to getBandRep. Its default value is True. When it's
+         False, the dimension and the parentheses following the LGIR label is not shown.
+      3. The output of krepBCStoBC and showKrepBCStoBC will change in some cases
+         due to the issue of the above bug 4. 
+         For the changed cases, see the file doc/BCStoBC-change.pdf.
+ 
+   Add a python tool "getBCsymmetry.py" to analyze the space group symmetries
+   of vasp POSCAR file or cif file and convert the structure to BC convention.
+
+
+008. 2021-11-11 22:43:17  v1.0.4
+
+    Add a Chinese version introduction file SpaceGroupIrep程序包说明.docx.
+    
+    Add an allBCSkLGdat.mx file for Respberry Pi and rename allBCSkLGdat.mx_RespberryPi
+    to allBCSkLGdat.mx on Respberry Pi platform.
+
+
+007. 2021-11-11 21:58:36
+
+    Add new functions:
+      SGSymTextBC, SGSymBC, BCOrientation, showSGSym, mapLGIrepLabel
+    
+    Change:
+      1. SGIrepDirectProduct and showSGIrepDirectProduct can use kname for
+         high-symmetry point (not line).
+      2. Now, autoConvTraceToBC returns the same data structure as convTraceToBC
+         by default. The old return format can be obtained by using the option
+         "cellData"->True.
+      3. Redefine seteq, and add option SameTest.
+    
+    Bug fix:
+      Bugs related to the "F" point of "TrigPrim" in getLGIrepTab, getSGIrepTab,
+      and SGIrepDirectProduct.
+
+
+006. 2021-06-15 00:13:10  v1.0.3
+
+    Bug fix: fix a bug in identifyBCHSKptBySG which does not give
+      correct {S|w} and affects getLGIRtab[144,{0.2,-0.6,-0.5}]
+
+
+005. 2021-06-14 11:45:57
+
+    Add new functions:
+      kBCcoord, getSGElem, LGIRtwokRelation, getFullRepMat, getSGIrepMat, checkSGIrep
+    Fix bugs in:
+      formatRepMat, getRepMat, showSGIrepTab, readPOSCAR
+
+
+004. 2021-05-22 01:07:10  v1.0.2
+
+    Update abstract group data to fix the typos in the BC book:
+      S in R7, R8, and R9 for G_{96}^4  and  S in R18 for G_{192}^2
+    Add four functions:
+      checkAGGenRelations, checkLGIrep, getRepMat, getLGIrepMat
+
+
+003. 2021-04-24 20:19:20  v1.0.1
+
+    Add function showSeitz and beautify the appearance of showLGIrep etc.
+
+
+002. 2021-04-22 21:07:33
+
+    bugfix:
+    1. RotationMatrix[Pi/2, {1, 1, 0}]//rotAxisAngle works wrongly. Update algorithm, use NullSpace directly.
+    2. getLGIrepTab: NumberQ ==> NumericQ
+    3. Update formatRepMat. Now it can convert Exp[I Pi(1+u)] to -Exp[I Pi u].
+    4. Fix a problem of identifyBCHSKptBySG: identifyBCHSKptBySG[46,"a",{-0.1,-0.4,-0.1}] works wrongly because Rationalize[-0.1,0.1] returns -1/9, not the expected 1/10.
+
+
+001. 2020-12-06 03:39:58
+
+    Add showLGIrepLabel and showDLGIrepLabel
