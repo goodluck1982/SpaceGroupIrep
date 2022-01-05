@@ -30,6 +30,8 @@ In a word, the package SpaceGroupIrep is a database and tool set for IRs of spac
 * **allBCSkLGdat.mx** This file contains the BCS data of LG IRs collected from the output of [irvsp](https://github.com/zjwang11/irvsp). 
 * **examples/test.nb**  A simple test file or demo file.
 * **examples/document and examples.nb**  A more detailed example file including some explanations.
+* **doc/SpaceGroupIrep程序包说明.docx**  A Chinese version of the introduction of this package.
+* **getBCsymmetry.py** A python tool to analyze the space group symmetries of vasp POSCAR file or cif file and convert the structure to BC convention.
 
 
 ## Installation
