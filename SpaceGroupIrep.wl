@@ -4397,8 +4397,7 @@ readVasp2trace[filename_String]:=Module[{dat,nelec,soc,nsym,i,j,rot,trans,srot,n
     "trace"->trace|>
 ]
 
-Protect[CompressDegeneracy];
-Options[getBandRep]={CompressDegeneracy->True, "showdim"->True};
+Options[getBandRep]={"CompressDegeneracy"->True, "showdim"->True};
 (* Note that the parameter traceData here corresponds to primitive cell of BC setting. *)
 getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, ikOrListOrSpan_, ibOrListOrSpan_, OptionsPattern[]]/;
  And@@(Position[#,Rule]=={}&&(IntegerQ[#]||ListQ[#]||Head[#]==Span||#==All)&/@{ikOrListOrSpan,ibOrListOrSpan}):=
@@ -4447,7 +4446,7 @@ getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, ikOrListOrSpan_, ibOrListOrS
     Gk={rotName[[kisym]],traceData["trans"][[kisym]]}\[Transpose];
     deg=traceData["deg"][[ik]];
     ibs=ibs0;
-    If[OptionValue[CompressDegeneracy],
+    If[OptionValue["CompressDegeneracy"],
       {ibs2,deg2}=Transpose@
            ((Reap@For[i=1,i<=Last[iball],i++,Sow[{i,deg[[i]]}];i+=deg[[i]]-1;])[[2,1]]);
       iball2=Range[#1,#1+#2-1]&@@@Transpose[{ibs2,deg2}];   
@@ -4556,7 +4555,7 @@ getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, ikOrListOrSpan_, ibOrListOrS
     rep=Table[0,Length[repR]];
     For[i=1,i<=Length[ibs],i++, ib=ibs[[i]];
       iR=Select[Range[Length[idxcls]],repR[[i,2,#]]!=0&]; 
-      tmp1=If[OptionValue[CompressDegeneracy],iball2[[ibidx[[i]],{1,-1}]],ib];
+      tmp1=If[OptionValue["CompressDegeneracy"],iball2[[ibidx[[i]],{1,-1}]],ib];
       If[!SubsetQ[Keys[avRep],iR], 
         rep[[i]]={tmp1,traceData["ene"][[ik,ib]],deg[[ib]],{"??","??"}};
         (* Print["Warning: getBandRep: ik=",ik,", ib=",ib," reps ",iR,
@@ -4591,9 +4590,9 @@ getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, ikOrListOrSpan_, ibOrListOrS
 
 getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, ikOrListOrSpan_, OptionsPattern[]]/;
   And@@(Position[#,Rule]=={}&&(IntegerQ[#]||ListQ[#]||Head[#]==Span||#==All)&@ikOrListOrSpan):=
-  getBandRep[sgno,BZtypeOrBasVec,traceData, ikOrListOrSpan, All, CompressDegeneracy->OptionValue[CompressDegeneracy], "showdim"->OptionValue["showdim"]]
+  getBandRep[sgno,BZtypeOrBasVec,traceData, ikOrListOrSpan, All, "CompressDegeneracy"->OptionValue["CompressDegeneracy"], "showdim"->OptionValue["showdim"]]
 getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, OptionsPattern[]]:= 
-  getBandRep[sgno,BZtypeOrBasVec,traceData, All, All, CompressDegeneracy->OptionValue[CompressDegeneracy], "showdim"->OptionValue["showdim"]]
+  getBandRep[sgno,BZtypeOrBasVec,traceData, All, All, "CompressDegeneracy"->OptionValue["CompressDegeneracy"], "showdim"->OptionValue["showdim"]]
   
 (* Convert the traceData from any primitive input cell to the trace data for BC cell. 
    P, p0, and stdR are the dataset['transformation_matrix'], dataset['origin_shift'] 
