@@ -80320,7 +80320,6 @@ Cell[TextData[StyleBox["For more details, please refer to the  paper  arXiv : \
 c0d40405e7c5"]
 }, Open  ]]
 },
-Evaluator->"K1",
 WindowSize->{1264, 647},
 WindowMargins->{{-8, Automatic}, {Automatic, 0}},
 Magnification:>1.25 Inherited,
