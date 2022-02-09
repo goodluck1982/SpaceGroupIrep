@@ -35,6 +35,7 @@ In a word, the package SpaceGroupIrep is a database and tool set for IRs of spac
 
 
 ## Installation
+Spglib's Python interface is used as a external depenency, so it should be first installed according to the guidance [here](https://spglib.github.io/spglib/python-spglib.html#python-spglib).
 Place the directory **SpaceGroupIrep** containing at least the four files, i.e. SpaceGroupIrep.wl, AbstractGroupData.wl, LittleGroupIrepData.wl, and allBCSkLGdat.mx, under any of the following paths:
 * `$InstallationDirectory`/AddOns/Packages/
 * `$InstallationDirectory`/AddOns/Applications/
