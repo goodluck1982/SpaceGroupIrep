@@ -4705,7 +4705,7 @@ autoConvTraceToBC[poscarFile_,traceData_,prec_,OptionsPattern[]]:=
   {Q,S}=getQandS[sgno];
   trdat=convTraceToBC[sgno,traceData,sym["P"],sym["p0"],sym["R"]];
   BCcell=cell;
-  BCcell["basVec"]=Transpose@(sym["R"].S.Transpose[cell["basVec"]].Inverse[sym["P"]].Q.U)//Chop;
+  BCcell["basVec"]=Transpose@(S.sym["R"].Transpose[cell["basVec"]].Inverse[sym["P"]].Q.U)//Chop;
   BCcell["pos"]=Inverse[Q.U].(sym["P"].#+sym["p0"])+t0&/@cell["pos"]//Chop;
   If[OptionValue["cellData"]===True, <|"trace"->trdat,"input_cell"->cell,"BCcell"->BCcell,"sym"->sym|>, trdat]
 ]
