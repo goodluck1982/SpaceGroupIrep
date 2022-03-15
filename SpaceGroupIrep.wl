@@ -30,7 +30,12 @@ SGSymStd::usage="SGSymStd[sgno]  returns the international symbol of the space g
 SGSymBC::usage="SGSymBC[sgno]  returns the international symbol of the space group with No. sgno "<>
    "which is consistent with the orientation in the BC book.";
 BCOrientation::usage="Orientation[sgno]  returns the orientation used in the BC book for the space group No. sgno.";
-showSGSym::usage="showSGSym[]  returns a table of all 230 space group symbols and numbers.";
+SGSymScho::usage="SGSymScho[sgno]  returns the Schoenflies symbol of the space group with No. sgno. "<>
+   "Option \"TeX\"->True will output LaTeX format, and option \"full\"->True will output the full symbol "<>
+   "with the type of Bravais lattice, such as \!\(\*SubsuperscriptBox[\(\[CapitalGamma]\), \(o\), \(v\)]\)\!\(\*TemplateBox[{\"D\",\"2\",\"8\"},\n\"Subsuperscript\"]\) for SG 23.";
+showSGSym::usage="showSGSym[listOrSpan]  returns a table of space group symbols and numbers specified "<>
+   "by listOrSpan. If listOrSpan is omitted, all 230 space groups are output. An option \"ncol\" can be "<>
+   "used to specify the number of columns in a row. For example: showSGSym[11;;34,\"ncol\"->8]";
 JonesSymbol::usage="A list for Jones symbol, including rotation names, Jones symbols and rotation matrices.";
 getJones::usage="Two usages, e.g:\n getJones[rotName,\"type\"->type] returns Jones symbol when type"<>
    "=\"xyz\" and rotation matrix when type=\"mat\".\n getJones[xyzOrRotMat, p2] return the rotation "<>
@@ -361,17 +366,76 @@ BCOrientation[sgno_Integer]/;1<=sgno<=230:=Which[
     True, {"abc",{a,b,c}}
 ]
 
-showSGSym[]:=Module[{bgc,i,j,lt=0.96,s1,s2,tab,bgs,h,g},
-  bgc[n1_,n2_,color_]:=(#->color)&/@Flatten[Table[{i,j},{i,23},{j,10}],1][[n1;;n2]];
-  tab={#,s1=SGSymStd[#],s2=SGSymBC[#]; If[s2===s1,s2,Style[s2,Red]]}&/@Range[230]//Partition[#,10]&;
-  tab=Map[Column,tab,{2}];
-  bgs=Join[bgc[1,2,Lighter[Red,lt]], bgc[3,15,Lighter[Blue,lt]], bgc[16,74,Lighter[Orange,lt]],
+SGSymSchoData=<|1->{"C1",1},2->{"Ci",1},3->{"C2",1},4->{"C2",2},5->{"C2",3},6->{"Cs",1},7->{"Cs",2},
+  8->{"Cs",3},9->{"Cs",4},10->{"C2h",1},11->{"C2h",2},12->{"C2h",3},13->{"C2h",4},14->{"C2h",5},15->{"C2h",6},
+  16->{"D2",1},17->{"D2",2},18->{"D2",3},19->{"D2",4},20->{"D2",5},21->{"D2",6},22->{"D2",7},23->{"D2",8},
+  24->{"D2",9},25->{"C2v",1},26->{"C2v",2},27->{"C2v",3},28->{"C2v",4},29->{"C2v",5},30->{"C2v",6},
+  31->{"C2v",7},32->{"C2v",8},33->{"C2v",9},34->{"C2v",10},35->{"C2v",11},36->{"C2v",12},37->{"C2v",13},
+  38->{"C2v",14},39->{"C2v",15},40->{"C2v",16},41->{"C2v",17},42->{"C2v",18},43->{"C2v",19},44->{"C2v",20},
+  45->{"C2v",21},46->{"C2v",22},47->{"D2h",1},48->{"D2h",2},49->{"D2h",3},50->{"D2h",4},51->{"D2h",5},
+  52->{"D2h",6},53->{"D2h",7},54->{"D2h",8},55->{"D2h",9},56->{"D2h",10},57->{"D2h",11},58->{"D2h",12},
+  59->{"D2h",13},60->{"D2h",14},61->{"D2h",15},62->{"D2h",16},63->{"D2h",17},64->{"D2h",18},65->{"D2h",19},
+  66->{"D2h",20},67->{"D2h",21},68->{"D2h",22},69->{"D2h",23},70->{"D2h",24},71->{"D2h",25},72->{"D2h",26},
+  73->{"D2h",27},74->{"D2h",28},75->{"C4",1},76->{"C4",2},77->{"C4",3},78->{"C4",4},79->{"C4",5},80->{"C4",6},
+  81->{"S4",1},82->{"S4",2},83->{"C4h",1},84->{"C4h",2},85->{"C4h",3},86->{"C4h",4},87->{"C4h",5},88->{"C4h",6},
+  89->{"D4",1},90->{"D4",2},91->{"D4",3},92->{"D4",4},93->{"D4",5},94->{"D4",6},95->{"D4",7},96->{"D4",8},
+  97->{"D4",9},98->{"D4",10},99->{"C4v",1},100->{"C4v",2},101->{"C4v",3},102->{"C4v",4},103->{"C4v",5},
+  104->{"C4v",6},105->{"C4v",7},106->{"C4v",8},107->{"C4v",9},108->{"C4v",10},109->{"C4v",11},110->{"C4v",12},
+  111->{"D2d",1},112->{"D2d",2},113->{"D2d",3},114->{"D2d",4},115->{"D2d",5},116->{"D2d",6},117->{"D2d",7},
+  118->{"D2d",8},119->{"D2d",9},120->{"D2d",10},121->{"D2d",11},122->{"D2d",12},123->{"D4h",1},124->{"D4h",2},
+  125->{"D4h",3},126->{"D4h",4},127->{"D4h",5},128->{"D4h",6},129->{"D4h",7},130->{"D4h",8},131->{"D4h",9},
+  132->{"D4h",10},133->{"D4h",11},134->{"D4h",12},135->{"D4h",13},136->{"D4h",14},137->{"D4h",15},138->{"D4h",16},
+  139->{"D4h",17},140->{"D4h",18},141->{"D4h",19},142->{"D4h",20},143->{"C3",1},144->{"C3",2},145->{"C3",3},
+  146->{"C3",4},147->{"S6",1},148->{"S6",2},149->{"D3",1},150->{"D3",2},151->{"D3",3},152->{"D3",4},153->{"D3",5},
+  154->{"D3",6},155->{"D3",7},156->{"C3v",1},157->{"C3v",2},158->{"C3v",3},159->{"C3v",4},160->{"C3v",5},
+  161->{"C3v",6},162->{"D3d",1},163->{"D3d",2},164->{"D3d",3},165->{"D3d",4},166->{"D3d",5},167->{"D3d",6},
+  168->{"C6",1},169->{"C6",2},170->{"C6",3},171->{"C6",4},172->{"C6",5},173->{"C6",6},174->{"C3h",1},175->{"C6h",1},
+  176->{"C6h",2},177->{"D6",1},178->{"D6",2},179->{"D6",3},180->{"D6",4},181->{"D6",5},182->{"D6",6},183->{"C6v",1},
+  184->{"C6v",2},185->{"C6v",3},186->{"C6v",4},187->{"D3h",1},188->{"D3h",2},189->{"D3h",3},190->{"D3h",4},
+  191->{"D6h",1},192->{"D6h",2},193->{"D6h",3},194->{"D6h",4},195->{"T",1},196->{"T",2},197->{"T",3},198->{"T",4},
+  199->{"T",5},200->{"Th",1},201->{"Th",2},202->{"Th",3},203->{"Th",4},204->{"Th",5},205->{"Th",6},206->{"Th",7},
+  207->{"O",1},208->{"O",2},209->{"O",3},210->{"O",4},211->{"O",5},212->{"O",6},213->{"O",7},214->{"O",8},215->{"Td",1},
+  216->{"Td",2},217->{"Td",3},218->{"Td",4},219->{"Td",5},220->{"Td",6},221->{"Oh",1},222->{"Oh",2},223->{"Oh",3},
+  224->{"Oh",4},225->{"Oh",5},226->{"Oh",6},227->{"Oh",7},228->{"Oh",8},229->{"Oh",9},230->{"Oh",10}|>;
+
+(* Give the Schoenflies symbol of the space group with number sgno *)
+Options[SGSymScho]={"TeX"->False, "full"->False};
+SGSymScho[sgno_Integer, OptionsPattern[]]:=Module[{dat,s1,s2,full,re,slat,brav},
+  dat=SGSymSchoData[sgno];  full=OptionValue["full"]===True;
+  s1=StringTake[dat[[1]],1];  s2=StringTake[dat[[1]],{2,-1}];
+  If[OptionValue["TeX"]===True,
+    re=s1<>If[s2!="","_{"<>s2<>"}",""]<>"^{"<>ToString[dat[[2]]]<>"}";
+    If[full, brav=getSGLatt[sgno];
+      slat=ToString@TeXForm@BravLattSymb@iBravLatt@brav;
+      If[brav!="TrigPrim",slat=StringReplace[slat,{"_"->"_\\text{","^"->"}^\\text{"}]<>"}"];
+      re=StringReplace[slat," "->""]<>re
+      ];
+    re="$"<>re<>"$",
+    (*----else-----*)
+    re=Subsuperscript[s1,s2,dat[[2]]];
+    If[full, re=Row[{BravLattSymb@iBravLatt@getSGLatt[sgno],re}]]
+    ];
+  re
+]
+
+Options[showSGSym]={"ncol"->10};
+showSGSym[OptionsPattern[]]:=showSGSym[All,"ncol"->OptionValue["ncol"]];
+showSGSym[listOrSpan_, OptionsPattern[]]:=Module[{bgc,i,j,lt=0.96,s1,s2,tab,bgs,h,g,ncol,nrow,
+  cls,sglist,nsg},
+  sglist=If[IntegerQ[listOrSpan], {listOrSpan}, Range[230][[listOrSpan]]];   
+  nsg=Length[sglist];  ncol=OptionValue["ncol"];  nrow=Ceiling[nsg/ncol];
+  tab={#,s1=SGSymStd[#],s2=SGSymBC[#]; If[s2===s1,s2,Style[s2,Red]], SGSymScho[#]}&/@sglist//Partition[#,UpTo[ncol]]&;
+  tab=Map[Column[#,ItemSize->{Full,1.2}]&,tab,{2}];
+  bgc[n1_,n2_,color_]:=#->color&/@Range[n1,n2];
+  cls=Join[bgc[1,2,Lighter[Red,lt]], bgc[3,15,Lighter[Blue,lt]], bgc[16,74,Lighter[Orange,lt]],
            bgc[75,142,Lighter[Cyan,lt]], bgc[143,167,Lighter[Yellow,lt]], 
-           bgc[168,194,Lighter[Green,lt]],bgc[195,230,Lighter[Purple,lt]]];
+           bgc[168,194,Lighter[Green,lt]],bgc[195,230,Lighter[Purple,lt]]]//Association;
+  bgs=(#1->#2)&@@@Transpose@{Flatten[Table[{i,j},{i,nrow},{j,ncol}],1][[1;;nsg]],cls/@sglist};
   g=Grid[tab, Alignment->Left, Dividers->{{True,{},True},{True,{Thin},True}}, Spacings->{1, 1},
-              Background->{None,None,bgs}];
+              Background->{None,None,bgs}, ItemSize->Full];
   h="Row 1: The SG number.\nRow 2: The standard SG international symbol.\n"<>
-    "Row 3: The SG international symbol conforming to the BC orientation.";
+    "Row 3: The SG international symbol conforming to the BC orientation.\n"<>
+    "Row 4: The Schoenflies symbol of SG.";
   Column[{h,g}]
 ]
 
@@ -2446,7 +2510,7 @@ getKStar[sgno_Integer, kin_, OptionsPattern[]]:=Module[{k,SG,brav,kall,star0,sta
 ]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Determine the name of a point group*)
 
 
