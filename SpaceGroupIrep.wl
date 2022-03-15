@@ -4742,6 +4742,7 @@ spglibGetSym[{basVec_,pos_,atnum_}, prec_]:=Module[{ss, cell, ds=<||>, topy, dat
   dat["R"]=ExternalEvaluate[ss,"ds['std_rotation_matrix'].tolist()"]//Chop;
   dat["rot"]=ExternalEvaluate[ss,"ds['rotations'].tolist()"]//Chop;
   dat["trans"]=ExternalEvaluate[ss,"ds['translations'].tolist()"]//Chop;
+  DeleteObject[ss]; (*release memory after usage*)
   dat
 ]
 
