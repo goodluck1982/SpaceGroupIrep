@@ -1601,10 +1601,10 @@ showBZDemo[fullBZtype_, basVec_]/;StringQ[fullBZtype]&&MatrixQ[basVec,NumericQ]&
   
   bz=BoundaryMeshRegion[bz, MeshCellStyle->{2->{Opacity[0.7]}}, PlotRegion->0.6*rs];
   g=Graphics3D[{Arrowheads[0.025 rs], {GrayLevel[0.7],Arrow[Tube[{-#,#},0.002rs]]&/@{x,y,z}},
-     Text[Style[#[[1]],Italic,FontSize->20], #[[2]]*1.07]&/@({{"x","y","z"},{x,y,z}}\[Transpose]),
+     Text[Style[#[[1]],Italic,Bold,FontSize->20,FontFamily->"Times"], #[[2]]*1.07]&/@({{"x","y","z"},{x,y,z}}\[Transpose]),
      {#[[2]],Arrow[Tube[{o,#[[1]]},0.002rs]]}&/@({reciLatt,cs}\[Transpose]),
-     Text[Style[#[[1]],#[[3]],Italic,FontSize->20], #[[2]]*1.07]&/@({{"\!\(\*SubscriptBox[\(g\),\(1\)]\)", 
-          "\!\(\*SubscriptBox[\(g\),\(2\)]\)", "\!\(\*SubscriptBox[\(g\),\(3\)]\)"}, reciLatt, cs}\[Transpose]),
+     Text[Style[#[[1]],#[[3]],Italic,Bold,FontSize->20,FontFamily->"Times"], #[[2]]*1.07]&/@({
+          "\!\(\*SubscriptBox[\(g\),SubscriptBox[\(\"\"\),\("<>#<>"\)]]\)"&/@{"1","2","3"}, reciLatt, cs}\[Transpose]),
      PointSize[0.008rs], {#[[2]], Point[#[[1]]]}&/@({reciLatt/2, cs}\[Transpose]),   
      {PointSize[Large],Point[#2],Text[Style[#1,Italic,FontSize->18], #2*1.15]}&@@@({kname1,kpos1}\[Transpose]),
      If[kname2=={}, {}, {Thick,Purple,Line[#2[[;;2]]],
