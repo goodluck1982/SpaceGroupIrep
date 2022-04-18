@@ -934,7 +934,7 @@ def getSGoperations(dataset):
 def get_BZ_type(sgno, LBC):
     brav=getSGlatt(sgno)
     if brav in ("TricPrim","MonoPrim","MonoBase","OrthPrim","TetrPrim","HexaPrim",
-                "CubiPrim","CubiFace","CubiFace"): return brav
+                "CubiPrim","CubiBody","CubiFace"): return brav
     if brav=="OrthBase":
         a=2*LBC[0,0];   b=-2*LBC[0,1]
         BZtype=("a" if a>b else "b")
