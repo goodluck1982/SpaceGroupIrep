@@ -36,6 +36,9 @@ SGSymScho::usage="SGSymScho[sgno]  returns the Schoenflies symbol of the space g
 showSGSym::usage="showSGSym[listOrSpan]  returns a table of space group symbols and numbers specified "<>
    "by listOrSpan. If listOrSpan is omitted, all 230 space groups are output. An option \"ncol\" can be "<>
    "used to specify the number of columns in a row. For example: showSGSym[11;;34,\"ncol\"->8]";
+PGinfo::usage="PGinfo stores the information of the 32 point groups.";
+showPGinfo::usage="showPGinfo[]  shows the information of the 32 point groups. Default options are "<>
+   "\"long\"->True and \"color\"->True.";
 JonesSymbol::usage="A list for Jones symbol, including rotation names, Jones symbols and rotation matrices.";
 getJones::usage="Two usages, e.g:\n getJones[rotName,\"type\"->type] returns Jones symbol when type"<>
    "=\"xyz\" and rotation matrix when type=\"mat\".\n getJones[xyzOrRotMat, p2] return the rotation "<>
@@ -193,6 +196,7 @@ getLGIrepMat::usage="getLGIrepMat[repinfo,IRids][RvOrRvList]  get the representa
    "returned by getLGIrepTab (or getLGCharTab) (in this case the first Association is used) or one Association in "<>
    "the List. IRids indicates the index(es) of the requested representations, such as 2 or {2,3,4}. IRids is optional, "<>
    "and if it is omitted all representations are processed. An option \"uNumeric\" is available which is False by default.";
+showRot::usage="shotRot[rotName]  shows the symbol of the rotName string. Similar to showSeitz but only for the rotation part.";
 showSeitz::usage="showSeitz[{Rname,v}]  shows the Seitz symbol of {Rname,v}. Options: \"format\" can be \"std\""<>
    "(default), \"simple\", or \"TeX\"; \"fullbar\" is True by default.";
 showLGIrepTab::usage="showLGIrepTab[sgno, k]  shows the table of ireps of k little group of space group sgno in "<>
@@ -437,6 +441,66 @@ showSGSym[listOrSpan_, OptionsPattern[]]:=Module[{bgc,i,j,lt=0.96,s1,s2,tab,bgs,
     "Row 3: The SG international symbol conforming to the BC orientation.\n"<>
     "Row 4: The Schoenflies symbol of SG.";
   Column[{h,g}]
+]
+
+PGinfo={ (*Point group information*)
+  {1, "C1", "1", {1, 1}, {1, 1}, {"E"}},                           {2, "Ci", "-1", {2, 2}, {2, 1}, {"I"}}, 
+  {3, "C2", "2", {3, 5}, {2, 1}, {"C2z"}},                         {4, "Cs", "m", {6, 9}, {2, 1}, {"\[Sigma]z"}}, 
+  {5, "C2h", "2/m", {10, 15}, {4, 2}, {"C2z", "I"}},               {6, "D2", "222", {16, 24}, {4, 2}, {"C2z", "C2y"}}, 
+  {7, "C2v", "mm2", {25, 46}, {4, 2}, {"C2z", "\[Sigma]y"}},       {8, "D2h", "mmm", {47, 74}, {8, 3}, {"C2z", "C2y", "I"}}, 
+  {9, "C4", "4", {75, 80}, {4, 1}, {"C4z+"}},                      {10, "S4", "-4", {81, 82}, {4, 1}, {"S4z+"}}, 
+  {11, "C4h", "4/m", {83, 88}, {8, 2}, {"C4z+", "I"}},             {12, "D4", "422", {89, 98}, {8, 4}, {"C4z+", "C2x"}}, 
+  {13, "C4v", "4mm", {99, 110}, {8, 4}, {"C4z+", "\[Sigma]y"}},    {14, "D2d", "-42m", {111, 122}, {8, 4}, {"S4z+", "C2x"}}, 
+  {15, "D4h", "4/mmm", {123, 142}, {16, 9}, {"C4z+", "C2x", "I"}}, {16, "C3", "3", {143, 146}, {3, 1}, {"C3+"}}, 
+  {17, "S6", "-3", {147, 148}, {6, 1}, {"S6+"}},                   {18, "D3", "32", {149, 155}, {6, 2}, {"C3+", "C21p"}}, 
+  {19, "C3v", "3m", {156, 161}, {6, 2}, {"C3+", "\[Sigma]v1"}},    {20, "D3d", "-3m", {162, 167}, {12, 3}, {"S6+", "C21p"}}, 
+  {21, "C6", "6", {168, 173}, {6, 1}, {"C6+"}},                    {22, "C3h", "-6", {174, 174}, {6, 1}, {"S3+"}}, 
+  {23, "C6h", "6/m", {175, 176}, {12, 2}, {"C3+", "C2", "I"}},     {24, "D6", "622", {177, 182}, {12, 3}, {"C6+", "C21p"}}, 
+  {25, "C6v", "6mm", {183, 186}, {12, 3}, {"C6+", "\[Sigma]v1"}},  {26, "D3h", "-6m2", {187, 190}, {12, 3}, {"S3+", "C21p"}}, 
+  {27, "D6h", "6/mmm", {191, 194}, {24, 5}, {"C3+", "C21p", "C2", "I"}}, 
+  {28, "T", "23", {195, 199}, {12, 5}, {"C31+", "C2z", "C2y"}}, 
+  {29, "Th", "m-3", {200, 206}, {24, 10}, {"S61+", "C2z", "C2y"}}, 
+  {30, "O", "432", {207, 214}, {24, 7}, {"C31-", "C2z", "C2x", "C2a"}}, 
+  {31, "Td", "-43m", {215, 220}, {24, 7}, {"C31-", "C2z", "C2x", "\[Sigma]da"}}, 
+  {32, "Oh", "m-3m", {221, 230}, {48, 7}, {"S61-", "\[Sigma]x", "\[Sigma]z", "C2c"}}
+};
+
+Options[showPGinfo]={"long"->True, "color"->True}
+showPGinfo[OptionsPattern[]]:=Module[{showSch,showInt,stab,lt=0.90,bgc,bgs,cls,ncol,ltab,note},
+  showSch[s_]:=If[StringLength[s]==1,s,Subscript[StringTake[s,1],StringTake[s,{2,-1}]]];
+  showInt[s_]:=Module[{c=Characters[s], p}, p=Position[c, "-"]; 
+                 If[p=={}, s, p = p[[1, 1]]; Row@Flatten@{c[[;;p-1]], OverBar[c[[p+1]]], c[[p+2;;]]}] ]; 
+  bgc[n1_,n2_,color_]:=#->color&/@Range[n1,n2];
+
+  stab={#[[1]],showSch[#[[2]]],Row[{"(",showInt[#[[3]]],")"}]}&/@PGinfo;
+  stab[[2,2]]=Row[{stab[[2,2]],Subscript["/S","2"]}];
+  stab[[4,2]]=Row[{stab[[4,2]],Subscript["/C","1h"]}];
+  stab=Grid[{#}, ItemSize->{{1.6,Full,Full}}, Alignment->Left, Spacings->0]&/@stab;
+  cls=Join[bgc[1,2,Lighter[Red,lt]], bgc[3,5,Lighter[Blue,lt]], bgc[6,8,Lighter[Orange,lt]],
+           bgc[9,15,Lighter[Cyan,lt]], bgc[16,20,Lighter[Yellow,lt]], 
+           bgc[21,27,Lighter[Green,lt]],bgc[28,32,Lighter[Purple,lt]]]//Association;
+  ncol=8;  
+  bgs=(#1->#2)&@@@Transpose@{Flatten[Table[{i,j},{i,Ceiling[32/ncol]},{j,ncol}],1][[;;32]],cls/@Range[32]};
+  stab=Partition[stab, UpTo[ncol]]//Grid[#,Alignment->Left, Spacings->{2,0.3}, 
+                       Background->If[OptionValue["color"],{None,None,bgs},{}]]&;
+  If[OptionValue["long"]==False, Return[stab]];
+
+  ltab={#[[1]], showSch[#[[2]]], showInt[#[[3]]], Row[{#[[4,1]],"~",#[[4,2]]}],
+        Subsuperscript["G",#[[5,1]],#[[5,2]]], Row[showRot/@#[[6]],","]}&/@PGinfo;
+  ltab[[2,2]]=Row[{ltab[[2,2]],Subscript["/S","2"]}];
+  ltab[[4,2]]=Row[{ltab[[4,2]],Subscript["/C","1h"]}];
+  ltab=Prepend[ltab, {"No.", Column[{"Schoenflies","symbol"}], Column[{"International","symbol"}], 
+                     Column[{"Space","groups     "}], Column[{"Abstract","group"}], "Generators"}];
+  cls=Join[bgc[1,1,Lighter[Gray,lt]], bgc[2,3,Lighter[Red,lt]], 
+           bgc[4,6,Lighter[Blue,lt]], bgc[7,9,Lighter[Orange,lt]],
+           bgc[10,16,Lighter[Cyan,lt]], bgc[17,21,Lighter[Yellow,lt]], 
+           bgc[22,28,Lighter[Green,lt]],bgc[29,33,Lighter[Purple,lt]]];
+  ltab=Grid[ltab, Alignment->Left, Spacings->{2,0.3}, Frame->True, Dividers->{{},{2->True}}, 
+                  Background->If[OptionValue["color"],{{},cls},{}]];
+  note="Note that the generators are not unique. The generators here are consistent with\n"<>
+       "the rotation parts of the generators of the Herring little group at \[CapitalGamma] point of\n"<>
+       "the first space group with this point group, NOT the same with those in BC-Tab. 5.2.";
+  Column[{ltab,note}]
 ]
 
 
@@ -3522,6 +3586,40 @@ getLGIrepMat[repinfo_,IRidx_,OptionsPattern[]][RvOrRvList_]/;AssociationQ[repinf
 
 (* ::Subsection:: *)
 (*showLGIrepTab and showLGCharTab*)
+
+
+Options[showRot]={"format"->"std", "fullbar"->False};
+showRot[R_String,OptionsPattern[]]:=Module[{R0,hasbar,fmt,
+  sub,pm,prime,end2,end1,rot,tmp,fullbar},
+  fmt=OptionValue["format"];  fullbar=OptionValue["fullbar"];
+  If[!MemberQ[{"simple","std","TeX"},fmt],
+    Print["showSeitz: option \"format\" should be in ",InputForm/@{"simple","std","TeX"}]; Abort[];
+  ];
+  If[!MemberQ[{True,False},fullbar],
+    Print["showSeitz: option \"fullbar\" should be True or False."]; Abort[];
+  ];  
+  hasbar=StringLength[R]>3&&StringTake[R,3]=="bar";
+  R0=If[hasbar, StringTake[R,{4,-1}], R];
+  If[fmt=="simple", Return[If[hasbar,OverBar[R0],R0]]];
+  sub=pm=prime="";
+  end2=StringTake["x"<>R0,-2];
+  If[end2=="pp", prime=If[fmt=="std","\[DoublePrime]","''"]; R0=StringTake[R0,{1,-3}]; Goto["sup over"]];
+  end1=StringTake[R0,-1];   
+  Switch[end1, "p", prime=If[fmt=="std","\[Prime]","'"], "+"|"-",  pm=end1, _, Goto["sup over"]];
+  R0=StringTake[R0,{1,-2}]; 
+  Label["sup over"];
+  If[StringLength[R0]>1, sub=StringTake[R0,{2,-1}]; R0=StringTake[R0,1]];
+  Switch[fmt,
+   "std", If[hasbar&&fullbar===False, R0=OverBar[R0]];
+          rot=If[sub=="", R0, If[pm<>prime=="",Subscript[R0,sub],Subsuperscript[R0,sub,pm<>prime]]];
+          If[hasbar&&fullbar===True, rot=OverBar[rot]],
+   "TeX", R0=StringReplace[ToString@TeXForm[R0], "\\text"->""]; 
+          If[hasbar&&fullbar===False, R0="\\overline{"<>R0<>"}"]; 
+          rot=If[sub=="", R0, tmp=R0<>"_{"<>sub<>"}";If[pm=="", tmp, tmp<>"^"<>pm]]<>prime;
+          If[hasbar&&fullbar===True, rot="\\overline{"<>rot<>"}"];
+  ];
+  rot
+]
 
 
 Options[showSeitz]={"format"->"std", "fullbar"->True};
