@@ -1,3 +1,44 @@
+017. 2022-04-24 23:38:27
+
+    Add a function showRot to show the symbol of a rotation name string.
+    Add a List PGinfo to store the information of the 32 point groups and
+    a function showPGinfo to show the point groups.
+
+     
+016. 2022-04-24 10:25:21
+
+    Add two functions for abstract group:
+       getAGClassesByGen and showAGCharTabByGen
+     
+
+015. 2022-04-19 01:19:34
+
+    Adjust the style of axis labels of showBZDemo.
+
+
+014. 2022-04-18 11:59:29
+
+    fix a tiny bug in getBCsymmetry.py
+
+
+013. 2022-03-16 03:42:57
+
+    Add DeleteObject[ss] after using python external session.
+
+
+012. 2022-03-16 02:32:04
+
+    Add a function SGSymScho[] to obtain the Schoenflies symbol of space group.
+    
+    Update showSGSym[] function to support Schoenflies symbol and add an
+    option "ncol" to showSGSym[].
+
+
+011. 2022-03-15 14:54:38
+
+    Fix a typo in autoConvTraceToBC: sym["R"].S ==> S.sym["R"]
+
+
 010. 2022-01-08 21:29:00
 
     Change the option CompressDegeneracy of getBandRep to "CompressDegeneracy".
