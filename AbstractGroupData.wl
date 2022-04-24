@@ -12,6 +12,8 @@ AGClasses::usage="AGClasses[m,n] returns the elements in each class of the abstr
 allAGindex::usage="allAGindex is a list of {m,n} for all abstract groups that will be used.";
 checkAGCharTab::usage="checkAGCharTab[m,n] checks if the character table of \!\(\*SubsuperscriptBox[\(G\), \(m\), \(n\)]\) fulfills orthonormality.";
 showAGCharTab::usage="showAGCharTab[m,n] shows the character table and classes of \!\(\*SubsuperscriptBox[\(G\), \(m\), \(n\)]\).";
+getAGClassesByGen::usage="getAGClassesByGen[m,n,gens,mul]  uses the generators gens and the binary function mul as the multiplication to get the classes of the abstract group \!\(\*SubsuperscriptBox[\(G\), \(m\), \(n\)]\).";
+showAGCharTabByGen::usage="showAGCharTabByGen[m,n,gens,mul]  shows the the classes and character table of the abstract group \!\(\*SubsuperscriptBox[\(G\), \(m\), \(n\)]\) using the specified generators gens and the binary function mul as the multiplication.";
 AGIrepGen::usage="AGIrepGen[m,n] returns the generators of all irreps in \!\(\*SubsuperscriptBox[\(G\), \(m\), \(n\)]\)." 
 showAGIrepGen::usage="showAGIrepGen[m,n] shows the data of AGIrepGen[m,n] in a table form."
 getAGIrepMat::usage="getAGIrepMat[m,n,iR,powers] gives the matrix of the iR-th irep of the group element described by the powers of generators in \!\(\*SubsuperscriptBox[\(G\), \(m\), \(n\)]\)."
@@ -1451,6 +1453,43 @@ showAGCharTab[m_,n_]:=Module[{ct,nc,cs,ngen,kc,headC,headR,gens,tab,cs2,power,ta
     Column[{tabcs,"",tab}]
 ]
 
+(*The order of the generator P*)
+Porder=<|{2,1}->2, {3,1}->3, {4,1}->4, {4,2}->2, {6,1}->6, {6,2}->3, {8,1}->8, {8,2}->4, {8,3}->2,
+    {8,4}->4, {8,5}->4, {12,1}->12, {12,2}->3, {12,3}->6, {12,4}->6, {12,5}->3, {12,6}->6, {16,1}->16, {16,2}->8,
+    {16,3}->4, {16,4}->4, {16,5}->2, {16,6}->8, {16,7}->4, {16,8}->4, {16,9}->4, {16,10}->4, {16,11}->4, {16,12}->8,
+    {16,13}->8, {16,14}->8, {24,1}->4, {24,2}->12, {24,3}->6, {24,4}->3, {24,5}->3, {24,6}->12, {24,7}->3, {24,8}->6,
+    {24,9}->6, {24,10}->6, {24,11}->12, {24,12}->12, {32,1}->2, {32,2}->4, {32,3}->4, {32,4}->4, {32,5}->4, {32,6}->4,
+    {32,7}->4, {32,8}->8, {32,9}->8, {32,10}->8, {32,11}->8, {32,12}->8, {32,13}->4, {32,14}->4, {32,15}->4, {32,16}->4,
+    {32,17}->8, {48,1}->12, {48,2}->4, {48,3}->12, {48,4}->6, {48,5}->6, {48,6}->4, {48,7}->6, {48,8}->4, {48,9}->6,
+    {48,10}->8, {48,11}->12, {48,12}->12, {48,13}->6, {48,14}->4, {48,15}->12, {64,1}->2, {64,2}->8, {64,3}->8, {64,4}->8,
+    {64,5}->8, {96,1}->12, {96,2}->6, {96,3}->6, {96,4}->6, {96,5}->6, {96,6}->6, {96,7}->4, {96,8}->8, {96,9}->4,
+    {96,10}->12, {192,1}->12, {192,2}->8|>;
+ 
+getAGClassesByGen[m_,n_,gens_List,mul_]:=Module[{nc,cs,ngen,kc,headC,headR,ie,elem,cs2},
+    cs=AGClasses[m,n];     nc=Length[cs];       ngen=cs[[1,1]]//Length;
+    If[Length[gens]!=ngen,
+      Print["getCharTabByAG: Error! The number of generators of this abstract group should be ",ngen,"."]; Abort[]
+    ];
+    ie=If[{m,n}!={1,1}, Fold[mul,gens[[1]],Table[gens[[1]],Porder[{m,n}]-1]], "E"];
+    kc=Length/@cs;
+    headC=Table[Subscript["C", i],{i,nc}];
+    elem[ps_]:=Module[{tmp}, If[AllTrue[ps,#==0&], Return[ie]];
+      tmp=Flatten[Table[Table[gens[[i]],ps[[i]]], {i,ngen}],1];
+      If[Length[tmp]==1, Return[tmp[[1]]]];
+      Fold[mul, tmp[[1]], tmp[[2;;]]]
+    ];
+    cs2=Map[elem, cs, {2}];
+    Association[Rule@@@Transpose[{headC,cs2}]]
+]
+
+showAGCharTabByGen[m_,n_,gens_List,mul_]:=Module[{ct,cs,headR,headC,headC2,tab,tabcs},
+    cs=getAGClassesByGen[m,n,gens,mul];  ct=AGCharTab[m,n];
+    headC=Keys[cs];  headC2=Row[{#,":"}]&/@headC;
+    headR=Table[Subscript["R", i],{i,Length[headC]}];
+    tab=TableForm[ct,TableHeadings->{headR,headC},TableAlignments->Right,TableSpacing->{0.8, 0.8}];
+    tabcs=TableForm[cs//Values,TableHeadings->{headC2}, TableDepth->2];
+    Column[{tabcs,"",tab}]
+]
 
 (* checkAGCharTab@@@allAGindex//Union *)
 
