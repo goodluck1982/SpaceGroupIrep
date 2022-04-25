@@ -166,6 +166,8 @@ reduceRep::usage="reduceRep[{m,n},chars]  gives the number of times of each irre
 calcRep::usage="calcRep[sgno,kinfo]  is used to get the irep infos for \"GP\" and \"UN\" kpoints which are not given in the "<>
    "BC book. For the kpoints whose irep infos are given in the BC book (i.e. BC Tab. 5.7 and 6.13), this function is only "<>
    "used for checking purpose.";
+str2Mulliken::usage="str2Mulliken[str]  converts the text string str to the Mulliken form string. e.g.\n"<>
+   "    str2Mulliken[\"2E1g'\"]  ==>  "<>str2Mulliken["2E1g'"]<>"   and   str2Mulliken[\"barA1''\"]  ==>  "<>str2Mulliken["barA1''"];
 LGIrepLabel::usage="LGIrepLabel[{m,n}]  gives the informations of BC Tab. 5.8.";
 DLGIrepLabel::usage="DLGIrepLabel[{m,n}]  gives the informations of BC Tab. 6.14.";
 showRepLabel::usage="showRepLabel[{m,n},dsgtag]  gives the table like BC Tab. 5.8 (for dsgtag=\"s\" which is default) or Tab. 6.14 "<>
@@ -2817,59 +2819,84 @@ calcRep[sgno_Integer,kinfo_,OptionsPattern[]]/;1<=sgno<=230:=
 (*Labels of little group representations (Tab. 5.8 and Tab. 6.14)*)
 
 
+str2Mulliken[str_String] := Module[{cs, out="", L0, sub, sup, bar},
+  bar=StringLength[str]>=3 && StringTake[str,3] =="bar";
+  cs=Characters[str];   If[bar, cs=cs[[4;;]]];
+  If[cs[[1]]=="1"||cs[[1]]=="2", out=StringTemplate["\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(``\)]\)"][cs[[1]]]; cs=cs[[2;;]]];
+  L0=If[bar, StringTemplate["\!\(\*OverscriptBox[\(``\), \(_\)]\)"][cs[[1]]], cs[[1]]]; 
+  cs=cs[[2;;]];
+  If[cs=={}, out=out<>L0; Goto["end"]];
+  If[cs[[-1]]!="'", out=out<>StringTemplate["\!\(\*SubscriptBox[\(`1`\), \(`2`\)]\)"][L0,StringJoin[cs]]; Goto["end"]];
+  If[Length[cs]>=2&&cs[[-2]]=="'", 
+    out=out<>If[cs[[1;;-3]]!={},
+      StringTemplate["\!\(\*SubsuperscriptBox[\(`1`\), \(`2`\), \(\[DoublePrime]\)]\)"][L0, StringJoin[cs[[1;;-3]]]],
+      StringTemplate["\!\(\*SuperscriptBox[\(``\), \(\[DoublePrime]\)]\)"][L0] ];  
+    Goto["end"] 
+  ];
+  If[cs[[-1]]=="'", 
+    out=out<>If[cs[[1;;-2]]!={},
+      StringTemplate["\!\(\*SubsuperscriptBox[\(`1`\), \(`2`\), \(\[Prime]\)]\)"][L0,StringJoin[cs[[1;;-2]]]],
+      StringTemplate["\!\(\*SuperscriptBox[\(``\), \(\[Prime]\)]\)"][L0]]
+  ];
+  Label["end"];
+  out=StringReplace[out," "->""];  
+  If[bar, StringReplace[out, {"\(\!\(\*Over"->"Over", "_\)]\)\)"->"_\)]"}], out]
+]
+
+
 Module[{na,Ag,Au,Ap,App,A1,A2,A3,B1,B2,B3,Bg,Bu,A1g,A1u,A2g,A2u,B1g,B1u,B2g,B2u,B3g,B3u,A1p,A1pp,A2p,A2pp,
         Ep,Epp,Eg,Eu,fE,sE,E1,E2,fE1,sE1,fE2,sE2,fEg,sEg,fEu,sEu,fE1g,sE1g,fE1p,fE2p,fE1pp,fE2pp,
         fE1u,sE1u,fE2g,sE2g,fE2u,sE2u,fEp,sEp,fEpp,sEpp,E1g,E1u,E2g,E2u,E3,E4,fF,sF,T1,T2,Tg,Tu,
         fF1,fF2,sF1,sF2,fEgp,sEgp,fEup,sEup,fEgpp,sEgpp,fEupp,sEupp,fE3,fE4,fF3,fFg,fFu,sFg,sFu,F2,
         fJ,T1g,T2g,T1u,T2u,fH,sH},
 na="";
-Ag="\!\(\*SubscriptBox[\(A\), \(g\)]\)";  Au="\!\(\*SubscriptBox[\(A\), \(u\)]\)";
-Ap="\!\(\*SuperscriptBox[\(A\), \(\[Prime]\)]\)";  App="\!\(\*SuperscriptBox[\(A\), \(\[DoublePrime]\)]\)";
-A1="\!\(\*SubscriptBox[\(A\), \(1\)]\)";  A2="\!\(\*SubscriptBox[\(A\), \(2\)]\)";  A3="\!\(\*SubscriptBox[\(A\), \(3\)]\)";
-B1="\!\(\*SubscriptBox[\(B\), \(1\)]\)";  B2="\!\(\*SubscriptBox[\(B\), \(2\)]\)";  B3="\!\(\*SubscriptBox[\(B\), \(3\)]\)";
-Bg="\!\(\*SubscriptBox[\(B\), \(g\)]\)";  Bu="\!\(\*SubscriptBox[\(B\), \(u\)]\)";
-Ep="\!\(\*SuperscriptBox[\(E\), \(\[Prime]\)]\)";  Epp="\!\(\*SuperscriptBox[\(E\), \(\[DoublePrime]\)]\)";
-Eg="\!\(\*SubscriptBox[\(E\), \(g\)]\)";  Eu="\!\(\*SubscriptBox[\(E\), \(u\)]\)";
-fE="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)E";  sE="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)E";
-E1="\!\(\*SubscriptBox[\(E\), \(1\)]\)";  E2="\!\(\*SubscriptBox[\(E\), \(2\)]\)";
-A1g="\!\(\*SubscriptBox[\(A\), \(1  g\)]\)";  A1u="\!\(\*SubscriptBox[\(A\), \(1  u\)]\)";
-A2g="\!\(\*SubscriptBox[\(A\), \(2  g\)]\)";  A2u="\!\(\*SubscriptBox[\(A\), \(2  u\)]\)";
-B1g="\!\(\*SubscriptBox[\(B\), \(1  g\)]\)";  B1u="\!\(\*SubscriptBox[\(B\), \(1  u\)]\)";
-B2g="\!\(\*SubscriptBox[\(B\), \(2  g\)]\)";  B2u="\!\(\*SubscriptBox[\(B\), \(2  u\)]\)";
-B3g="\!\(\*SubscriptBox[\(B\), \(3  g\)]\)";  B3u="\!\(\*SubscriptBox[\(B\), \(3  u\)]\)";
-A1p="\!\(\*SubsuperscriptBox[\(A\), \(1\), \(\[Prime]\)]\)";  A1pp="\!\(\*SubsuperscriptBox[\(A\), \(1\), \(\[DoublePrime]\)]\)";
-A2p="\!\(\*SubsuperscriptBox[\(A\), \(2\), \(\[Prime]\)]\)";  A2pp="\!\(\*SubsuperscriptBox[\(A\), \(2\), \(\[DoublePrime]\)]\)";
-fE1="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[\(E\), \(1\)]\)";  sE1="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[\(E\), \(1\)]\)";
-fE2="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[\(E\), \(2\)]\)";  sE2="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[\(E\), \(2\)]\)";
-fEg="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[\(E\), \(g\)]\)";  sEg="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[\(E\), \(g\)]\)";
-fEu="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[\(E\), \(u\)]\)";  sEu="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[\(E\), \(u\)]\)";
-fE1g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[\(E\), \(1  g\)]\)";  sE1g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[\(E\), \(1  g\)]\)";
-fE1u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[\(E\), \(1  u\)]\)";  sE1u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[\(E\), \(1  u\)]\)";
-fE2g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[\(E\), \(2  g\)]\)";  sE2g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[\(E\), \(2  g\)]\)";
-fE2u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[\(E\), \(2  u\)]\)";  sE2u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[\(E\), \(2  u\)]\)";
-fEp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SuperscriptBox[\(E\), \(\[Prime]\)]\)";  sEp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SuperscriptBox[\(E\), \(\[Prime]\)]\)";
-fEpp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SuperscriptBox[\(E\), \(\[DoublePrime]\)]\)";  sEpp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SuperscriptBox[\(E\), \(\[DoublePrime]\)]\)";
-fE1p="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubsuperscriptBox[\(E\), \(1\), \(\[Prime]\)]\)";  fE1pp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubsuperscriptBox[\(E\), \(1\), \(\[DoublePrime]\)]\)";
-fE2p="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubsuperscriptBox[\(E\), \(2\), \(\[Prime]\)]\)";  fE2pp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubsuperscriptBox[\(E\), \(2\), \(\[DoublePrime]\)]\)";
-E1g="\!\(\*SubscriptBox[\(E\), \(1  g\)]\)";  E1u="\!\(\*SubscriptBox[\(E\), \(1  u\)]\)";
-E2g="\!\(\*SubscriptBox[\(E\), \(2  g\)]\)";  E2u="\!\(\*SubscriptBox[\(E\), \(2  u\)]\)";
-E3="\!\(\*SubscriptBox[\(E\), \(3\)]\)";  E4="\!\(\*SubscriptBox[\(E\), \(4\)]\)";
-fF="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)F";  sF="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)F";
-T1="\!\(\*SubscriptBox[\(T\), \(1\)]\)";  T2="\!\(\*SubscriptBox[\(T\), \(2\)]\)";
-Tg="\!\(\*SubscriptBox[\(T\), \(g\)]\)";  Tu="\!\(\*SubscriptBox[\(T\), \(u\)]\)";
-fF1="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[\(F\), \(1\)]\)";  sF1="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[\(F\), \(1\)]\)";
-fF2="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[\(F\), \(2\)]\)";  sF2="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[\(F\), \(2\)]\)";
-fEgp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubsuperscriptBox[\(E\), \(g\), \(\[Prime]\)]\)";  fEgpp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubsuperscriptBox[\(E\), \(g\), \(\[DoublePrime]\)]\)";
-fEup="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubsuperscriptBox[\(E\), \(u\), \(\[Prime]\)]\)";  fEupp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubsuperscriptBox[\(E\), \(u\), \(\[DoublePrime]\)]\)";
-sEgp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubsuperscriptBox[\(E\), \(g\), \(\[Prime]\)]\)";  sEgpp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubsuperscriptBox[\(E\), \(g\), \(\[DoublePrime]\)]\)";
-sEup="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubsuperscriptBox[\(E\), \(u\), \(\[Prime]\)]\)";  sEupp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubsuperscriptBox[\(E\), \(u\), \(\[DoublePrime]\)]\)";
-fE3="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[\(E\), \(3\)]\)";  fE4="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[\(E\), \(4\)]\)";
-fF3="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[\(F\), \(3\)]\)";  F2="\!\(\*SubscriptBox[\(F\), \(2\)]\)";
-fFg="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[\(F\), \(g\)]\)";  sFg="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[\(F\), \(g\)]\)";
-fFu="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[\(F\), \(u\)]\)";  sFu="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[\(F\), \(u\)]\)";
-fJ="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)J";  fH="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)H";  sH="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)H";
-T1g="\!\(\*SubscriptBox[\(T\), \(1  g\)]\)";  T1u="\!\(\*SubscriptBox[\(T\), \(1  u\)]\)";
-T2g="\!\(\*SubscriptBox[\(T\), \(2  g\)]\)";  T2u="\!\(\*SubscriptBox[\(T\), \(2  u\)]\)";
+Ag="\!\(\*SubscriptBox[\(A\),\(g\)]\)";  Au="\!\(\*SubscriptBox[\(A\),\(u\)]\)";
+Ap="\!\(\*SuperscriptBox[\(A\),\(\[Prime]\)]\)";  App="\!\(\*SuperscriptBox[\(A\),\(\[DoublePrime]\)]\)";
+A1="\!\(\*SubscriptBox[\(A\),\(1\)]\)";  A2="\!\(\*SubscriptBox[\(A\),\(2\)]\)";  A3="\!\(\*SubscriptBox[\(A\),\(3\)]\)";
+B1="\!\(\*SubscriptBox[\(B\),\(1\)]\)";  B2="\!\(\*SubscriptBox[\(B\),\(2\)]\)";  B3="\!\(\*SubscriptBox[\(B\),\(3\)]\)";
+Bg="\!\(\*SubscriptBox[\(B\),\(g\)]\)";  Bu="\!\(\*SubscriptBox[\(B\),\(u\)]\)";
+Ep="\!\(\*SuperscriptBox[\(E\),\(\[Prime]\)]\)";  Epp="\!\(\*SuperscriptBox[\(E\),\(\[DoublePrime]\)]\)";
+Eg="\!\(\*SubscriptBox[\(E\),\(g\)]\)";  Eu="\!\(\*SubscriptBox[\(E\),\(u\)]\)";
+fE="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)E";  sE="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)E";
+E1="\!\(\*SubscriptBox[\(E\),\(1\)]\)";  E2="\!\(\*SubscriptBox[\(E\),\(2\)]\)";
+A1g="\!\(\*SubscriptBox[\(A\),\(1g\)]\)";  A1u="\!\(\*SubscriptBox[\(A\),\(1u\)]\)";
+A2g="\!\(\*SubscriptBox[\(A\),\(2g\)]\)";  A2u="\!\(\*SubscriptBox[\(A\),\(2u\)]\)";
+B1g="\!\(\*SubscriptBox[\(B\),\(1g\)]\)";  B1u="\!\(\*SubscriptBox[\(B\),\(1u\)]\)";
+B2g="\!\(\*SubscriptBox[\(B\),\(2g\)]\)";  B2u="\!\(\*SubscriptBox[\(B\),\(2u\)]\)";
+B3g="\!\(\*SubscriptBox[\(B\),\(3g\)]\)";  B3u="\!\(\*SubscriptBox[\(B\),\(3u\)]\)";
+A1p="\!\(\*SubsuperscriptBox[\(A\),\(1\),\(\[Prime]\)]\)";  A1pp="\!\(\*SubsuperscriptBox[\(A\),\(1\),\(\[DoublePrime]\)]\)";
+A2p="\!\(\*SubsuperscriptBox[\(A\),\(2\),\(\[Prime]\)]\)";  A2pp="\!\(\*SubsuperscriptBox[\(A\),\(2\),\(\[DoublePrime]\)]\)";
+fE1="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[\(E\),\(1\)]\)";  sE1="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[\(E\),\(1\)]\)";
+fE2="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[\(E\),\(2\)]\)";  sE2="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[\(E\),\(2\)]\)";
+fEg="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[\(E\),\(g\)]\)";  sEg="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[\(E\),\(g\)]\)";
+fEu="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[\(E\),\(u\)]\)";  sEu="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[\(E\),\(u\)]\)";
+fE1g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[\(E\),\(1g\)]\)";  sE1g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[\(E\),\(1g\)]\)";
+fE1u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[\(E\),\(1u\)]\)";  sE1u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[\(E\),\(1u\)]\)";
+fE2g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[\(E\),\(2g\)]\)";  sE2g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[\(E\),\(2g\)]\)";
+fE2u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[\(E\),\(2u\)]\)";  sE2u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[\(E\),\(2u\)]\)";
+fEp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SuperscriptBox[\(E\),\(\[Prime]\)]\)";  sEp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SuperscriptBox[\(E\),\(\[Prime]\)]\)";
+fEpp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SuperscriptBox[\(E\),\(\[DoublePrime]\)]\)";  sEpp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SuperscriptBox[\(E\),\(\[DoublePrime]\)]\)";
+fE1p="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubsuperscriptBox[\(E\),\(1\),\(\[Prime]\)]\)";  fE1pp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubsuperscriptBox[\(E\),\(1\),\(\[DoublePrime]\)]\)";
+fE2p="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubsuperscriptBox[\(E\),\(2\),\(\[Prime]\)]\)";  fE2pp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubsuperscriptBox[\(E\),\(2\),\(\[DoublePrime]\)]\)";
+E1g="\!\(\*SubscriptBox[\(E\),\(1g\)]\)";  E1u="\!\(\*SubscriptBox[\(E\),\(1u\)]\)";
+E2g="\!\(\*SubscriptBox[\(E\),\(2g\)]\)";  E2u="\!\(\*SubscriptBox[\(E\),\(2u\)]\)";
+E3="\!\(\*SubscriptBox[\(E\),\(3\)]\)";  E4="\!\(\*SubscriptBox[\(E\),\(4\)]\)";
+fF="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)F";  sF="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)F";
+T1="\!\(\*SubscriptBox[\(T\),\(1\)]\)";  T2="\!\(\*SubscriptBox[\(T\),\(2\)]\)";
+Tg="\!\(\*SubscriptBox[\(T\),\(g\)]\)";  Tu="\!\(\*SubscriptBox[\(T\),\(u\)]\)";
+fF1="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[\(F\),\(1\)]\)";  sF1="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[\(F\),\(1\)]\)";
+fF2="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[\(F\),\(2\)]\)";  sF2="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[\(F\),\(2\)]\)";
+fEgp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubsuperscriptBox[\(E\),\(g\),\(\[Prime]\)]\)";  fEgpp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubsuperscriptBox[\(E\),\(g\),\(\[DoublePrime]\)]\)";
+fEup="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubsuperscriptBox[\(E\),\(u\),\(\[Prime]\)]\)";  fEupp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubsuperscriptBox[\(E\),\(u\),\(\[DoublePrime]\)]\)";
+sEgp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubsuperscriptBox[\(E\),\(g\),\(\[Prime]\)]\)";  sEgpp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubsuperscriptBox[\(E\),\(g\),\(\[DoublePrime]\)]\)";
+sEup="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubsuperscriptBox[\(E\),\(u\),\(\[Prime]\)]\)";  sEupp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubsuperscriptBox[\(E\),\(u\),\(\[DoublePrime]\)]\)";
+fE3="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[\(E\),\(3\)]\)";  fE4="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[\(E\),\(4\)]\)";
+fF3="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[\(F\),\(3\)]\)";  F2="\!\(\*SubscriptBox[\(F\),\(2\)]\)";
+fFg="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[\(F\),\(g\)]\)";  sFg="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[\(F\),\(g\)]\)";
+fFu="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[\(F\),\(u\)]\)";  sFu="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[\(F\),\(u\)]\)";
+fJ="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)J";  fH="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)H";  sH="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)H";
+T1g="\!\(\*SubscriptBox[\(T\),\(1g\)]\)";  T1u="\!\(\*SubscriptBox[\(T\),\(1u\)]\)";
+T2g="\!\(\*SubscriptBox[\(T\),\(2g\)]\)";  T2u="\!\(\*SubscriptBox[\(T\),\(2u\)]\)";
 
 LGIrepLabel=<||>;
 LGIrepLabel[{1,1}]={{"R",{1},{1}}, {"a",{"A"},{1}}};
@@ -3010,55 +3037,55 @@ Module[{na,Ab,Bb,Eb,Tb,Fb,Hb,Jb,Abg,Abu,Bbg,Bbu,Bb1,Bb2,Bb3,fEb,sEb,fEb1,sEb1,fE
         Abp,Abpp,Bbp,Bbpp,Eb3,Eb4,fEb3g,sEb3g,fEb3u,sEb3u,fEbgp,sEbgp,fEbgpp,sEbgpp,fEbup,
         sEbup,fEbupp,sEbupp,Abgp,Abup,Abgpp,Abupp,Bbgp,Bbup,Bbgpp,Bbupp,Tbg,Tbu,fFbg,sFbg,
         fFbu,sFbu,fFb1,sFb1,fFb2,sFb2,fHb,sHb,Eb3g,Eb3u,Fbg,Fbu,fFb3,sFb3,Fb2,fHb1,fHb2,fJb,sJb},
-na=""; Ab="\!\(\*OverscriptBox[\(A\), \(_\)]\)"; Bb="\!\(\*OverscriptBox[\(B\), \(_\)]\)"; Eb="\!\(\*OverscriptBox[\(E\), \(_\)]\)";
-Tb="\!\(\*OverscriptBox[\(T\), \(_\)]\)"; Fb="\!\(\*OverscriptBox[\(F\), \(_\)]\)"; Hb="\!\(\*OverscriptBox[\(H\), \(_\)]\)"; Jb="\!\(\*OverscriptBox[\(J\), \(_\)]\)";
-Abg="\!\(\*SubscriptBox[OverscriptBox[\(A\), \(_\)], \(g\)]\)";  Abu="\!\(\*SubscriptBox[OverscriptBox[\(A\), \(_\)], \(u\)]\)";  
-Bbg="\!\(\*SubscriptBox[OverscriptBox[\(B\), \(_\)], \(g\)]\)";  Bbu="\!\(\*SubscriptBox[OverscriptBox[\(B\), \(_\)], \(u\)]\)"; 
-Bb1="\!\(\*SubscriptBox[OverscriptBox[\(B\), \(_\)], \(1\)]\)";  Bb2="\!\(\*SubscriptBox[OverscriptBox[\(B\), \(_\)], \(2\)]\)";  Bb3="\!\(\*SubscriptBox[OverscriptBox[\(B\), \(_\)], \(3\)]\)";
-fEb="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*OverscriptBox[\(E\), \(_\)]\)";  sEb="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*OverscriptBox[\(E\), \(_\)]\)";
-fEb1="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(1\)]\)";  sEb1="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(1\)]\)";
-fEb2="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(2\)]\)";  sEb2="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(2\)]\)";
-fEb3="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(3\)]\)";  sEb3="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(3\)]\)";
-fEb4="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(4\)]\)";  sEb4="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(4\)]\)";
-fEbg="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(g\)]\)";  sEbg="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(g\)]\)";
-fEbu="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(u\)]\)";  sEbu="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(u\)]\)";
-Eb1="\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(1\)]\)";  Eb2="\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(2\)]\)";
-Eb3="\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(3\)]\)";  Eb4="\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(4\)]\)";
-Ab1="\!\(\*SubscriptBox[OverscriptBox[\(A\), \(_\)], \(1\)]\)";  Ab2="\!\(\*SubscriptBox[OverscriptBox[\(A\), \(_\)], \(2\)]\)";
-fEb1g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(1  g\)]\)";  sEb1g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(1  g\)]\)";
-fEb1u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(1  u\)]\)";  sEb1u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(1  u\)]\)";
-fEb2g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(2  g\)]\)";  sEb2g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(2  g\)]\)";
-fEb2u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(2  u\)]\)";  sEb2u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(2  u\)]\)";
-fEb3g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(3  g\)]\)";  sEb3g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(3  g\)]\)";
-fEb3u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(3  u\)]\)";  sEb3u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(3  u\)]\)";
-Eb1g="\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(1  g\)]\)";  Eb1u="\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(1  u\)]\)";  
-Eb2g="\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(2  g\)]\)";  Eb2u="\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(2  u\)]\)";  
-Eb3g="\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(3  g\)]\)";  Eb3u="\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(3  u\)]\)";  
-fEbp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SuperscriptBox[OverscriptBox[\(E\), \(_\)], \(\[Prime]\)]\)";  sEbp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SuperscriptBox[OverscriptBox[\(E\), \(_\)], \(\[Prime]\)]\)"; 
-fEbpp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SuperscriptBox[OverscriptBox[\(E\), \(_\)], \(\[DoublePrime]\)]\)";  sEbpp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SuperscriptBox[OverscriptBox[\(E\), \(_\)], \(\[DoublePrime]\)]\)"; 
-fFb="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*OverscriptBox[\(F\), \(_\)]\)";  sFb="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*OverscriptBox[\(F\), \(_\)]\)";
-Ebg="\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(g\)]\)";  Ebu="\!\(\*SubscriptBox[OverscriptBox[\(E\), \(_\)], \(u\)]\)";  
-Abp="\!\(\*SuperscriptBox[OverscriptBox[\(A\), \(_\)], \(\[Prime]\)]\)";  Abpp="\!\(\*SuperscriptBox[OverscriptBox[\(A\), \(_\)], \(\[DoublePrime]\)]\)";
-Bbp="\!\(\*SuperscriptBox[OverscriptBox[\(B\), \(_\)], \(\[Prime]\)]\)";  Bbpp="\!\(\*SuperscriptBox[OverscriptBox[\(B\), \(_\)], \(\[DoublePrime]\)]\)";
-fEbgp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubsuperscriptBox[OverscriptBox[\(E\), \(_\)], \(g\), \(\[Prime]\)]\)";  sEbgp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubsuperscriptBox[OverscriptBox[\(E\), \(_\)], \(g\), \(\[Prime]\)]\)"; 
-fEbup="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubsuperscriptBox[OverscriptBox[\(E\), \(_\)], \(u\), \(\[Prime]\)]\)";  sEbup="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubsuperscriptBox[OverscriptBox[\(E\), \(_\)], \(u\), \(\[Prime]\)]\)"; 
-fEbgpp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubsuperscriptBox[OverscriptBox[\(E\), \(_\)], \(g\), \(\[DoublePrime]\)]\)";  sEbgpp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubsuperscriptBox[OverscriptBox[\(E\), \(_\)], \(g\), \(\[DoublePrime]\)]\)"; 
-fEbupp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubsuperscriptBox[OverscriptBox[\(E\), \(_\)], \(u\), \(\[DoublePrime]\)]\)";  sEbupp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubsuperscriptBox[OverscriptBox[\(E\), \(_\)], \(u\), \(\[DoublePrime]\)]\)"; 
-Abgp="\!\(\*SubsuperscriptBox[OverscriptBox[\(A\), \(_\)], \(g\), \(\[Prime]\)]\)";  Abup="\!\(\*SubsuperscriptBox[OverscriptBox[\(A\), \(_\)], \(u\), \(\[Prime]\)]\)";
-Bbgp="\!\(\*SubsuperscriptBox[OverscriptBox[\(B\), \(_\)], \(g\), \(\[Prime]\)]\)";  Bbup="\!\(\*SubsuperscriptBox[OverscriptBox[\(B\), \(_\)], \(u\), \(\[Prime]\)]\)";
-Abgpp="\!\(\*SubsuperscriptBox[OverscriptBox[\(A\), \(_\)], \(g\), \(\[DoublePrime]\)]\)";  Abupp="\!\(\*SubsuperscriptBox[OverscriptBox[\(A\), \(_\)], \(u\), \(\[DoublePrime]\)]\)";
-Bbgpp="\!\(\*SubsuperscriptBox[OverscriptBox[\(B\), \(_\)], \(g\), \(\[DoublePrime]\)]\)";  Bbupp="\!\(\*SubsuperscriptBox[OverscriptBox[\(B\), \(_\)], \(u\), \(\[DoublePrime]\)]\)";
-Tbg="\!\(\*SubscriptBox[OverscriptBox[\(T\), \(_\)], \(g\)]\)";  Tbu="\!\(\*SubscriptBox[OverscriptBox[\(T\), \(_\)], \(u\)]\)";  
-Fbg="\!\(\*SubscriptBox[OverscriptBox[\(F\), \(_\)], \(g\)]\)";  Fbu="\!\(\*SubscriptBox[OverscriptBox[\(F\), \(_\)], \(u\)]\)";  
-fFbg="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\), \(_\)], \(g\)]\)";  sFbg="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\), \(_\)], \(g\)]\)";
-fFbu="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\), \(_\)], \(u\)]\)";  sFbu="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\), \(_\)], \(u\)]\)";
-fFb1="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\), \(_\)], \(1\)]\)";  sFb1="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\), \(_\)], \(1\)]\)";
-fFb2="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\), \(_\)], \(2\)]\)";  sFb2="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\), \(_\)], \(2\)]\)";
-fFb3="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\), \(_\)], \(3\)]\)";  sFb3="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\), \(_\)], \(3\)]\)";
-fHb="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*OverscriptBox[\(H\), \(_\)]\)";  sHb="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*OverscriptBox[\(H\), \(_\)]\)";
-Fb2="\!\(\*SubscriptBox[OverscriptBox[\(F\), \(_\)], \(2\)]\)";
-fHb1="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(H\), \(_\)], \(1\)]\)";  fHb2="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(H\), \(_\)], \(2\)]\)";
-fJb="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(1\)]\)\!\(\*OverscriptBox[\(J\), \(_\)]\)";  sJb="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(2\)]\)\!\(\*OverscriptBox[\(J\), \(_\)]\)";
+na=""; Ab="\!\(\*OverscriptBox[\(A\),\(_\)]\)"; Bb="\!\(\*OverscriptBox[\(B\),\(_\)]\)"; Eb="\!\(\*OverscriptBox[\(E\),\(_\)]\)";
+Tb="\!\(\*OverscriptBox[\(T\),\(_\)]\)"; Fb="\!\(\*OverscriptBox[\(F\),\(_\)]\)"; Hb="\!\(\*OverscriptBox[\(H\),\(_\)]\)"; Jb="\!\(\*OverscriptBox[\(J\),\(_\)]\)";
+Abg="\!\(\*SubscriptBox[OverscriptBox[\(A\),\(_\)],\(g\)]\)";  Abu="\!\(\*SubscriptBox[OverscriptBox[\(A\),\(_\)],\(u\)]\)";
+Bbg="\!\(\*SubscriptBox[OverscriptBox[\(B\),\(_\)],\(g\)]\)";  Bbu="\!\(\*SubscriptBox[OverscriptBox[\(B\),\(_\)],\(u\)]\)";
+Bb1="\!\(\*SubscriptBox[OverscriptBox[\(B\),\(_\)],\(1\)]\)";  Bb2="\!\(\*SubscriptBox[OverscriptBox[\(B\),\(_\)],\(2\)]\)";  Bb3="\!\(\*SubscriptBox[OverscriptBox[\(B\),\(_\)],\(3\)]\)";
+fEb="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*OverscriptBox[\(E\),\(_\)]\)";  sEb="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*OverscriptBox[\(E\),\(_\)]\)";
+fEb1="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(1\)]\)";  sEb1="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(1\)]\)";
+fEb2="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(2\)]\)";  sEb2="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(2\)]\)";
+fEb3="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(3\)]\)";  sEb3="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(3\)]\)";
+fEb4="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(4\)]\)";  sEb4="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(4\)]\)";
+fEbg="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(g\)]\)";  sEbg="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(g\)]\)";
+fEbu="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(u\)]\)";  sEbu="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(u\)]\)";
+Eb1="\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(1\)]\)";  Eb2="\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(2\)]\)";
+Eb3="\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(3\)]\)";  Eb4="\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(4\)]\)";
+Ab1="\!\(\*SubscriptBox[OverscriptBox[\(A\),\(_\)],\(1\)]\)";  Ab2="\!\(\*SubscriptBox[OverscriptBox[\(A\),\(_\)],\(2\)]\)";
+fEb1g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(1g\)]\)";  sEb1g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(1g\)]\)";
+fEb1u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(1u\)]\)";  sEb1u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(1u\)]\)";
+fEb2g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(2g\)]\)";  sEb2g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(2g\)]\)";
+fEb2u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(2u\)]\)";  sEb2u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(2u\)]\)";
+fEb3g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(3g\)]\)";  sEb3g="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(3g\)]\)";
+fEb3u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(3u\)]\)";  sEb3u="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(3u\)]\)";
+Eb1g="\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(1g\)]\)";  Eb1u="\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(1u\)]\)";
+Eb2g="\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(2g\)]\)";  Eb2u="\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(2u\)]\)";
+Eb3g="\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(3g\)]\)";  Eb3u="\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(3u\)]\)";
+fEbp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SuperscriptBox[OverscriptBox[\(E\),\(_\)],\(\[Prime]\)]\)";  sEbp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SuperscriptBox[OverscriptBox[\(E\),\(_\)],\(\[Prime]\)]\)";
+fEbpp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SuperscriptBox[OverscriptBox[\(E\),\(_\)],\(\[DoublePrime]\)]\)";  sEbpp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SuperscriptBox[OverscriptBox[\(E\),\(_\)],\(\[DoublePrime]\)]\)";
+fFb="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*OverscriptBox[\(F\),\(_\)]\)";  sFb="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*OverscriptBox[\(F\),\(_\)]\)";
+Ebg="\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(g\)]\)";  Ebu="\!\(\*SubscriptBox[OverscriptBox[\(E\),\(_\)],\(u\)]\)";
+Abp="\!\(\*SuperscriptBox[OverscriptBox[\(A\),\(_\)],\(\[Prime]\)]\)";  Abpp="\!\(\*SuperscriptBox[OverscriptBox[\(A\),\(_\)],\(\[DoublePrime]\)]\)";
+Bbp="\!\(\*SuperscriptBox[OverscriptBox[\(B\),\(_\)],\(\[Prime]\)]\)";  Bbpp="\!\(\*SuperscriptBox[OverscriptBox[\(B\),\(_\)],\(\[DoublePrime]\)]\)";
+fEbgp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubsuperscriptBox[OverscriptBox[\(E\),\(_\)],\(g\),\(\[Prime]\)]\)";  sEbgp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubsuperscriptBox[OverscriptBox[\(E\),\(_\)],\(g\),\(\[Prime]\)]\)";
+fEbup="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubsuperscriptBox[OverscriptBox[\(E\),\(_\)],\(u\),\(\[Prime]\)]\)";  sEbup="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubsuperscriptBox[OverscriptBox[\(E\),\(_\)],\(u\),\(\[Prime]\)]\)";
+fEbgpp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubsuperscriptBox[OverscriptBox[\(E\),\(_\)],\(g\),\(\[DoublePrime]\)]\)";  sEbgpp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubsuperscriptBox[OverscriptBox[\(E\),\(_\)],\(g\),\(\[DoublePrime]\)]\)";
+fEbupp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubsuperscriptBox[OverscriptBox[\(E\),\(_\)],\(u\),\(\[DoublePrime]\)]\)";  sEbupp="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubsuperscriptBox[OverscriptBox[\(E\),\(_\)],\(u\),\(\[DoublePrime]\)]\)";
+Abgp="\!\(\*SubsuperscriptBox[OverscriptBox[\(A\),\(_\)],\(g\),\(\[Prime]\)]\)";  Abup="\!\(\*SubsuperscriptBox[OverscriptBox[\(A\),\(_\)],\(u\),\(\[Prime]\)]\)";
+Bbgp="\!\(\*SubsuperscriptBox[OverscriptBox[\(B\),\(_\)],\(g\),\(\[Prime]\)]\)";  Bbup="\!\(\*SubsuperscriptBox[OverscriptBox[\(B\),\(_\)],\(u\),\(\[Prime]\)]\)";
+Abgpp="\!\(\*SubsuperscriptBox[OverscriptBox[\(A\),\(_\)],\(g\),\(\[DoublePrime]\)]\)";  Abupp="\!\(\*SubsuperscriptBox[OverscriptBox[\(A\),\(_\)],\(u\),\(\[DoublePrime]\)]\)";
+Bbgpp="\!\(\*SubsuperscriptBox[OverscriptBox[\(B\),\(_\)],\(g\),\(\[DoublePrime]\)]\)";  Bbupp="\!\(\*SubsuperscriptBox[OverscriptBox[\(B\),\(_\)],\(u\),\(\[DoublePrime]\)]\)";
+Tbg="\!\(\*SubscriptBox[OverscriptBox[\(T\),\(_\)],\(g\)]\)";  Tbu="\!\(\*SubscriptBox[OverscriptBox[\(T\),\(_\)],\(u\)]\)";
+Fbg="\!\(\*SubscriptBox[OverscriptBox[\(F\),\(_\)],\(g\)]\)";  Fbu="\!\(\*SubscriptBox[OverscriptBox[\(F\),\(_\)],\(u\)]\)";
+fFbg="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\),\(_\)],\(g\)]\)";  sFbg="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\),\(_\)],\(g\)]\)";
+fFbu="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\),\(_\)],\(u\)]\)";  sFbu="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\),\(_\)],\(u\)]\)";
+fFb1="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\),\(_\)],\(1\)]\)";  sFb1="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\),\(_\)],\(1\)]\)";
+fFb2="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\),\(_\)],\(2\)]\)";  sFb2="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\),\(_\)],\(2\)]\)";
+fFb3="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\),\(_\)],\(3\)]\)";  sFb3="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*SubscriptBox[OverscriptBox[\(F\),\(_\)],\(3\)]\)";
+fHb="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*OverscriptBox[\(H\),\(_\)]\)";  sHb="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*OverscriptBox[\(H\),\(_\)]\)";
+Fb2="\!\(\*SubscriptBox[OverscriptBox[\(F\),\(_\)],\(2\)]\)";
+fHb1="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(H\),\(_\)],\(1\)]\)";  fHb2="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*SubscriptBox[OverscriptBox[\(H\),\(_\)],\(2\)]\)";
+fJb="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(1\)]\)\!\(\*OverscriptBox[\(J\),\(_\)]\)";  sJb="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\),\(2\)]\)\!\(\*OverscriptBox[\(J\),\(_\)]\)";
 
 DLGIrepLabel=<||>;
 DLGIrepLabel[{2,1}]={{"R",{2},{1}},{"a",{Ab},{2}}};
