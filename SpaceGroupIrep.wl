@@ -112,6 +112,16 @@ SeitzTimes::usage="Two usages:\nSeitzTimes[{R1,v1},{R2,v2}]  or  SeitzTimes[brav
 invSeitz::usage="Two usages:  invSeitz[{R,v}]  or  invSeitz[brav][{Rname,v}]  gives the inverse of the space "<>
    "group operation {R,v} or {Rname,v}.";
 powerSeitz::usage="Two usages:  powerSeitz[{R,v},n]  or powerSeitz[brav][{Rname,v},n]  gives {R,v}^n or {Rname,v}^n";
+RotTimes::usage="RotTimes[Rname1,Rname2]  performs the multiplication between two rotations by their name strings "<>
+   "defined in the BC book, i.e. the names in\n"<>
+   ToString@DeleteDuplicates@Join[RotMat[[1]]["CubiPrim"],RotMat[[1]]["HexaPrim"]];
+powerRot::usage="powerRot[Rname,n]  returns the n-th power of a rotation by its name string.";
+invRot::usage="invRot[Rname]  returns the inverse of a rotation by its name string.";
+DRotTimes::usage="DRotTimes[Rname1,Rname2]  performs the multiplication between two double-point-group rotations "<>
+   "by their name strings defined in the BC book, i.e. the names in\n"<>
+   ToString@DeleteDuplicates@Join[SpinRotName[[1]]//Values, SpinRotName[[2]]//Values];
+powerDRot::usage="powerDRot[Rname,n]  returns the n-th power of a double-point-group rotation by its name string.";
+invDRot::usage="invDRot[Rname]  returns the inverse of a double-point-group rotation by its name string.";
 CentExtTimes::usage="CentExtTimes[brav,adict][{R1,alpha},{R2,beta}]  multiplies two elements {R1,alpha} and "<>
    "{R2,beta} of a central extension of little cogroup according to adict which is given by aCentExt. R1 and R2 "<>
    "are either rotation matrices or rotation names.";
@@ -2080,7 +2090,7 @@ identifyBCHSKptBySG[sgno_, BZtypeOrBasVec_, k_, OptionsPattern[]]/;VectorQ[k,Num
 (*Multiplication of Seitz symbols and elems of central extension*)
 
 
-(* Definition of the multipliction and inverse of space group Seitz symbols *)
+(* Definition of the multiplication and inverse of space group Seitz symbols *)
 SeitzTimes[{R1_,v1_},{R2_,v2_}]:={R1.R2,R1.v2+v1}
 g1_\[CircleDot]g2__:=Fold[SeitzTimes,g1,{g2}]
 invSeitz[{R_,v_}]:={Inverse[R],-Inverse[R].v}
@@ -2106,6 +2116,28 @@ CentExtTimes[brav_,adict_][{R1_,alpha_},{R2_,beta_}]:=Module[{g,R1mat,R1name,R2m
 CentExtPower[brav_,adict_][{R_,alpha_},n_Integer]/;n>=0:=If[n==0,{"E",0},
                            Fold[CentExtTimes[brav,adict],{R,alpha},Table[{R,alpha},{i,n-1}]]]
 
+(* ::Subsection:: *)
+(*Multiplication of rotation names*)
+RotTimes[Rname1_String,Rname2_String]:=Module[{crots,hrots,brav,EI={"E","I"},tmp},
+  crots=RotMat[[1]]["CubiPrim"];
+  hrots=RotMat[[1]]["HexaPrim"];
+  If[MemberQ[EI, Rname1], 
+    brav=If[MemberQ[crots, Rname2], "CubiPrim", "HexaPrim"],
+    brav=If[MemberQ[crots, Rname1], "CubiPrim", "HexaPrim"];
+    If[!MemberQ[EI, Rname2], 
+      tmp=If[MemberQ[crots, Rname2], "CubiPrim", "HexaPrim"];
+      If[brav!=tmp, Print["RotTimes: Error! Rname1 and Rname2 should be in the same list of either\n",crots,"\nor\n",hrots]; Abort[]];
+    ] 
+  ];
+  getRotName[brav, getRotMat[brav,Rname1].getRotMat[brav,Rname2]]
+]
+
+powerRot[Rname_String, n_Integer]/;n>=0:=If[n==0, "E", Fold[RotTimes,Rname,Table[Rname,n-1]]]
+
+invRot[Rname_String]:=Module[{brav},
+  brav=If[MemberQ[RotMat[[1]]["CubiPrim"], Rname], "CubiPrim", "HexaPrim"];
+  getRotName[brav,invRotMat@getRotMat[brav,Rname]]
+]
 
 (* ::Subsection:: *)
 (*Spin Rotations (Tab. 6.1 and Tab. 6.7) and multiplications for double space group (DSG)*)
@@ -2179,6 +2211,7 @@ getSpinRotName[brav_String,{srot_, o3det_Integer}]/;MatrixQ[srot,NumericQ]&&Dime
 SpinRotTimes[{srot1_,o3det1_Integer},{srot2_,o3det2_Integer}]:={srot1.srot2,o3det1*o3det2}
 SpinRotTimes[brav_String][opname1_String,opname2_String]:=
   getSpinRotName[brav,SpinRotTimes[getSpinRotOp[opname1],getSpinRotOp[opname2]]]
+SpinRotTimes[opname1_String,opname2_String]:=DRotTimes[opname1,opname2]
 DSGSeitzTimes[brav_][{Rname1_,v1_},{Rname2_,v2_}]:=
   {SpinRotTimes[brav][Rname1,Rname2], getRotMat[brav,StringReplace[Rname1,"bar"->""]].v2+v1}
 DSGpowerSeitz[brav_][{Rname_,v_},n_Integer]/;n>=0:=If[n==0,{"E",{0,0,0}},
@@ -2192,6 +2225,26 @@ DSGCentExtTimes[brav_,adict_][{opname1_,alpha_},{opname2_,beta_}]:=Module[{g},
 ]
 DSGCentExtPower[brav_,adict_][{opname_,alpha_},n_Integer]/;n>=0:=If[n==0,{"E",0},
                     Fold[DSGCentExtTimes[brav,adict],{opname,alpha},Table[{opname,alpha},{i,n-1}]]]
+
+(* Operations on rotation names*)
+DRotTimes[Rname1_String,Rname2_String]:=Module[{crots,hrots,brav,barEI={"E","I","barE","barI"},tmp},
+  crots=SpinRotName[[1]]//Values;
+  hrots=SpinRotName[[2]]//Values;
+  If[MemberQ[barEI, Rname1], 
+    brav=If[MemberQ[crots, Rname2], "CubiPrim", "HexaPrim"],
+    brav=If[MemberQ[crots, Rname1], "CubiPrim", "HexaPrim"];
+    If[!MemberQ[barEI, Rname2], 
+      tmp=If[MemberQ[crots, Rname2], "CubiPrim", "HexaPrim"];
+      If[brav!=tmp, Print["DRotTimes: Error! Rname1 and Rname2 should be in the same list of either\n",crots,"\nor\n",hrots]; Abort[]];
+    ] 
+  ];
+  getSpinRotName[brav,SpinRotTimes[getSpinRotOp[Rname1],getSpinRotOp[Rname2]]]
+]
+powerDRot[Rname_String, n_Integer]/;n>=0:=If[n==0, "E", Fold[DRotTimes,Rname,Table[Rname,n-1]]]
+invDRot[Rname_String]:=Module[{brav},
+  brav=If[MemberQ[SpinRotName[[1]]//Values, Rname], "CubiPrim", "HexaPrim"];
+  getSpinRotName[brav,{ConjugateTranspose[#1],#2}]&@@getSpinRotOp[Rname]
+]
 
 
 (* Give the determinant, axis, and angle of an O(3) rotation matrix. Using the axis angle we can

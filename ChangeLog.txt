@@ -1,3 +1,17 @@
+018. 2022-04-26 22:14:01
+    Add functions to calculate the multiplication, power, and inversion
+    of rotations by their name strings defined in the BC book. 
+    These functions are:
+      RotTimes, powerRot, invRot, DRotTimes, powerDRot, invDRot
+    Add a form of calling SpinRotTimes which is equivalent to DRotTimes.
+
+    Add a function str2Mulliken to onvert the text string to the Mulliken form string.
+    Delete the spaces in the Mulliken form strings in LGIrepLabel and DLGIrepLabel.
+
+    Small adjustments to the appearance of classes in
+            showAGCharTab and showAGCharTabByGen.
+
+
 017. 2022-04-24 23:38:27
 
     Add a function showRot to show the symbol of a rotation name string.
