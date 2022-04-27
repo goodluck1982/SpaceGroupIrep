@@ -19,7 +19,7 @@ Protect[u,v,w,a,b,c,\[Alpha],\[Beta],\[Gamma],t\:2081,t\:2082,t\:2083];
 
 
 (* ::Section:: *)
-(*Usages of functions and variables*)
+(*Usages of most functions and variables. Another part is in the end of the file.*)
 
 
 SGSymText::usage="A list of text-version international symbols of space groups.";
@@ -112,14 +112,8 @@ SeitzTimes::usage="Two usages:\nSeitzTimes[{R1,v1},{R2,v2}]  or  SeitzTimes[brav
 invSeitz::usage="Two usages:  invSeitz[{R,v}]  or  invSeitz[brav][{Rname,v}]  gives the inverse of the space "<>
    "group operation {R,v} or {Rname,v}.";
 powerSeitz::usage="Two usages:  powerSeitz[{R,v},n]  or powerSeitz[brav][{Rname,v},n]  gives {R,v}^n or {Rname,v}^n";
-RotTimes::usage="RotTimes[Rname1,Rname2]  performs the multiplication between two rotations by their name strings "<>
-   "defined in the BC book, i.e. the names in\n"<>
-   ToString@DeleteDuplicates@Join[RotMat[[1]]["CubiPrim"],RotMat[[1]]["HexaPrim"]];
 powerRot::usage="powerRot[Rname,n]  returns the n-th power of a rotation by its name string.";
 invRot::usage="invRot[Rname]  returns the inverse of a rotation by its name string.";
-DRotTimes::usage="DRotTimes[Rname1,Rname2]  performs the multiplication between two double-point-group rotations "<>
-   "by their name strings defined in the BC book, i.e. the names in\n"<>
-   ToString@DeleteDuplicates@Join[SpinRotName[[1]]//Values, SpinRotName[[2]]//Values];
 powerDRot::usage="powerDRot[Rname,n]  returns the n-th power of a double-point-group rotation by its name string.";
 invDRot::usage="invDRot[Rname]  returns the inverse of a double-point-group rotation by its name string.";
 CentExtTimes::usage="CentExtTimes[brav,adict][{R1,alpha},{R2,beta}]  multiplies two elements {R1,alpha} and "<>
@@ -176,8 +170,6 @@ reduceRep::usage="reduceRep[{m,n},chars]  gives the number of times of each irre
 calcRep::usage="calcRep[sgno,kinfo]  is used to get the irep infos for \"GP\" and \"UN\" kpoints which are not given in the "<>
    "BC book. For the kpoints whose irep infos are given in the BC book (i.e. BC Tab. 5.7 and 6.13), this function is only "<>
    "used for checking purpose.";
-str2Mulliken::usage="str2Mulliken[str]  converts the text string str to the Mulliken form string. e.g.\n"<>
-   "    str2Mulliken[\"2E1g'\"]  ==>  "<>str2Mulliken["2E1g'"]<>"   and   str2Mulliken[\"barA1''\"]  ==>  "<>str2Mulliken["barA1''"];
 LGIrepLabel::usage="LGIrepLabel[{m,n}]  gives the informations of BC Tab. 5.8.";
 DLGIrepLabel::usage="DLGIrepLabel[{m,n}]  gives the informations of BC Tab. 6.14.";
 showRepLabel::usage="showRepLabel[{m,n},dsgtag]  gives the table like BC Tab. 5.8 (for dsgtag=\"s\" which is default) or Tab. 6.14 "<>
@@ -5210,8 +5202,33 @@ showKrepBCStoBC[sgno_Integer, BZtype_String, OptionsPattern[]]:=Module[{tab,tabs
 
 
 (* ::Section:: *)
-(*Ending*)
+(*End of `Private`*)
 
 
 End[]
+
+
+(* ::Section:: *)
+(*Another part of usages which use functions and variables*)
+
+
+(*Note that this part of usages have used the functions/variables such as RotMat, SpinRotName, and str2Mulliken. 
+So they have to be defined before these usages call them. And this is why this part is moved to the end of file.
+IN PARTICLUAR, SpinRotName and str2Mulliken are still in the context `Private`, therefore we have to use the 
+`Private` prefix to call them. *)
+RotTimes::usage="RotTimes[Rname1,Rname2]  performs the multiplication between two rotations by their name strings "<>
+   "defined in the BC book, i.e. the names in\n"<>
+   ToString@DeleteDuplicates@Join[RotMat[[1]]["CubiPrim"],RotMat[[1]]["HexaPrim"]];
+DRotTimes::usage="DRotTimes[Rname1,Rname2]  performs the multiplication between two double-point-group rotations "<>
+   "by their name strings defined in the BC book, i.e. the names in\n"<>
+   ToString@DeleteDuplicates@Join[`Private`SpinRotName[[1]]//Values, `Private`SpinRotName[[2]]//Values];
+str2Mulliken::usage="str2Mulliken[str]  converts the text string str to the Mulliken form string. e.g.\n"<>
+   "    str2Mulliken[\"2E1g'\"]  ==>  "<>`Private`str2Mulliken["2E1g'"]<>
+   "   and   str2Mulliken[\"barA1''\"]  ==>  "<>`Private`str2Mulliken["barA1''"];
+
+
+(* ::Section:: *)
+(*Ending*)
+
+
 EndPackage[]
