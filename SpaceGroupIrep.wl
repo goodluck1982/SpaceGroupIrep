@@ -112,8 +112,10 @@ SeitzTimes::usage="Two usages:\nSeitzTimes[{R1,v1},{R2,v2}]  or  SeitzTimes[brav
 invSeitz::usage="Two usages:  invSeitz[{R,v}]  or  invSeitz[brav][{Rname,v}]  gives the inverse of the space "<>
    "group operation {R,v} or {Rname,v}.";
 powerSeitz::usage="Two usages:  powerSeitz[{R,v},n]  or powerSeitz[brav][{Rname,v},n]  gives {R,v}^n or {Rname,v}^n";
+RotTimes::usage="";  (*This usage definition is postponed. But the symbol RotTimes also have to be declared to make it public.*)
 powerRot::usage="powerRot[Rname,n]  returns the n-th power of a rotation by its name string.";
 invRot::usage="invRot[Rname]  returns the inverse of a rotation by its name string.";
+DRotTimes::usage=""; (*Real usage definition is moved to the end.*)
 powerDRot::usage="powerDRot[Rname,n]  returns the n-th power of a double-point-group rotation by its name string.";
 invDRot::usage="invDRot[Rname]  returns the inverse of a double-point-group rotation by its name string.";
 CentExtTimes::usage="CentExtTimes[brav,adict][{R1,alpha},{R2,beta}]  multiplies two elements {R1,alpha} and "<>
@@ -170,6 +172,10 @@ reduceRep::usage="reduceRep[{m,n},chars]  gives the number of times of each irre
 calcRep::usage="calcRep[sgno,kinfo]  is used to get the irep infos for \"GP\" and \"UN\" kpoints which are not given in the "<>
    "BC book. For the kpoints whose irep infos are given in the BC book (i.e. BC Tab. 5.7 and 6.13), this function is only "<>
    "used for checking purpose.";
+str2Mulliken::usage=""; (*Real usage definition is moved to the end.*)
+Mulliken2str::usage=""; (*Real usage definition is moved to the end.*)
+str2GammaLabel::usage=""; (*Real usage definition is moved to the end.*)
+GammaLabel2str::usage=""; (*Real usage definition is moved to the end.*)
 LGIrepLabel::usage="LGIrepLabel[{m,n}]  gives the informations of BC Tab. 5.8.";
 DLGIrepLabel::usage="DLGIrepLabel[{m,n}]  gives the informations of BC Tab. 6.14.";
 showRepLabel::usage="showRepLabel[{m,n},dsgtag]  gives the table like BC Tab. 5.8 (for dsgtag=\"s\" which is default) or Tab. 6.14 "<>
@@ -2888,6 +2894,43 @@ str2Mulliken[str_String] := Module[{cs, out="", L0, sub, sup, bar},
   If[bar, StringReplace[out, {"\(\!\(\*Over"->"Over", "_\)]\)\)"->"_\)]"}], out]
 ]
 
+Mulliken2str[MulStr_String]:=Module[{rmlist, sub, bar, str},
+  sub={"\[DoublePrime]"->"''", "\[Prime]"->"'", "\[InvisiblePrefixScriptBase]"->""};
+  str=StringReplace[MulStr,sub];
+  rmlist= {"SuperscriptBox", "SubscriptBox", "SubsuperscriptBox", "OverscriptBox",
+           "\*", "\!", "\(", "\)", ",", "[", "]"," "};
+  str=StringReplace[str, #->""&/@rmlist];
+  bar=StringPosition[str,"_"]!={};
+  If[bar, "bar"<>StringReplace[str,"_"->""], str]
+]
+
+str2GammaLabel[str_String]:=Module[{knsub,pm,s,n,ds,bar},
+  knsub={"DT"->"\[CapitalDelta]","GM"->"\[CapitalGamma]","LD"->"\[CapitalLambda]","SM"->"\[CapitalSigma]"};
+  s=str;   pm=StringTake[s,-1];
+  If[MemberQ[{"+","-"},pm], s=StringTake[s,{1,-2}], pm=""];
+  If[StringLength[s]>3&&StringTake[s,3]=="bar", bar=True; s=StringTake[s,{4,-1}], bar=False];
+  ds=ToString/@Range[0,9];
+  If[MemberQ[ds,StringTake[s,{-2,-2}]], 
+    n=StringTake[s,-2]; s=StringTake[s,{1,-3}],
+    n=StringTake[s,-1];
+    If[MemberQ[ds,n], s=StringTake[s,{1,-2}], n=""]
+  ];
+  s=StringReplace[s,knsub];
+  If[bar, s="\!\(\*OverscriptBox[\("<>s<>"\), \(_\)]\)"];
+  If[pm=="", RepGammaLabel[s,n], RepGammaLabel[s,{n,pm}]]
+]
+
+GammaLabel2str[GMLstr_String]:=Module[{sub,rmlist,str},
+  sub={"\[CapitalDelta]"->"DT","\[CapitalGamma]"->"GM","\[CapitalLambda]"->"LD",
+       "\[CapitalSigma]"->"SM","\[InvisiblePrefixScriptBase]"->""};
+  str=StringReplace[GMLstr,sub];
+  rmlist= {"SuperscriptBox", "SubscriptBox", "SubsuperscriptBox", "OverscriptBox",
+           "\*", "\!", "\(", "\)", ",", "[", "]"," "};
+  str=StringReplace[str, #->""&/@rmlist];
+  bar=StringPosition[str,"_"]!={};
+  If[bar, "bar"<>StringReplace[str,"_"->""], str]
+]
+
 
 Module[{na,Ag,Au,Ap,App,A1,A2,A3,B1,B2,B3,Bg,Bu,A1g,A1u,A2g,A2u,B1g,B1u,B2g,B2u,B3g,B3u,A1p,A1pp,A2p,A2pp,
         Ep,Epp,Eg,Eu,fE,sE,E1,E2,fE1,sE1,fE2,sE2,fEg,sEg,fEu,sEu,fE1g,sE1g,fE1p,fE2p,fE1pp,fE2pp,
@@ -5222,9 +5265,18 @@ RotTimes::usage="RotTimes[Rname1,Rname2]  performs the multiplication between tw
 DRotTimes::usage="DRotTimes[Rname1,Rname2]  performs the multiplication between two double-point-group rotations "<>
    "by their name strings defined in the BC book, i.e. the names in\n"<>
    ToString@DeleteDuplicates@Join[`Private`SpinRotName[[1]]//Values, `Private`SpinRotName[[2]]//Values];
-str2Mulliken::usage="str2Mulliken[str]  converts the text string str to the Mulliken form string. e.g.\n"<>
-   "    str2Mulliken[\"2E1g'\"]  ==>  "<>`Private`str2Mulliken["2E1g'"]<>
-   "   and   str2Mulliken[\"barA1''\"]  ==>  "<>`Private`str2Mulliken["barA1''"];
+str2Mulliken::usage="str2Mulliken[str]  converts the plain text string str to the Mulliken-form string. e.g.\n"<>
+   "    str2Mulliken[\"2E1g'\"]  ==>  "<>str2Mulliken["2E1g'"]<>
+   "   and   str2Mulliken[\"barA1''\"]  ==>  "<>str2Mulliken["barA1''"];
+Mulliken2str::usage="Mulliken2str[MulStr]  converts the the Mulliken-form string MulStr to the plain text string e.g.\n"<>
+   "    Mulliken2str["<>str2Mulliken["2E1g'"]<>"]  ==>  \"2E1g'\""<>
+   "   and   Mulliken2str["<>str2Mulliken["barA1''"]<>"]  ==>  \"barA1''\"";
+str2GammaLabel::usage="str2GammaLabel[str]  converts the plain text string str to the Gamma label string. e.g.\n"<>
+   "    str2GammaLabel[\"GM3+\"]  ==>  "<>str2GammaLabel["GM3+"]<>
+   "   and   str2GammaLabel[\"DT2\"]  ==>  "<>str2GammaLabel["DT2"];
+GammaLabel2str::usage="GammaLabel2str[MulStr]  converts the the Gamma label string GMLstr to the plain text string e.g.\n"<>
+   "    GammaLabel2str["<>str2GammaLabel["GM3+"]<>"]  ==>  \"GM3+\""<>
+   "   and   GammaLabel2str["<>str2GammaLabel["DT2"]<>"]  ==>  \"DT2\"";
 
 
 (* ::Section:: *)

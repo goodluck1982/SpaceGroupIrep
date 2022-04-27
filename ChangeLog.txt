@@ -1,4 +1,9 @@
+019. 2022-04-27 23:46:06
+
+    Add functions Mulliken2str, str2GammaLabel, and GammaLabel2str
+
 018. 2022-04-26 22:14:01
+
     Add functions to calculate the multiplication, power, and inversion
     of rotations by their name strings defined in the BC book. 
     These functions are:
