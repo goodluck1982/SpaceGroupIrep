@@ -6,7 +6,7 @@
    
 (* Package Name: SpaceGroupIrep *)
 (* Author: Gui-Bin Liu *)
-(* Package verseion: 1.1.0 *)
+(* Package verseion: 1.2.0 *)
 (* Mathematica version: >=11.2 *)
 (* License: GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt *)
 
@@ -38,7 +38,7 @@ showSGSym::usage="showSGSym[listOrSpan]  returns a table of space group symbols 
    "used to specify the number of columns in a row. For example: showSGSym[11;;34,\"ncol\"->8]";
 PGinfo::usage="PGinfo stores the information of the 32 point groups.";
 showPGinfo::usage="showPGinfo[]  shows the information of the 32 point groups. Default options are "<>
-   "\"long\"->True and \"color\"->True.";
+   "\"long\"->True, \"color\"->True, and \"double\"->False.";
 JonesSymbol::usage="A list for Jones symbol, including rotation names, Jones symbols and rotation matrices.";
 getJones::usage="Two usages, e.g:\n getJones[rotName,\"type\"->type] returns Jones symbol when type"<>
    "=\"xyz\" and rotation matrix when type=\"mat\".\n getJones[xyzOrRotMat, p2] return the rotation "<>
@@ -186,6 +186,44 @@ formatRepMat::usage="formatRepMat[mat]  is used to format the matrix elements of
 mapLGIrepLabel::usage="mapLGIrepLabel[sgno,kname]  gives the correspondence/mapping between the abstract-group irep label, "<>
    "the extended Mulliken label, and the Gamma label for the LG ireps of kname. If kname is not designated, all k-points of the "<>
    "space group sgno are used. Option \"DSG\"->True can be used for double-valued ireps.";
+getPGCharTab::usage="getPGCharTab[pg]  gives the character table of point group pg. pg can be the sequence number or the name string "<>
+   "of a point group, e.g. 14, or \"D2d\", or \"-42m\". Full list can be obtained by showPGinfo[], or by triggering a tip via a wrong "<>
+   "input such as getPGCharTab[0]. When the option \"double\"->True is used, the character table of the corresponding double "<>
+   "point group is given.\n\n(1). For single-valued ireps, both the Mulliken labels and Gamma labels are consitent with the ones "<>
+   "in the Table 2.2 in the BC book, while the double-valued irep labels are not tabulated directly in the BC book.\n"<>
+   "(2). For the 21 point groups without inversion \"I\", the double-valued irep labels for the little group ireps at \[CapitalGamma] "<>
+   "of the first corresponding space group are adopted. For examle, C2v corresponds to SG 25-46 (see showPGinfo[]) and the double-valued irep labels of the "<>
+   "\[CapitalGamma] little group of the SG 25 are adopted for those of C2v.\n(3) For the rest 11 point groups with inversion, "<>
+   "they all can be written as H\[CircleTimes]Ci, and their double-valued irep labels are constructed from those of H. For example, "<>
+   "S6=C3\[CircleTimes]Ci, the double-valued irep \!\(\*OverscriptBox[\(A\),\(_\)]\) (\!\(\*SubscriptBox[\(\[CapitalGamma]\), \(6\)]\)) "<>
+   "of C3 splits into \!\(\*SubscriptBox[OverscriptBox[\(A\),\(_\)],\(g\)]\) (\!\(\*SubsuperscriptBox[\(\[CapitalGamma]\), \(6\), \(+\)]\)) "<>
+   "and \!\(\*SubscriptBox[OverscriptBox[\(A\),\(_\)],\(u\)]\) (\!\(\*SubsuperscriptBox[\(\[CapitalGamma]\), \(6\), \(-\)]\)) "<>
+   "in S6 for inversion-even and inversion-odd ireps respectively.";
+showPGCharTab::usage="showPGCharTab[pg]  shows the character table of point group pg in a user-friendly table form. Default "<>
+   "options are \"double\"->False, \"mode\"->4, \"class\"->Automatic, \"elem\"->All, \"irep\"->All, and \"linewidth\"->2. "<>
+   "For available values of the input argument pg and the options \"mode\", \"class\", \"elem\", and \"irep\", tips will be "<>
+   "triggered by a wrong input, e.g. \"class\"->0.";
+getPGIrepTab::usage="getPGIrepTab[pg]  gives the table of irep matrices for point group pg. Default options "<>
+   "are \"double\"->False and \"trace\"->False. For available values of the input argument pg and the option \"double\" "<>
+   "tips will be triggered by a wrong input, e.g. \"double\"->0. In this function, \"double\" can be True, False, and Full.";
+showPGIrepTab::usage="showPGIrepTab[pg]  shows the table of irep matrices for point group pg in a user-friendly table form. "<>
+   "Default options are \"double\"->True, \"rotmat\"->True, \"elem\"->All, \"irep\"->All, \"trace\"->False, \"spin\"->"<>
+   "\"downup\", \"cartesian\"->False, and \"linewidth\"->2. For available values of the input argument pg and the options "<>
+   "\"double\", \"elem\", and \"irep\", tips will be triggered by a wrong input, e.g. \"double\"->0. In this function, "<>
+   "\"double\" can be True, False, and Full.";
+PGIrepDirectProduct::usage="PGIrepDirectProduct[pg, ireps1, ireps2]  gives the direct products between ireps1 and "<>
+   "ireps2 for point group pg. ireps1 and ireps2 are both optional. If ireps2 is omitted, it takes the same value "<>
+   "as ireps1, and if both of them are omitted, they both take the vaule All. The output styles 1-4 can be controlled "<>
+   "by the option \"mode\" with default value 1. For available values of the input arguments pg, ireps1, and ireps2, "<>
+   "and the option \"mode\", tips will be triggered by a wrong input, e.g. \"mode\"->0. Note that both single-valued "<>
+   "and double-valued ireps are calculated.";
+showPGIrepDirectProduct::usage="showPGIrepDirectProduct[pg, ireps1, ireps2]  shows the direct products between ireps1 and "<>
+   "ireps2 for point group pg in a user-friendly table form. ireps1 and ireps2 are both optional. If ireps2 is omitted, "<>
+   "it takes the same value as ireps1, and if both of them are omitted, they both take the vaule All. Default options "<>
+   "are \"label\"->1 (1 for Mulliken labels and 2 for Gamma labels), \"double\"->True, \"linewidth\"->2, and \"emph\"->None."<>
+   "For available values of the input arguments pg, ireps1, and ireps2, and the option \"emph\", tips will be triggered "<>
+   "by a wrong input, e.g. \"emph\"->0. Note that both single-valued and double-valued ireps are shown by default, and "<>
+   "only single-valued ireps are shown when \"double\"->False is used.";
 getLGIrepTab::usage="getLGIrepTab[sgno, k]  gives the data for showing the irep table of the little group of k for "<>
    "space group sgno. k can be either its name or coordinates. Option \"abcOrBasVec\"->None is default, and if "<>
    "None is replaced by the basic vectors, specific BZ type is selected.";
@@ -454,35 +492,49 @@ showSGSym[listOrSpan_, OptionsPattern[]]:=Module[{bgc,i,j,lt=0.96,s1,s2,tab,bgs,
 ]
 
 PGinfo={ (*Point group information*)
-  {1, "C1", "1", {1, 1}, {1, 1}, {"E"}},                           {2, "Ci", "-1", {2, 2}, {2, 1}, {"I"}}, 
-  {3, "C2", "2", {3, 5}, {2, 1}, {"C2z"}},                         {4, "Cs", "m", {6, 9}, {2, 1}, {"\[Sigma]z"}}, 
-  {5, "C2h", "2/m", {10, 15}, {4, 2}, {"C2z", "I"}},               {6, "D2", "222", {16, 24}, {4, 2}, {"C2z", "C2y"}}, 
-  {7, "C2v", "mm2", {25, 46}, {4, 2}, {"C2z", "\[Sigma]y"}},       {8, "D2h", "mmm", {47, 74}, {8, 3}, {"C2z", "C2y", "I"}}, 
-  {9, "C4", "4", {75, 80}, {4, 1}, {"C4z+"}},                      {10, "S4", "-4", {81, 82}, {4, 1}, {"S4z+"}}, 
-  {11, "C4h", "4/m", {83, 88}, {8, 2}, {"C4z+", "I"}},             {12, "D4", "422", {89, 98}, {8, 4}, {"C4z+", "C2x"}}, 
-  {13, "C4v", "4mm", {99, 110}, {8, 4}, {"C4z+", "\[Sigma]y"}},    {14, "D2d", "-42m", {111, 122}, {8, 4}, {"S4z+", "C2x"}}, 
-  {15, "D4h", "4/mmm", {123, 142}, {16, 9}, {"C4z+", "C2x", "I"}}, {16, "C3", "3", {143, 146}, {3, 1}, {"C3+"}}, 
-  {17, "S6", "-3", {147, 148}, {6, 1}, {"S6+"}},                   {18, "D3", "32", {149, 155}, {6, 2}, {"C3+", "C21p"}}, 
-  {19, "C3v", "3m", {156, 161}, {6, 2}, {"C3+", "\[Sigma]v1"}},    {20, "D3d", "-3m", {162, 167}, {12, 3}, {"S6+", "C21p"}}, 
-  {21, "C6", "6", {168, 173}, {6, 1}, {"C6+"}},                    {22, "C3h", "-6", {174, 174}, {6, 1}, {"S3+"}}, 
-  {23, "C6h", "6/m", {175, 176}, {12, 2}, {"C3+", "C2", "I"}},     {24, "D6", "622", {177, 182}, {12, 3}, {"C6+", "C21p"}}, 
-  {25, "C6v", "6mm", {183, 186}, {12, 3}, {"C6+", "\[Sigma]v1"}},  {26, "D3h", "-6m2", {187, 190}, {12, 3}, {"S3+", "C21p"}}, 
-  {27, "D6h", "6/mmm", {191, 194}, {24, 5}, {"C3+", "C21p", "C2", "I"}}, 
-  {28, "T", "23", {195, 199}, {12, 5}, {"C31+", "C2z", "C2y"}}, 
-  {29, "Th", "m-3", {200, 206}, {24, 10}, {"S61+", "C2z", "C2y"}}, 
-  {30, "O", "432", {207, 214}, {24, 7}, {"C31-", "C2z", "C2x", "C2a"}}, 
-  {31, "Td", "-43m", {215, 220}, {24, 7}, {"C31-", "C2z", "C2x", "\[Sigma]da"}}, 
-  {32, "Oh", "m-3m", {221, 230}, {48, 7}, {"S61-", "\[Sigma]x", "\[Sigma]z", "C2c"}}
+  {1,"C1","1",{1, 1},1,{1, 1},{"E"},2,{2, 1},{"barE"}},
+  {2,"Ci","-1",{2, 2},2,{2, 1},{"I"},4,{4, 2},{"I", "barE"}},
+  {3,"C2","2",{3, 5},2,{2, 1},{"C2z"},4,{4, 1},{"C2z"}},
+  {4,"Cs","m",{6, 9},2,{2, 1},{"\[Sigma]z"},4,{4, 1},{"\[Sigma]z"}},
+  {5,"C2h","2/m",{10, 15},4,{4, 2},{"C2z", "I"},8,{8, 2},{"C2z", "I"}},
+  {6,"D2","222",{16, 24},4,{4, 2},{"C2z", "C2y"},5,{8, 5},{"C2z", "C2y"}},
+  {7,"C2v","mm2",{25, 46},4,{4, 2},{"C2z", "\[Sigma]y"},5,{8, 5},{"C2z", "\[Sigma]y"}},
+  {8,"D2h","mmm",{47, 74},8,{8, 3},{"C2z", "C2y", "I"},10,{16, 11},{"C2z", "C2y", "I"}},
+  {9,"C4","4",{75, 80},4,{4, 1},{"C4z+"},8,{8, 1},{"C4z+"}},
+  {10,"S4","-4",{81, 82},4,{4, 1},{"S4z+"},8,{8, 1},{"S4z+"}},
+  {11,"C4h","4/m",{83, 88},8,{8, 2},{"C4z+", "I"},16,{16, 2},{"C4z+", "I"}},
+  {12,"D4","422",{89, 98},5,{8, 4},{"C4z+", "C2x"},7,{16, 14},{"C4z+", "C2x"}},
+  {13,"C4v","4mm",{99, 110},5,{8, 4},{"C4z+", "\[Sigma]y"},7,{16, 14},{"C4z+", "\[Sigma]y"}},
+  {14,"D2d","-42m",{111, 122},5,{8, 4},{"S4z+", "C2x"},7,{16, 14},{"S4z+", "C2x"}},
+  {15,"D4h","4/mmm",{123, 142},10,{16, 9},{"C4z+", "C2x", "I"},14,{32, 9},{"C4z+", "C2x", "I"}},
+  {16,"C3","3",{143, 146},3,{3, 1},{"C3+"},6,{6, 1},{"C3+"}},
+  {17,"S6","-3",{147, 148},6,{6, 1},{"S6+"},12,{12, 6},{"S6+", "I"}},
+  {18,"D3","32",{149, 155},3,{6, 2},{"C3+", "C21p"},6,{12, 4},{"C3+", "C21p"}},
+  {19,"C3v","3m",{156, 161},3,{6, 2},{"C3+", "\[Sigma]v1"},6,{12, 4},{"C3+", "\[Sigma]v1"}},
+  {20,"D3d","-3m",{162, 167},6,{12, 3},{"S6+", "C21p"},12,{24, 3},{"C3+", "C21p", "I"}},
+  {21,"C6","6",{168, 173},6,{6, 1},{"C6+"},12,{12, 1},{"C6+"}},
+  {22,"C3h","-6",{174, 174},6,{6, 1},{"S3+"},12,{12, 1},{"S3+"}},
+  {23,"C6h","6/m",{175, 176},12,{12, 2},{"C3+", "C2", "I"},24,{24, 12},{"C6+", "I"}},
+  {24,"D6","622",{177, 182},6,{12, 3},{"C6+", "C21p"},9,{24, 11},{"C6+", "C21p"}},
+  {25,"C6v","6mm",{183, 186},6,{12, 3},{"C6+", "\[Sigma]v1"},9,{24, 11},{"C6+", "\[Sigma]d1"}},
+  {26,"D3h","-6m2",{187, 190},6,{12, 3},{"S3+", "C21p"},9,{24, 11},{"S3+", "C21p"}},
+  {27,"D6h","6/mmm",{191, 194},12,{24, 5},{"C3+", "C21p", "C2", "I"},18,{48, 15},{"C6+", "C21p", "I"}},
+  {28,"T","23",{195, 199},4,{12, 5},{"C31+", "C2z", "C2y"},7,{24, 9},{"C31-", "C2x", "barC2y"}},
+  {29,"Th","m-3",{200, 206},8,{24, 10},{"S61+", "C2z", "C2y"},14,{48, 4},{"C31-", "C2x", "barC2y", "I"}},
+  {30,"O","432",{207, 214},5,{24, 7},{"C31-", "C2z", "C2x", "C2a"},8,{48, 10},{"C4x+", "barC31-", "C2b"}},
+  {31,"Td","-43m",{215, 220},5,{24, 7},{"C31-", "C2z", "C2x", "\[Sigma]da"},8,{48, 10},{"S4x-", "barC31-", "\[Sigma]db"}},
+  {32,"Oh","m-3m",{221, 230},10,{48, 7},{"S61-", "\[Sigma]x", "\[Sigma]z", "C2c"},16,{96, 8},{"C4x+", "barC31-", "C2b", "I"}}
 };
 
-Options[showPGinfo]={"long"->True, "color"->True}
-showPGinfo[OptionsPattern[]]:=Module[{showSch,showInt,stab,lt=0.90,bgc,bgs,cls,ncol,ltab,note},
-  showSch[s_]:=If[StringLength[s]==1,s,Subscript[StringTake[s,1],StringTake[s,{2,-1}]]];
-  showInt[s_]:=Module[{c=Characters[s], p}, p=Position[c, "-"]; 
-                 If[p=={}, s, p = p[[1, 1]]; Row@Flatten@{c[[;;p-1]], OverBar[c[[p+1]]], c[[p+2;;]]}] ]; 
+showPGSch[s_String]:=If[StringLength[s]==1,s,Subscript[StringTake[s,1],StringTake[s,{2,-1}]]]
+showPGInt[s_String]:=Module[{c=Characters[s], p}, p=Position[c, "-"]; 
+                 If[p=={}, s, p = p[[1, 1]]; Row@Flatten@{c[[;;p-1]], OverBar[c[[p+1]]], c[[p+2;;]]}] ] 
+Options[showPGinfo]={"long"->True, "color"->True, "double"->False}
+showPGinfo[OptionsPattern[]]:=Module[{stab,lt=0.90,bgc,bgs,cls,ncol,ltab,note,dtag,dt},
   bgc[n1_,n2_,color_]:=#->color&/@Range[n1,n2];
+  dtag=If[OptionValue["double"]===True, dt=3; " (D)", dt=0; ""];
 
-  stab={#[[1]],showSch[#[[2]]],Row[{"(",showInt[#[[3]]],")"}]}&/@PGinfo;
+  stab={#[[1]],showPGSch[#[[2]]],Row[{"(",showPGInt[#[[3]]],")"}]}&/@PGinfo;
   stab[[2,2]]=Row[{stab[[2,2]],Subscript["/S","2"]}];
   stab[[4,2]]=Row[{stab[[4,2]],Subscript["/C","1h"]}];
   stab=Grid[{#}, ItemSize->{{1.6,Full,Full}}, Alignment->Left, Spacings->0]&/@stab;
@@ -495,12 +547,13 @@ showPGinfo[OptionsPattern[]]:=Module[{showSch,showInt,stab,lt=0.90,bgc,bgs,cls,n
                        Background->If[OptionValue["color"],{None,None,bgs},{}]]&;
   If[OptionValue["long"]==False, Return[stab]];
 
-  ltab={#[[1]], showSch[#[[2]]], showInt[#[[3]]], Row[{#[[4,1]],"~",#[[4,2]]}],
-        Subsuperscript["G",#[[5,1]],#[[5,2]]], Row[showRot/@#[[6]],","]}&/@PGinfo;
+  ltab={#[[1]], showPGSch[#[[2]]], showPGInt[#[[3]]], Row[{#[[4,1]],"~",#[[4,2]]}],
+        #[[dt+5]], Subsuperscript["G",#[[dt+6,1]],#[[dt+6,2]]], Row[showRot/@#[[dt+7]],","]}&/@PGinfo;
   ltab[[2,2]]=Row[{ltab[[2,2]],Subscript["/S","2"]}];
   ltab[[4,2]]=Row[{ltab[[4,2]],Subscript["/C","1h"]}];
   ltab=Prepend[ltab, {"No.", Column[{"Schoenflies","symbol"}], Column[{"International","symbol"}], 
-                     Column[{"Space","groups     "}], Column[{"Abstract","group"}], "Generators"}];
+                     Column[{"Space","groups     "}], Column[{"Number of","classes"<>dtag}], 
+                     Column[{"Abstract","group"<>dtag}], "Generators"<>dtag}];
   cls=Join[bgc[1,1,Lighter[Gray,lt]], bgc[2,3,Lighter[Red,lt]], 
            bgc[4,6,Lighter[Blue,lt]], bgc[7,9,Lighter[Orange,lt]],
            bgc[10,16,Lighter[Cyan,lt]], bgc[17,21,Lighter[Yellow,lt]], 
@@ -2114,8 +2167,12 @@ CentExtTimes[brav_,adict_][{R1_,alpha_},{R2_,beta_}]:=Module[{g,R1mat,R1name,R2m
 CentExtPower[brav_,adict_][{R_,alpha_},n_Integer]/;n>=0:=If[n==0,{"E",0},
                            Fold[CentExtTimes[brav,adict],{R,alpha},Table[{R,alpha},{i,n-1}]]]
 
+
+
 (* ::Subsection:: *)
 (*Multiplication of rotation names*)
+
+
 RotTimes[Rname1_String,Rname2_String]:=Module[{crots,hrots,brav,EI={"E","I"},tmp},
   crots=RotMat[[1]]["CubiPrim"];
   hrots=RotMat[[1]]["HexaPrim"];
@@ -2136,6 +2193,8 @@ invRot[Rname_String]:=Module[{brav},
   brav=If[MemberQ[RotMat[[1]]["CubiPrim"], Rname], "CubiPrim", "HexaPrim"];
   getRotName[brav,invRotMat@getRotMat[brav,Rname]]
 ]
+
+
 
 (* ::Subsection:: *)
 (*Spin Rotations (Tab. 6.1 and Tab. 6.7) and multiplications for double space group (DSG)*)
@@ -2870,24 +2929,30 @@ calcRep[sgno_Integer,kinfo_,OptionsPattern[]]/;1<=sgno<=230:=
 (*Labels of little group representations (Tab. 5.8 and Tab. 6.14)*)
 
 
+strPreSup="\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \("<>#<>"\)]\)"&;
+strSub="\!\(\*SubscriptBox[\("<>#1<>"\), \("<>#2<>"\)]\)"&;
+strSup="\!\(\*SuperscriptBox[\("<>#1<>"\), \("<>#2<>"\)]\)"&;
+strSubsup="\!\(\*SubsuperscriptBox[\("<>#1<>"\), \("<>#2<>"\), \("<>#3<>"\)]\)"&;
+strBar="\!\(\*OverscriptBox[\("<>#<>"\), \(_\)]\)"&;
+
 str2Mulliken[str_String] := Module[{cs, out="", L0, sub, sup, bar},
   bar=StringLength[str]>=3 && StringTake[str,3] =="bar";
   cs=Characters[str];   If[bar, cs=cs[[4;;]]];
-  If[cs[[1]]=="1"||cs[[1]]=="2", out=StringTemplate["\!\(\*SuperscriptBox[\(\[InvisiblePrefixScriptBase]\), \(``\)]\)"][cs[[1]]]; cs=cs[[2;;]]];
-  L0=If[bar, StringTemplate["\!\(\*OverscriptBox[\(``\), \(_\)]\)"][cs[[1]]], cs[[1]]]; 
+  If[cs[[1]]=="1"||cs[[1]]=="2", out=strPreSup[cs[[1]]]; cs=cs[[2;;]]];
+  L0=If[bar, strBar[cs[[1]]], cs[[1]]]; 
   cs=cs[[2;;]];
   If[cs=={}, out=out<>L0; Goto["end"]];
-  If[cs[[-1]]!="'", out=out<>StringTemplate["\!\(\*SubscriptBox[\(`1`\), \(`2`\)]\)"][L0,StringJoin[cs]]; Goto["end"]];
+  If[cs[[-1]]!="'", out=out<>strSub[L0,StringJoin[cs]]; Goto["end"]];
   If[Length[cs]>=2&&cs[[-2]]=="'", 
     out=out<>If[cs[[1;;-3]]!={},
-      StringTemplate["\!\(\*SubsuperscriptBox[\(`1`\), \(`2`\), \(\[DoublePrime]\)]\)"][L0, StringJoin[cs[[1;;-3]]]],
-      StringTemplate["\!\(\*SuperscriptBox[\(``\), \(\[DoublePrime]\)]\)"][L0] ];  
+      strSubsup[L0, StringJoin[cs[[1;;-3]]], "\[DoublePrime]"],
+      strSup[L0, "\[DoublePrime]"] ];
     Goto["end"] 
   ];
   If[cs[[-1]]=="'", 
     out=out<>If[cs[[1;;-2]]!={},
-      StringTemplate["\!\(\*SubsuperscriptBox[\(`1`\), \(`2`\), \(\[Prime]\)]\)"][L0,StringJoin[cs[[1;;-2]]]],
-      StringTemplate["\!\(\*SuperscriptBox[\(``\), \(\[Prime]\)]\)"][L0]]
+      strSubsup[L0, StringJoin[cs[[1;;-2]]], "\[Prime]"],
+      strSup[L0, "\[Prime]"] ]
   ];
   Label["end"];
   out=StringReplace[out," "->""];  
@@ -3308,8 +3373,8 @@ DLGIrepLabel[{192,2}]={{"R",{18,21,22},{4,4,4}},{"a",{Fb,fJb,sJb},{5,6,7}}};
 RepGammaLabel[kname_,index_]:=Module[{},
   If[index=="",Return[""]];
   If[ListQ[index],
-    StringTemplate["\!\(\*SubsuperscriptBox[\(`1`\), \(`2`\), \(`3`\)]\)"][kname,index[[1]],index[[2]]],
-    StringTemplate["\!\(\*SubscriptBox[\(`1`\), \(`2`\)]\)"][kname,index]]
+    strSubsup[kname,ToString@index[[1]],index[[2]]],
+    strSub[kname,ToString@index]]
 ];
 RepGammaLabel[index_]:=RepGammaLabel["\[CapitalGamma]",index]
 
@@ -3356,6 +3421,624 @@ mapLGIrepLabel[sgno_Integer, OptionsPattern[]]/;1<=sgno<=230:=Module[{keys},
   keys=Keys[LGIrep[sgno]];
   mapLGIrepLabel[sgno,#,"DSG"->OptionValue["DSG"]]&/@keys
 ]
+
+
+(* ::Section:: *)
+(*Ireps of point group*)
+
+
+(* ::Subsection:: *)
+(*PG Irep labels*)
+
+
+(*This is the irep labels of the point group generated by the abstract groups
+using the information in PGinfo. The order of ireps follows the abstract group
+character table and the labels are consistent with those in BC-tab. 2.2.*)
+BCtab2d2Label=<|
+  1->{{"A","GM1"}},
+  2->{{"Ag","GM1+"},{"Au","GM1-"}},
+  3->{{"A","GM1"},{"B","GM2"}},
+  4->{{"A'","GM1"},{"A''","GM2"}},
+  5->{{"Ag","GM1+"},{"Au","GM1-"},{"Bg","GM2+"},{"Bu","GM2-"}},
+  6->{{"A","GM1"},{"B1","GM3"},{"B2","GM2"},{"B3","GM4"}},
+  7->{{"A1","GM1"},{"A2","GM3"},{"B1","GM2"},{"B2","GM4"}},
+  8->{{"Ag","GM1+"},{"B2g","GM2+"},{"B1g","GM3+"},{"B3g","GM4+"},{"Au","GM1-"},
+      {"B2u","GM2-"},{"B1u","GM3-"},{"B3u","GM4-"}},
+  9->{{"A","GM1"},{"2E","GM3"},{"B","GM2"},{"1E","GM4"}},
+  10->{{"A","GM1"},{"1E","GM4"},{"B","GM2"},{"2E","GM3"}},
+  11->{{"Ag","GM1+"},{"2Eg","GM3+"},{"Bg","GM2+"},{"1Eg","GM4+"},{"Au","GM1-"},
+       {"2Eu","GM3-"},{"Bu","GM2-"},{"1Eu","GM4-"}},
+  12->{{"A1","GM1"},{"A2","GM2"},{"B1","GM3"},{"B2","GM4"},{"E","GM5"}},
+  13->{{"A1","GM1"},{"A2","GM2"},{"B1","GM3"},{"B2","GM4"},{"E","GM5"}},
+  14->{{"A1","GM1"},{"A2","GM2"},{"B1","GM3"},{"B2","GM4"},{"E","GM5"}},
+  15->{{"A1g","GM1+"},{"A2g","GM2+"},{"B1g","GM3+"},{"B2g","GM4+"},{"Eg","GM5+"},
+       {"A1u","GM1-"},{"A2u","GM2-"},{"B1u","GM3-"},{"B2u","GM4-"},{"Eu","GM5-"}},
+  16->{{"A","GM1"},{"2E","GM2"},{"1E","GM3"}},
+  17->{{"Ag","GM1+"},{"2Eu","GM2-"},{"1Eg","GM3+"},{"Au","GM1-"},{"2Eg","GM2+"},{"1Eu","GM3-"}},
+  18->{{"A1","GM1"},{"A2","GM2"},{"E","GM3"}},
+  19->{{"A1","GM1"},{"A2","GM2"},{"E","GM3"}},
+  20->{{"A1g","GM1+"},{"A2g","GM2+"},{"A1u","GM1-"},{"A2u","GM2-"},{"Eg","GM3+"},{"Eu","GM3-"}},
+  21->{{"A","GM1"},{"2E2","GM2"},{"1E1","GM6"},{"B","GM4"},{"2E1","GM5"},{"1E2","GM3"}},
+  22->{{"A'","GM1"},{"1E''","GM6"},{"2E'","GM2"},{"A''","GM4"},{"1E'","GM3"},{"2E''","GM5"}},
+  23->{{"Ag","GM1+"},{"2E1g","GM5+"},{"1E1g","GM6+"},{"Bg","GM4+"},{"2E2g","GM2+"},{"1E2g","GM3+"},
+       {"Au","GM1-"},{"2E1u","GM5-"},{"1E1u","GM6-"},{"Bu","GM4-"},{"2E2u","GM2-"},{"1E2u","GM3-"}},
+  24->{{"A1","GM1"},{"A2","GM2"},{"B1","GM3"},{"B2","GM4"},{"E2","GM6"},{"E1","GM5"}},
+  25->{{"A1","GM1"},{"A2","GM2"},{"B1","GM4"},{"B2","GM3"},{"E2","GM6"},{"E1","GM5"}},
+  26->{{"A1'","GM1"},{"A2'","GM2"},{"A1''","GM3"},{"A2''","GM4"},{"E'","GM6"},{"E''","GM5"}},
+  27->{{"A1g","GM1+"},{"A2g","GM2+"},{"E2g","GM6+"},{"B1g","GM3+"},{"B2g","GM4+"},{"E1g","GM5+"},
+       {"A1u","GM1-"},{"A2u","GM2-"},{"E2u","GM6-"},{"B1u","GM3-"},{"B2u","GM4-"},{"E1u","GM5-"}},
+  28->{{"A","GM1"},{"1E","GM2"},{"2E","GM3"},{"T","GM4"}},
+  29->{{"Ag","GM1+"},{"1Eg","GM2+"},{"2Eg","GM3+"},{"Tg","GM4+"},
+       {"Au","GM1-"},{"1Eu","GM2-"},{"2Eu","GM3-"},{"Tu","GM4-"}},
+  30->{{"A1","GM1"},{"A2","GM2"},{"E","GM3"},{"T1","GM4"},{"T2","GM5"}},
+  31->{{"A1","GM1"},{"A2","GM2"},{"E","GM3"},{"T1","GM4"},{"T2","GM5"}},
+  32->{{"A1g","GM1+"},{"A2g","GM2+"},{"A2u","GM2-"},{"A1u","GM1-"},{"Eg","GM3+"},
+       {"Eu","GM3-"},{"T1g","GM4+"},{"T2g","GM5+"},{"T1u","GM4-"},{"T2u","GM5-"}}
+|>;
+BCtab2d2Label=MapAt[str2GammaLabel,MapAt[str2Mulliken,BCtab2d2Label,{All,All,1}],{All,All,2}];
+
+(*This is the irep labels of the double point group generated by the abstract groups
+using the information in PGinfo. The ireps from AGCharTab are first divided into two 
+parts, namely single-valued and double-valued parts. The integers give the position
+of single-valued irep in BCtab2d2Label, and the strings give the irep labels of the
+second part, i.e. the double-valued ones. *)
+doublePGIrepLabel=<|
+  1->{{1},{{"barA","GM2"}}},
+  2->{{1,2},{{"barAg","GM2+"},{"barAu","GM2-"}}},
+  3->{{1,2},{{"bar2E","GM3"},{"bar1E","GM4"}}},
+  4->{{1,2},{{"bar2E","GM3"},{"bar1E","GM4"}}},
+  5->{{1,3,2,4},{{"bar2Eg","GM3+"},{"bar1Eg","GM4+"},{"bar2Eu","GM3-"},{"bar1Eu","GM4-"}}},
+  6->{{1,2,3,4},{{"barE","GM5"}}},
+  7->{{1,2,3,4},{{"barE","GM5"}}},
+  8->{{1,3,2,4,5,7,6,8},{{"barEg","GM5+"},{"barEu","GM5-"}}},
+  9->{{1,2,3,4},{{"bar1E1","GM5"},{"bar1E2","GM6"},{"bar2E2","GM7"},{"bar2E1","GM8"}}},
+  10->{{1,2,3,4},{{"bar1E1","GM5"},{"bar1E2","GM6"},{"bar2E2","GM7"},{"bar2E1","GM8"}}},
+  11->{{1,2,3,4,5,6,7,8},{{"bar1E1g","GM5+"},{"bar1E2g","GM6+"},{"bar2E2g","GM7+"},{"bar2E1g","GM8+"},
+       {"bar1E1u","GM5-"},{"bar1E2u","GM6-"},{"bar2E2u","GM7-"},{"bar2E1u","GM8-"}}},
+  12->{{1,2,3,4,5},{{"barE1","GM6"},{"barE2","GM7"}}},
+  13->{{1,2,3,4,5},{{"barE1","GM6"},{"barE2","GM7"}}},
+  14->{{1,2,3,4,5},{{"barE1","GM6"},{"barE2","GM7"}}},
+  15->{{1,2,3,4,5,6,7,8,9,10},{{"barE1g","GM6+"},{"barE2g","GM7+"},{"barE1u","GM6-"},{"barE2u","GM7-"}}},
+  16->{{1,2,3},{{"bar1E","GM4"},{"barA","GM6"},{"bar2E","GM5"}}},
+  17->{{1,3,5,2,4,6},{{"bar2Eg","GM5+"},{"barAg","GM6+"},{"bar1Eg","GM4+"},{"barAu","GM6-"},
+       {"bar1Eu","GM4-"},{"bar2Eu","GM5-"}}},
+  18->{{1,2,3},{{"bar1E","GM5"},{"bar2E","GM6"},{"barE1","GM4"}}},
+  19->{{1,2,3},{{"bar1E","GM5"},{"bar2E","GM6"},{"barE1","GM4"}}},
+  20->{{1,2,5,3,4,6},{{"bar1Eg","GM5+"},{"bar2Eg","GM6+"},{"barE1g","GM4+"},{"bar1Eu","GM5-"},
+       {"bar2Eu","GM6-"},{"barE1u","GM4-"}}},
+  21->{{1,2,3,4,5,6},{{"bar1E1","GM11"},{"bar1E2","GM10"},{"bar1E3","GM7"},{"bar2E3","GM8"},
+       {"bar2E2","GM9"},{"bar2E1","GM12"}}},
+  22->{{1,2,3,4,5,6},{{"bar1E1","GM11"},{"bar1E2","GM10"},{"bar1E3","GM7"},{"bar2E3","GM8"},
+       {"bar2E2","GM9"},{"bar2E1","GM12"}}},
+  23->{{1,5,3,4,2,6,7,11,9,10,8,12},{{"bar1E1g","GM11+"},{"bar1E2g","GM10+"},{"bar1E3g","GM7+"},
+       {"bar2E3g","GM8+"},{"bar2E2g","GM9+"},{"bar2E1g","GM12+"},{"bar1E1u","GM11-"},{"bar1E2u","GM10-"},
+       {"bar1E3u","GM7-"},{"bar2E3u","GM8-"},{"bar2E2u","GM9-"},{"bar2E1u","GM12-"}}},
+  24->{{1,2,3,4,5,6},{{"barE1","GM7"},{"barE2","GM8"},{"barE3","GM9"}}},
+  25->{{1,2,4,3,5,6},{{"barE1","GM7"},{"barE2","GM8"},{"barE3","GM9"}}},
+  26->{{1,2,3,4,5,6},{{"barE1","GM7"},{"barE2","GM8"},{"barE3","GM9"}}},
+  27->{{1,2,4,5,3,6,7,8,10,11,9,12},{{"barE1g","GM7+"},{"barE2g","GM8+"},{"barE3g","GM9+"},
+       {"barE1u","GM7-"},{"barE2u","GM8-"},{"barE3u","GM9-"}}},
+  28->{{1,3,2,4},{{"barE","GM5"},{"bar1F","GM6"},{"bar2F","GM7"}}},
+  29->{{1,3,2,4,5,7,6,8},{{"barEg","GM5+"},{"bar1Fg","GM6+"},{"bar2Fg","GM7+"},{"barEu","GM5-"},
+       {"bar1Fu","GM6-"},{"bar2Fu","GM7-"}}},
+  30->{{1,2,3,4,5},{{"barE1","GM6"},{"barE2","GM7"},{"barF","GM8"}}},
+  31->{{1,2,3,4,5},{{"barE1","GM6"},{"barE2","GM7"},{"barF","GM8"}}},
+  32->{{1,2,5,7,8,4,3,6,9,10},{{"barE1g","GM6+"},{"barE2g","GM7+"},{"barFg","GM8+"},{"barE1u","GM6-"},
+       {"barE2u","GM7-"},{"barFu","GM8-"}}}
+|>;
+doublePGIrepLabel=MapAt[str2GammaLabel,MapAt[str2Mulliken,doublePGIrepLabel,{All,2,All,1}],{All,2,All,2}];
+
+
+MullikenIndex={
+  "A", "A'", "A''", "Ag", "Au", "A1", "A1'", "A1''", "A1g", "A1u",
+  "A2", "A2'", "A2''", "A2g", "A2u", "B", "Bg", "Bu", "B1", "B1g",
+  "B1u", "B2", "B2g", "B2u", "B3", "B3g", "B3u", "E", "1E", "2E",
+  "E'", "1E'", "2E'", "E''", "1E''", "2E''", "Eg", "1Eg", "2Eg", "Eu",
+  "1Eu", "2Eu", "E1", "1E1", "2E1", "E1g", "1E1g", "2E1g", "E1u", "1E1u",
+  "2E1u", "E2", "1E2", "2E2", "E2g", "1E2g", "2E2g", "E2u", "1E2u", "2E2u",
+  "T", "Tg", "Tu", "T1", "T1g", "T1u", "T2", "T2g", "T2u", "barA",
+  "barAg", "barAu", "barE", "bar1E", "bar2E", "barEg", "bar1Eg", "bar2Eg", "barEu", "bar1Eu",
+  "bar2Eu", "barE1", "bar1E1", "bar2E1", "barE1g", "bar1E1g", "bar2E1g", "barE1u", "bar1E1u",
+  "bar2E1u", "barE2", "bar1E2", "bar2E2", "barE2g", "bar1E2g", "bar2E2g", "barE2u", "bar1E2u", "bar2E2u",
+  "barE3", "bar1E3", "bar2E3", "barE3g", "bar1E3g", "bar2E3g", "barE3u", "bar1E3u", "bar2E3u", "barF",
+  "bar1F", "bar2F", "barFg", "bar1Fg", "bar2Fg", "barFu", "bar1Fu", "bar2Fu"};
+MullikenIndex=str2Mulliken/@MullikenIndex;
+MullikenIndex=Association@Table[MullikenIndex[[i]]->i,{i,Length[MullikenIndex]}];
+
+
+(* ::Subsection:: *)
+(*getPGCharTab*)
+
+
+checkPGinput[numOrName_, fun_String]:=Module[{pgno,pgs,err=False,adjust},
+  If[IntegerQ[numOrName], 
+    pgno=numOrName; If[pgno<1||pgno>32, err=True], (*next line else*)
+    If[StringQ[numOrName],
+      pgno=Position[PGinfo[[All,{2,3}]], numOrName];
+      If[pgno=={}, err=True, pgno=pgno[[1,1]]],      (*next line else*)
+      err=True
+    ]
+  ];
+  If[err, 
+    adjust=Map[InputForm,PGinfo[[All,1;;3]],{2}];
+    adjust=MapAt[Grid[{{#}},ItemSize->1,Alignment->Left]&, adjust, {All,1}];
+    adjust=MapAt[Grid[{{#}},ItemSize->3,Alignment->Left]&, adjust, {All,2}];
+    adjust=MapAt[Grid[{{#}},ItemSize->5,Alignment->Left]&, adjust, {All,3}];
+    pgs=TableForm@Partition[Row[#,"|"]&/@adjust,4];
+    Print[fun<>": The input is either the number or the name string of a point group:\n",pgs]; 
+    Abort[]
+  ];
+  pgno
+]
+
+Options[getPGCharTab]={"double"->False};
+getPGCharTab[numOrName_, OptionsPattern[]]:=Module[{pgno,agno,cs,gens,nc,name1,name2,sg,
+  dagno,dgens,dnc,dcs,ct,dct,slabel,iridx,cidx,dct1,dct2,ibarE,tmp,diridx,dlabel,IRidx,
+  d1label,d2label,dcidx},
+  pgno=checkPGinput[numOrName, "getPGCharTab"];
+  {name1,name2,sg,nc,agno,gens,dnc,dagno,dgens}=PGinfo[[pgno,2;;]];
+  cs=SortBy[#,RotNameIndex]&/@getAGClassesByGen[Sequence@@agno,gens,RotTimes];
+  ct=AGCharTab[Sequence@@agno];
+  slabel=BCtab2d2Label[pgno];
+  iridx=Table[slabel[[i,1]]->i,{i,nc}]//Association;
+  slabel=SortBy[slabel, MullikenIndex[#[[1]]]&];
+  cidx=All;    
+  (*Adjust the class order for C6h and Oh*)
+  If[name1=="C6h", cidx={1, 6, 2, 4, 3, 5, 7, 12, 8, 10, 9, 11}];
+  If[name1=="Oh", cidx={1, 4, 7, 9, 5, 2, 3, 8, 10, 6}];
+  IRidx=iridx/@slabel[[All,1]];
+  ct=ct[[IRidx,cidx]];  
+  cs=Thread[Keys[cs]->Values[cs][[cidx]]]//Association;
+  (*TableForm[ct,TableHeadings->{slabel,Column/@cs//Values}]*)
+  If[OptionValue["double"]==False,
+    Return[<|"number"->pgno, "symbol"->{name1,name2}, "double"->False, 
+             "class"->cs, "label"->slabel, "charTab"->ct, "iridx"->IRidx|>]
+  ];
+  (*--------process double point group---------*)
+  dcs=SortBy[#,RotNameIndex]&/@getAGClassesByGen[Sequence@@dagno,dgens,DRotTimes];
+  dct=AGCharTab[Sequence@@dagno];
+  ibarE=Position[Values[dcs],"barE"][[1,1]];
+  dct1=Select[dct, #[[ibarE]]>0&]; (*single-valued irep*)
+  dct2=Select[dct, #[[ibarE]]<0&]; (*double-valued irep*)
+  tmp=doublePGIrepLabel[pgno];
+  d1label=BCtab2d2Label[pgno][[First@tmp]];
+  d2label=tmp[[2]];
+  dlabel=Join[d1label,d2label];
+  (*Adjust the class order for dnc==2nc*)
+  If[dnc!=2*nc, dcidx=All, (*else*)
+    dcidx=Join[Position[Values[dcs],#][[1,1]]&/@Values[cs][[All,1]],
+               Position[Values[dcs],DRotTimes[#,"barE"]][[1,1]]&/@Values[cs][[All,1]]]
+  ]; 
+  diridx=Table[dlabel[[i,1]]->i,{i,dnc}]//Association;
+  dlabel=SortBy[dlabel, MullikenIndex[#[[1]]]&];
+  dcs=Thread[Keys[dcs]->Values[dcs][[dcidx]]]//Association;
+  tmp=dct[[All,dcidx]];
+  dct=Join[dct1,dct2][[diridx/@dlabel[[All,1]],dcidx]];
+  IRidx=Position[Round[tmp,0.01],#][[1,1]]&/@Round[dct,0.01];
+  (*TableForm[dct[[All,dcidx]],TableHeadings->{dlabel,Column/@Values[dcs]}]//Print;*)
+  Return[<|"number"->pgno, "symbol"->{name1,name2}, "double"->True, 
+           "class"->dcs, "label"->dlabel, "charTab"->dct, "iridx"->IRidx|>]
+]
+
+
+(* ::Subsection:: *)
+(*showPGCharTab*)
+
+
+Options[showPGCharTab]={"double"->False,"mode"->4,"class"->Automatic,"elem"->All,"irep"->All, "linewidth"->2};
+showPGCharTab[numOrName_, OptionsPattern[]]:=Module[{pgct,cs,cskey,label,ct,mode,clsopt,elmopt,tmp,elmidx,
+  elems,elmerr,pper,nc,snc,txtirl,iropt,irerr,iridx,headC,headR,showclass,tab,grid,sty1,sty2,sidx,didx,
+  bg0,bg1,bg2,bg3,bg4,bg5},
+  (*-------check option "mode"---------*)
+  mode=OptionValue["mode"];
+  If[!MemberQ[{1,2,3,4},mode],
+    Print["showPGCharTab: \"mode\" should be one of 1, 2, 3, or 4 (default):\n",
+          "1. A class label as a column head, \"class\"->On as default.\n",
+          "2. All elements in a class as a column head, \"class\"->Off as default.\n",
+          "3. One element in a class as a column head, \"class\"->Automatic as default.\n",
+          "4. One element (for Abel group) or a class label (otherwise) as a column head, \"class\"->Automatic as default." ];   
+    Abort[]
+  ];
+
+  (*-------check option "class"---------*)
+  clsopt=OptionValue["class"];
+  If[!MemberQ[{On,Off,Automatic},clsopt],
+    Print["showPGCharTab: \"class\" should be one of On, Off, or Automatic (default):\n",
+          "On: Show elements in each class.\n", "Off: Do not show elements in each class.\n",
+          "Automatic: Show elements in each class only for non-Abel group (for mode 3 and 4).\n"];
+    Abort[]
+  ];
+
+  pgct=getPGCharTab[numOrName,"double"->OptionValue["double"]];
+  cs=pgct["class"];   ct=pgct["charTab"];   label=pgct["label"];
+  cskey=Keys[cs];     cs=Values[cs];        elems=Flatten[cs];
+  {snc,nc}=PGinfo[[pgct["number"],{5,8}]];  If[OptionValue["double"]==False,nc=snc]; 
+
+  (*-------check option "elem"---------*)
+  elmopt=OptionValue["elem"];
+  pper[hs_,tab_]:=Prepend[#2,#1]&@@@Transpose[{hs,tab}]; (*prepend each row*)
+  elmerr:=Print["showPGCharTab: \"elem\" aims to reorder the columns and it can be:\n",
+           "A list of rotation names to represent their classes, refer to\n  ",
+           Grid[pper[Row[{#,":"}]&/@cskey, MapAt[Row[{#,","}]&,Map[InputForm,cs,{2}],{All,;;-2}]], Alignment->Left],
+           "\nOr just a list of integers (or a span) for the class sequence numbers."];
+  If[elmopt===0, elmerr; Abort[]];
+  If[StringQ[elmopt]||IntegerQ[elmopt], elmopt={elmopt}];
+  elmidx=elmopt;
+  If[VectorQ[elmidx,StringQ], 
+    If[SubsetQ[elems,elmidx], elmidx=Position[cs,#][[1,1]]&/@elmidx, elmerr; Abort[]], (*next line else*)
+    If[!(VectorQ[elmidx,IntegerQ]||Head[elmidx]===Span||elmidx===All), elmerr; Abort[]]
+  ]; 
+  Check[elmidx=Range[nc][[DeleteCases[elmidx,0]]], 
+    Print["showPGCharTab: out of range! There are ",nc," classes in total."]; Abort[], 
+    {Part::partw,Part::take}];
+
+  (*-------check option "irep"---------*)
+  txtirl=pgct["label"];
+  txtirl=Transpose[{Mulliken2str/@txtirl[[All,1]],GammaLabel2str/@txtirl[[All,2]]}]; 
+  iropt=OptionValue["irep"];
+  irerr:=Print["showPGCharTab: \"irep\" aims to reorder the ireps (rows) and it can be:\n",
+           "A list of text-version irep labels. OR\n",
+           "A list of integers (or a span) for the irep sequence numbers. Refer to\n",
+           Grid[pper[Range[nc], Map[InputForm,txtirl,{2}]], Frame->All,FrameStyle->Gray] ];
+  If[iropt===0, irerr; Abort[]];
+  iridx=If[StringQ[iropt]||IntegerQ[iropt], {iropt}, iropt];
+  If[VectorQ[iridx,StringQ], 
+    If[SubsetQ[Flatten[txtirl],iridx], iridx=Position[txtirl,#][[1,1]]&/@iridx, irerr; Abort[]], (*next line else*)
+    If[!(VectorQ[iridx,IntegerQ]||Head[iridx]===Span||iridx===All), irerr; Abort[]]
+  ]; 
+  Check[iridx=Range[nc][[DeleteCases[iridx,0]]], 
+    Print["showPGCharTab: out of range! There are ",nc," ireps in total."]; Abort[], 
+    {Part::partw,Part::take}];
+
+   
+  showclass=Grid[pper[Row[{#,":"}]&/@cskey, MapAt[Row[{#,","}]&,Map[showRot,cs,{2}],{All,;;-2}]], Alignment->Left];
+  ct=ct[[iridx,elmidx]];
+  headR=pgct["label"][[iridx]];
+  headC=Switch[mode,
+    1, cskey[[elmidx]],
+    2, Column/@Map[showRot,cs[[elmidx]],{2}],
+    3, showRot/@If[VectorQ[elmopt,StringQ], elmopt, cs[[elmidx,1]]],
+    4, If[nc==Length[elems], showRot/@elems[[elmidx]], cskey[[elmidx]]]
+  ];
+
+  tmp=Position[headC,"E"]; (*Adjust the width of "E"*)
+  If[Length[tmp]==2, tmp=First@SortBy[tmp,Length]];
+  If[tmp!={}, headC=MapAt[Row[{#},ImageMargins->{{5,5},{0,0}}]&,headC,tmp]];
+
+  If[mode==1&&clsopt===Automatic, clsopt=On];
+  If[mode==2&&clsopt===Automatic, clsopt=Off];
+  If[MatchQ[mode,3|4]&&clsopt===Automatic, clsopt=If[nc==Length[elems],Off,On]];
+  
+  tmp=Row[{showPGInt[#2],"(",showPGSch[#1],")"}]&@@pgct["symbol"];
+  tab=pper[headR[[All,1]],pper[headR[[All,2]],ct]];
+  tab=Prepend[tab,{tmp,SpanFromLeft,Sequence@@headC}];
+
+  sty1=Directive[Black,Thickness[OptionValue["linewidth"]]];
+  sty2=Directive[Thin,GrayLevel[0.8]];
+  bg0={1,1}->Lighter[Red,0.9];
+  bg1={{1,1},{2,-1}}->Lighter[Yellow,0.9];
+  tmp=Mulliken2str/@headR[[All,1]];
+  didx=Select[Range@Length[headR],StringLength[tmp[[#]]]>3&&StringTake[tmp[[#]],3]=="bar"&];
+  sidx=Complement[Range@Length[headR],didx];
+  bg2={{#,#}+1,{1,-1}}->Lighter[Green,0.95]&/@sidx;
+  bg3={{#,#}+1,{1,-1}}->Lighter[Blue,0.95]&/@didx;
+  bg4={{#,#}+1,{1,2}}->Lighter[Green,0.90]&/@sidx;
+  bg5={{#,#}+1,{1,2}}->Lighter[Blue,0.90]&/@didx;
+
+  grid=Grid[tab, Frame->All, Alignment->{{Center,Center,{Right}}, Center,{{1,1},{1,-1}}->Center}, 
+                 ItemSize->{{{},{1->2.4,2->2.4}},{}}, 
+                 Dividers->{{{{sty2}},Join[#->sty1&/@{1,3,-1},#->sty2&/@{2}]},
+                            {{{sty2}},#->sty1&/@{1,2,-1}}},
+                 Background->{None,None,{bg0,bg1,Sequence@@Join[bg2,bg3,bg4,bg5]}}
+           ];
+  If[clsopt=!=On,showclass=Nothing];
+  {showclass,grid}//Column
+]
+
+
+(* ::Subsection:: *)
+(*getPGIrepTab*)
+
+
+Options[getPGIrepTab]={"double"->False, "trace"->False};
+getPGIrepTab[numOrName_, OptionsPattern[]]:=Module[{pgno,name1,name2,tmp,nc,agno,gens,dnc,
+  dagno,dgens,elem,elemidx,cs,ct,irt,pgct,dcs,delem,delemidx,dct,dirt,dpgct},
+  pgno=checkPGinput[numOrName, "getPGIrepTab"];
+  {name1,name2,tmp,nc,agno,gens,dnc,dagno,dgens}=PGinfo[[pgno,2;;]];
+  cs=Values@getAGClassesByGen[Sequence@@agno,gens,RotTimes];
+  elem=Flatten[cs];
+  elemidx=Association@Table[elem[[i]]->i,{i,Length[elem]}];
+  elem=SortBy[elem, RotNameIndex]; 
+  elemidx=elemidx/@elem;
+  ct=AGCharTab[Sequence@@agno];
+  tmp=Length/@cs;
+  (*Initial value of the irep table (irt) is constructed from the character table*)
+  irt=Table[Flatten[Table[#1,#2]&@@@Transpose[{ir,tmp}],1],{ir,ct}];
+  tmp=AGIrepGen[Sequence@@agno][[All,2]];
+  For[i=1,i<=nc,i++, If[OptionValue["trace"]===True, Break[]];
+    If[irt[[i,1]]==1, Continue[]]; (*update irep matrix with dimension>1*)
+    irt[[i]]=Values@getAGClassesByGen[Sequence@@agno,tmp[[i]],Dot]//Flatten[#,1]&;
+  ];
+  pgct=getPGCharTab[pgno,"double"->False];
+  irt=irt[[pgct["iridx"],elemidx]];
+  If[OptionValue["double"]==False,
+    Return[<|"number"->pgno, "symbol"->{name1,name2}, "double"->False, 
+             "elem"->elem, "label"->pgct["label"], "irep"->irt|>]
+  ];
+(*TableForm[irt, TableHeadings->{pgct["label"],elem}]//Print;*)
+  (*---------------process double point group--------------*)
+  dcs=Values@getAGClassesByGen[Sequence@@dagno,dgens,DRotTimes];
+  delem=Flatten[dcs];
+  delemidx=Association@Table[delem[[i]]->i,{i,Length[delem]}];
+  delem=SortBy[delem, RotNameIndex];
+  delemidx=delemidx/@delem;
+  dct=AGCharTab[Sequence@@dagno];
+  tmp=Length/@dcs;
+  dirt=Table[Flatten[Table[#1,#2]&@@@Transpose[{ir,tmp}],1],{ir,dct}];
+  tmp=AGIrepGen[Sequence@@dagno][[All,2]];
+  For[i=1,i<=dnc,i++, If[OptionValue["trace"]===True, Break[]];
+    If[dirt[[i,1]]==1, Continue[]];
+    dirt[[i]]=Simplify@Values@getAGClassesByGen[Sequence@@dagno,tmp[[i]],Dot]//Flatten[#,1]&;
+  ];
+  dpgct=getPGCharTab[pgno,"double"->True];
+  dirt=dirt[[dpgct["iridx"],delemidx]];
+  (*For the ireps of double point groups with chi(barE)>0, we use the ireps of corresponding single point groups.*)
+  dirt[[;;nc,;;Length[elem]]]=irt;
+  dirt[[;;nc,Length[elem]+1;;]]=irt;
+(*TableForm[dirt, TableHeadings->{dpgct["label"],delem}]//Print;*)
+  Return[<|"number"->pgno, "symbol"->{name1,name2}, "double"->True, 
+           "elem"->delem, "label"->dpgct["label"], "irep"->dirt|>]
+]
+
+
+(* ::Subsection:: *)
+(*showPGIrepTab*)
+
+
+Options[showPGIrepTab]={"double"->True,"rotmat"->True,"elem"->All,"irep"->All,"trace"->False,
+                        "spin"->"downup","cartesian"->False,"linewidth"->2};
+showPGIrepTab[numOrName_, OptionsPattern[]]:=Module[{pgirt,label,irt,elmopt,tmp,elmidx,dbl,
+  elems,nelm,elmerr,nc,snc,txtirl,iropt,irerr,iridx,row1,rots1,rots2,brav,tab,nstart,grid,
+  sty1,sty2,sidx,didx,bg0,bg1,bg1a,bg2,bg3,bg4,bg5},
+  (*-------check option "double"---------*)
+  dbl=OptionValue["double"];
+  If[!MemberQ[{True,False,Full},dbl],
+    Print["showPGIrepTab: \"double\" should be one of True (default), False, or Full:\n",
+          "True:  For ireps of double point groups. Only half of all elements, i.e. the ones without bar, are shown.\n", 
+          "Full:  For ireps of double point groups. All elements are shown.\n", 
+          "False: For ireps of single point groups.\n"];
+    Abort[]
+  ];
+
+  pgirt=getPGIrepTab[numOrName,"double"->True, "trace"->OptionValue["trace"]];
+  elems=pgirt["elem"];   irt=pgirt["irep"];   label=pgirt["label"];
+  nelm=Length[elems];
+  {snc,nc}=PGinfo[[pgirt["number"],{5,8}]];  
+  If[dbl===False,
+    nc=snc; nelm=nelm/2; elems=elems[[;;nelm]]; irt=irt[[;;nc,;;nelm]]; label=label[[;;nc]]
+  ]; 
+
+  (*-------check option "elem"---------*)
+  elmopt=OptionValue["elem"];
+  elmerr:=Print["showPGIrepTab: \"elem\" aims to reorder the columns and it can be:\n",
+           "A list of rotation names (elements). OR\n",
+           "A list of integers (or a span) for their sequence numbers. Refer to\n",
+            Grid[Partition[Grid[{#},ItemSize->{{1.5,Full}},Alignment->Left]&/@Transpose@{Range[nelm],InputForm/@elems},UpTo[10]], 
+                 ItemSize->Full, Frame->All, Alignment->Left, FrameStyle->Gray] ];
+  If[elmopt===0, elmerr; Abort[]];
+  If[StringQ[elmopt]||IntegerQ[elmopt], elmopt={elmopt}];
+  elmidx=elmopt;
+  If[VectorQ[elmidx,StringQ], 
+    If[SubsetQ[elems,elmidx], elmidx=Position[elems,#][[1,1]]&/@elmidx, elmerr; Abort[]], (*next line else*)
+    If[!(VectorQ[elmidx,IntegerQ]||Head[elmidx]===Span||elmidx===All), elmerr; Abort[]]
+  ]; 
+  Check[elmidx=Range[nelm][[DeleteCases[elmidx,0]]], 
+    Print["showPGIrepTab: out of range! There are ",nelm," elements in total."]; Abort[], 
+    {Part::partw,Part::take}];
+
+  (*-------check option "irep"---------*)
+  txtirl=Transpose[{Mulliken2str/@label[[All,1]],GammaLabel2str/@label[[All,2]]}]; 
+  iropt=OptionValue["irep"];
+  irerr:=Print["showPGIrepTab: \"irep\" aims to reorder the ireps (rows) and it can be:\n",
+           "A list of text-version irep labels. OR\n",
+           "A list of integers (or a span) for the irep sequence numbers. Refer to\n",
+           Grid[Prepend[Transpose@Map[InputForm,txtirl,{2}],Range[nc]], Frame->All,FrameStyle->Gray] ];
+  If[iropt===0, irerr; Abort[]];
+  iridx=If[StringQ[iropt]||IntegerQ[iropt], {iropt}, iropt];
+  If[VectorQ[iridx,StringQ], 
+    If[SubsetQ[Flatten[txtirl],iridx], iridx=Position[txtirl,#][[1,1]]&/@iridx, irerr; Abort[]], (*next line else*)
+    If[!(VectorQ[iridx,IntegerQ]||Head[iridx]===Span||iridx===All), irerr; Abort[]]
+  ]; 
+  Check[iridx=Range[nc][[DeleteCases[iridx,0]]], 
+    Print["showPGIrepTab: out of range! There are ",nc," ireps in total."]; Abort[], 
+    {Part::partw,Part::take}];
+  
+  If[dbl===True&&elmopt===All, nelm=nelm/2; elmidx=elmidx[[;;nelm]]];
+  irt=irt[[iridx,elmidx]];    elems=elems[[elmidx]];  label=label[[iridx]];
+
+  tab=Map[formatRepMat,irt,{2}];
+  tab=Map[If[MatrixQ[#],MatrixForm[#],#]&, tab, {2}];
+
+  tab=Transpose[Join@@Transpose/@{label,tab}];
+  
+  tmp=Row[{showPGInt[#2],"(",showPGSch[#1],")"}]&@@pgirt["symbol"];
+  row1={tmp,SpanFromLeft,Sequence@@showRot/@elems};
+  If[OptionValue["rotmat"]=!=False,
+    brav=If[16<=pgirt["number"]<=27, "HexaPrim", "CubiPrim"];
+    rots1=getRotMat[brav,StringReplace[#,"bar"->""]]&/@elems;
+    If[OptionValue["cartesian"]===True&&brav=="HexaPrim",
+      tmp=Transpose@BasicVectors[brav];  rots1=Simplify[tmp.#.Inverse[tmp]]&/@rots1;
+      tmp="(cart.)",  (*else:*) tmp=Nothing
+    ];
+    rots1={Column[{"Rotation","matrix",tmp}], SpanFromLeft, Sequence@@MatrixForm/@rots1};
+    rots2=ComplexExpand@First@getSpinRotOp[#]&/@elems;
+    tmp="(\[DownArrow]\[UpArrow])";
+    If[OptionValue["spin"]==="updown", 
+       tmp="(\[UpArrow]\[DownArrow])"; rots2={{0,1},{1,0}}.#.{{0,1},{1,0}}&/@rots2
+    ];
+    rots2={Column[{"Spin"<>tmp,"rotation","matrix"}], SpanFromLeft, Sequence@@MatrixForm/@rots2};
+    tab=Prepend[tab,rots1];  nstart=3;
+    If[dbl=!=False, tab=Insert[tab,rots2,2];  nstart=4]; 
+    , (*----else----*)
+    nstart=2
+  ];
+  tab=Prepend[tab,row1];
+
+  sty1=Directive[Black,Thickness[OptionValue["linewidth"]]];
+  sty2=Directive[Thin,GrayLevel[0.8]];
+  bg0={1,1}->Lighter[Red,0.9];
+  bg1a={{2,nstart-1},{1,2}}->Lighter[Yellow,0.85];
+  bg1={{1,nstart-1},{2,-1}}->Lighter[Yellow,0.9];
+  tmp=Mulliken2str/@label[[All,1]];
+  didx=Select[Range@Length[iridx],StringLength[tmp[[#]]]>3&&StringTake[tmp[[#]],3]=="bar"&];
+  sidx=Complement[Range@Length[iridx],didx];
+  bg2={{#,#}+nstart-1,{1,-1}}->Lighter[Green,0.95]&/@sidx;
+  bg3={{#,#}+nstart-1,{1,-1}}->Lighter[Blue,0.95]&/@didx;
+  bg4={{#,#}+nstart-1,{1,2}}->Lighter[Green,0.90]&/@sidx;
+  bg5={{#,#}+nstart-1,{1,2}}->Lighter[Blue,0.90]&/@didx;
+
+  grid=Grid[tab, Frame->All, Alignment->Center, ItemSize->{{{},{1->2.4,2->2.4}},{}}, 
+                 Dividers->{{{{sty2}},Join[#->sty1&/@{1,3,-1},#->sty2&/@{2}]},
+                            {{{sty2}},#->sty1&/@{1,2,-1}}},
+                 Background->{None,None,{bg0,bg1a,bg1,Sequence@@Join[bg2,bg3,bg4,bg5]}}
+           ]
+]
+
+
+(* ::Subsection:: *)
+(*PGIrepDirectProduct*)
+
+
+Options[PGIrepDirectProduct]={"output"->1};
+PGIrepDirectProduct[numOrName_, ireps1_, ireps2_, OptionsPattern[]]/;
+ !Or@@(VectorQ[Flatten[{#}],MemberQ[{Rule,RuleDelayed},Head[#]]&]&/@{ireps1,ireps2}):=Module[{pgct,snc,dnc,
+  ir1idx,ir2idx,txtirl,irerr,ct,cs,label,kc,DP1pair,conjct,kcconjct,nelm,out1,out2,out3,outopt},
+  pgct=getPGCharTab[numOrName, "double"->True];
+  {snc,dnc}=PGinfo[[pgct["number"],{5,8}]]; 
+  ct=pgct["charTab"];   cs=pgct["class"];   label=pgct["label"];
+  (*-------check input ireps1 and ireps2--------*)
+  txtirl=Transpose[{Mulliken2str/@label[[All,1]],GammaLabel2str/@label[[All,2]]}]; 
+  irerr:=Print["PGIrepDirectProduct: Inputs ireps1 and ireps2 can be:\n",
+           "A (list of) text-version irep label(s). OR\n",
+           "An (a list of) integer(s) for the irep sequence number(s). OR\n",
+           "A span such as 1;;5.  OR  All.  Refer to\n",
+           Grid[Prepend[Transpose@Map[InputForm,txtirl,{2}],Range[dnc]], Frame->All,FrameStyle->Gray] ];
+  If[ireps1===0||ireps2===0, irerr; Abort[]];
+  ir1idx=If[StringQ[ireps1]||IntegerQ[ireps1], {ireps1}, ireps1];
+  If[VectorQ[ir1idx,StringQ], 
+    If[SubsetQ[Flatten[txtirl],ir1idx], ir1idx=Position[txtirl,#][[1,1]]&/@ir1idx, irerr; Abort[]], (*next line else*)
+    If[!(VectorQ[ir1idx,IntegerQ]||Head[ir1idx]===Span||ir1idx===All), irerr; Abort[]]
+  ]; 
+  Check[ir1idx=Range[dnc][[DeleteCases[ir1idx,0]]], 
+    Print["PGIrepDirectProduct: out of range! There are ",dnc," ireps in total."]; Abort[], {Part::partw,Part::take}];
+  ir2idx=If[StringQ[ireps2]||IntegerQ[ireps2], {ireps2}, ireps2];
+  If[VectorQ[ir2idx,StringQ], 
+    If[SubsetQ[Flatten[txtirl],ir2idx], ir2idx=Position[txtirl,#][[1,1]]&/@ir2idx, irerr; Abort[]], (*next line else*)
+    If[!(VectorQ[ir2idx,IntegerQ]||Head[ir2idx]===Span||ir2idx===All), irerr; Abort[]]
+  ]; 
+  Check[ir2idx=Range[dnc][[DeleteCases[ir2idx,0]]], 
+    Print["PGIrepDirectProduct: out of range! There are ",dnc," ireps in total."]; Abort[], {Part::partw,Part::take}];
+  (*--------check option "output"---------------*)
+  outopt=OptionValue["output"];
+  If[!MemberQ[{1,2,3,4},outopt],
+    Print["PGIrepDirectProduct: option \"output\" can be one of {1,2,3,4}:\n",
+      "1. Output the Mulliken label.\n2. Output the Gamma label.\n",
+      "3. Output the occurrence numbers of all ireps.\n4. Output all the above 1-3 results."
+    ]; Abort[]
+  ];
+  (*--------------------------------------------*)
+
+  kc=Length/@Values[cs];  conjct=Conjugate[ct];  kcconjct=kc*#&/@conjct;
+  nelm=Total[kc];
+  DP1pair[i_,j_]:=Simplify[(ct[[i]]*ct[[j]]).#/nelm]&/@kcconjct;
+  out3=Table[{i,j}->DP1pair[i,j], {i,ir1idx},{j,ir2idx}]//Flatten[#,1]&//Association;
+  out1=label[[#,1]]->(If[#[[1]]==1,#[[2]],#]&/@Select[Transpose@{out3[#],label[[All,1]]},#[[1]]!=0&])&/@Keys[out3]//Association;
+  out2=label[[#,2]]->(If[#[[1]]==1,#[[2]],#]&/@Select[Transpose@{out3[#],label[[All,2]]},#[[1]]!=0&])&/@Keys[out3]//Association;
+  
+  Switch[outopt, 1, out1, 2, out2, 3, out3, 4, {out1,out2,out3}]
+]
+PGIrepDirectProduct[numOrName_, ireps1_, OptionsPattern[]]/;!VectorQ[Flatten[{ireps1}],MemberQ[{Rule,RuleDelayed},Head[#]]&]:=
+  PGIrepDirectProduct[numOrName, ireps1, ireps1, "output"->OptionValue["output"]]
+PGIrepDirectProduct[numOrName_, OptionsPattern[]]:=PGIrepDirectProduct[numOrName, All, All, "output"->OptionValue["output"]]
+
+
+(* ::Subsection:: *)
+(*showPGIrepDirectProduct*)
+
+
+Options[showPGIrepDirectProduct]={"label"->1, "double"->True, "linewidth"->2, "emph"->None};
+showPGIrepDirectProduct[numOrName_, ireps1_, ireps2_, OptionsPattern[]]/;
+ !Or@@(VectorQ[Flatten[{#}],MemberQ[{Rule,RuleDelayed},Head[#]]&]&/@{ireps1,ireps2}):=Module[{pgct,dp,
+  ir1,ir2,tmp,label,txtirl,lopt,tab,sir1,dir1,sir2,dir2,sty1,sty2,bg0,bg1,bg2,bg3,bg4,bg5,s1pos,d1pos,
+  s2pos,d2pos,emopt,emidx,dnc,emerr},
+  lopt=OptionValue["label"];
+  If[!MemberQ[{1,2},lopt],
+    Print["showPGIrepDirectProduct: option \"label\" can be 1 or 2:\n",
+          "1. Output the Mulliken label.\n2. Output the Gamma label."]; Abort[]
+  ];
+
+  pgct=getPGCharTab[numOrName, "double"->True];
+  label=pgct["label"];  dnc=Length[pgct["class"]];
+  (*-------check option "emph"--------*)
+  txtirl=Transpose[{Mulliken2str/@label[[All,1]],GammaLabel2str/@label[[All,2]]}]; 
+  emopt=OptionValue["emph"];    If[emopt===None,emopt={}];
+  emerr:=Print["showPGIrepDirectProduct: option \"emph\" specifies the irep(s) to be emphasized and can be:\n",
+           "A (list of) text-version irep label(s). OR\n",
+           "An (a list of) integer(s) for the irep sequence number(s). OR\n",
+           "A span such as 1;;5.  OR  All  OR  None (default).  Refer to\n",
+           Grid[Prepend[Transpose@Map[InputForm,txtirl,{2}],Range[dnc]], Frame->All,FrameStyle->Gray] ];
+  If[emopt===0, emerr; Abort[]];
+  emidx=If[StringQ[emopt]||IntegerQ[emopt], {emopt}, emopt];
+  If[VectorQ[emidx,StringQ], 
+    If[SubsetQ[Flatten[txtirl],emidx], emidx=Position[txtirl,#][[1,1]]&/@emidx, emerr; Abort[]], (*next line else*)
+    If[!(VectorQ[emidx,IntegerQ]||Head[emidx]===Span||emidx===All), emerr; Abort[]]
+  ]; 
+  Check[emidx=Range[dnc][[DeleteCases[emidx,0]]], 
+    Print["showPGIrepDirectProduct: out of range! There are ",dnc," ireps in total."]; Abort[], {Part::partw,Part::take}];
+
+  dp=PGIrepDirectProduct[numOrName,ireps1,ireps2,"output"->4];
+  ir1=Keys[dp[[3]]][[All,1]]//DeleteDuplicates;
+  ir2=Keys[dp[[3]]][[All,2]]//DeleteDuplicates;
+  sir1=Select[ir1,StringPosition[txtirl[[#,1]],"bar"]=={}&];
+  sir2=Select[ir2,StringPosition[txtirl[[#,1]],"bar"]=={}&];
+  dir1=Complement[ir1,sir1];
+  dir2=Complement[ir2,sir2];
+  If[OptionValue["double"]===False, ir1=sir1; ir2=sir2];
+  tmp=Join@@(Position[dp,#]&/@label[[emidx,lopt]]);
+  If[emidx!={}, dp=MapAt[Style[#,{Red,Bold}]&,dp,tmp]];
+  dp=Row[#,"+"]&/@Map[If[ListQ[#],Row[#],#]&, dp[[lopt]], {2}];
+  If[emidx!={}, dp=Style[#,Gray]&/@dp];
+
+  tab=Table[dp[{label[[i,lopt]],label[[j,lopt]]}], {i,ir1}, {j,ir2}];
+  tab=Transpose@Join[Transpose@label[[ir1]], Transpose@tab];
+  tmp=Row[{showPGInt[#2],"(",showPGSch[#1],")"}]&@@pgct["symbol"];
+  tab=Prepend[tab, {tmp,SpanFromLeft,Sequence@@label[[ir2,lopt]]}];
+
+  tmp=Association@Table[ir1[[i]]->i+1,{i,Length[ir1]}];
+  s1pos=tmp/@sir1;  d1pos=tmp/@dir1;
+  tmp=Association@Table[ir2[[i]]->i+2,{i,Length[ir2]}];
+  s2pos=tmp/@sir2;  d2pos=tmp/@dir2;
+ 
+  sty1=Directive[Black,Thickness[OptionValue["linewidth"]]];
+  sty2=Directive[Thin,GrayLevel[0.8]];
+  bg0={1,1}->Lighter[Red,0.9];
+  bg1=With[{c=Lighter[Green,0.85]}, Flatten@Join[{{#,1}->c,{#,2}->c}&/@s1pos,{1,#}->c&/@s2pos]];
+  bg2=With[{c=Lighter[Blue,0.85]}, Flatten@Join[{{#,1}->c,{#,2}->c}&/@d1pos,{1,#}->c&/@d2pos]];
+  bg3=Table[{i,j}->Lighter[Green,0.9],{i,s1pos},{j,s2pos}]//Flatten[#,1]&;
+  bg4=Table[{i,j}->Lighter[Yellow,0.9],{i,d1pos},{j,d2pos}]//Flatten[#,1]&;
+  bg5=Join[Table[{i,j}->Lighter[Blue,0.9],{i,s1pos},{j,d2pos}],
+           Table[{i,j}->Lighter[Blue,0.9],{i,d1pos},{j,s2pos}]]//Flatten[#,1]&;
+
+  grid=Grid[tab, Frame->All, Alignment->Center, ItemSize->{{{},{1->2.4,2->2.4}},{}}, 
+                 Dividers->{{{{sty2}},Join[#->sty1&/@{1,3,-1},#->sty2&/@{2}]},
+                            {{{sty2}},#->sty1&/@{1,2,-1}}},
+                 Background->{None,None,{bg0,Sequence@@Join[bg1,bg2,bg3,bg4,bg5]}}
+       ]
+]
+showPGIrepDirectProduct[numOrName_, ireps1_, OptionsPattern[]]/;!VectorQ[Flatten[{ireps1}],MemberQ[{Rule,RuleDelayed},Head[#]]&]:=
+  showPGIrepDirectProduct[numOrName, ireps1, ireps1, (#->OptionValue[#])&/@{"label","double","linewidth","emph"}]
+showPGIrepDirectProduct[numOrName_, OptionsPattern[]]:=
+  showPGIrepDirectProduct[numOrName, All, All, (#->OptionValue[#])&/@{"label","double","linewidth","emph"}]
 
 
 (* ::Section:: *)
@@ -4490,7 +5173,7 @@ SGIrepDirectProduct[sgno_Integer, kin1_, kin2_, OptionsPattern[]]:=Block[{u,Irep
         kname3=k3reps[[i]]["kinfo"][[2]];
         Lb3=Join[k3reps[[i]]["slabel"],k3reps[[i]]["dlabel"]];
         Lb3={sstar<>#2,kname3<>#1}&@@@Lb3;
-        strki=StringTemplate["\!\(\*SubscriptBox[\(k\), \(`1`\)]\)"][i];
+        strki=strSub["k",ToString[i]];
         
         tmp1=If[k3reps[[i]]["kinfo"][[-1]]==="not in G",1,0];
         tmp2=Length[G]/Length[k3reps[[i]]["Gkin"]];

@@ -1,3 +1,11 @@
+020.  2022-05-10 03:20:17  v1.2.0
+
+    Add support for ireps of point groups, including getting and showing
+    the character tables, irep matrices, and direct products of ireps.
+    New functions:
+       getPGCharTab,   getPGIrepTab,      PGIrepDirectProduct
+      showPGCharTab,  showPGIrepTab,  showPGIrepDirectProduct
+
 019. 2022-04-27 23:46:06
 
     Add functions Mulliken2str, str2GammaLabel, and GammaLabel2str
