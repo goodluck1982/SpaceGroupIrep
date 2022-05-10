@@ -1450,7 +1450,7 @@ showAGCharTab[m_,n_]:=Module[{ct,nc,cs,ngen,kc,headC,headR,gens,tab,cs2,power,ta
     ];
     cs2=Map[power,cs,{2}];
   (*tabcs=Grid[Transpose[{Row[{#,":"}]&/@headC, Row[#,","]&/@cs2}], Alignment->Left];*)
-    tabcs=Grid[Prepend[#1,#2]&@@@Transpose[{MapAt[Row[{#,","}]&,cs2,{All,;;-2}],Row[{#,":"}]&/@headC}], Alignment->Left];
+    tabcs=Grid[Prepend[#1,#2]&@@@Transpose[{MapAt[Row[{#,","}]&,cs2,{All,;;-2}],Row[{#,":"}]&/@headC}], Alignment->Left,ItemSize->Full];
     Column[{tabcs,"",tab}]
 ]
 
@@ -1489,7 +1489,7 @@ showAGCharTabByGen[m_,n_,gens_List,mul_]:=Module[{ct,cs,headR,headC,headC2,tab,t
     headR=Table[Subscript["R", i],{i,Length[headC]}];
     tab=TableForm[ct,TableHeadings->{headR,headC},TableAlignments->Right,TableSpacing->{0.8, 0.8}];
     (*tabcs=TableForm[cs//Values,TableHeadings->{headC2}, TableDepth->2];*)
-    tabcs=Grid[Prepend[#1,#2]&@@@Transpose[{MapAt[Row[{#,","}]&,Values[cs],{All,;;-2}],headC2}], Alignment->Left];
+    tabcs=Grid[Prepend[#1,#2]&@@@Transpose[{MapAt[Row[{#,","}]&,Values[cs],{All,;;-2}],headC2}], Alignment->Left, ItemSize->Full];
     Column[{tabcs,"",tab}]
 ]
 
