@@ -1,3 +1,9 @@
+021.  2022-05-16 21:52:30  v1.2.1
+
+    Update the irep labels for double point groups. Make them
+    consistent with the Table 6.5 in the BC book.
+
+
 020.  2022-05-10 03:20:17  v1.2.0
 
     Add support for ireps of point groups, including getting and showing
@@ -6,9 +12,11 @@
        getPGCharTab,   getPGIrepTab,      PGIrepDirectProduct
       showPGCharTab,  showPGIrepTab,  showPGIrepDirectProduct
 
+
 019. 2022-04-27 23:46:06
 
     Add functions Mulliken2str, str2GammaLabel, and GammaLabel2str
+
 
 018. 2022-04-26 22:14:01
 
