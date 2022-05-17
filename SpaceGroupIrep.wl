@@ -1592,9 +1592,14 @@ kBCcoord[bravORsgno_, kname_String]:=Module[{ks,brav,sgno,tmp,kco,BZs,hsk,hskdic
 ]
 
 (* For certain parameters, this function, in fact the last sentence RegionIntersection,
-   will not work correctly in mathematica 11.2, but can work well in mathematica 12.0. *)
+   will not work correctly in mathematica 11.2, but can work well in mathematica 12.0,
+   12.1, and 13.0. For example the following input will cause problem.
+      Inverse@Transpose[BasicVectors["TrigPrim"]/.{a\[Rule]15,b\[Rule]3.7,c\[Rule]4.3}] 
+   For versions 12.2 and 12.3, this function can not work in any case due to a bug in
+   the function DelaunayMesh. Other versions work all right.
+*)
 WSCell3DMesh[reciLatt_]/;MatrixQ[reciLatt,NumericQ]&&Dimensions[reciLatt]=={3,3} := 
- Module[{pad,bds,pts,pp,dmin,bmax,num,dm,conn,adj,lc,pc,cpts,hpts,hns,hp,vcells,oidx},
+ Module[{pad,bds,pts,pp,dmin,bmax,num,dm,conn,adj,lc,pc,cpts,hpts,hns,hp,vcells,oidx,out},
   (*\:5bf9\:4e8e\:6bd4\:8f83\:7279\:6b8a\:7684\:5012\:539f\:80de\:ff0c\:6bd4\:5982\:5f88\:6241\:7684\:ff0c\:4e3a\:4e86\:80fd\:591f\:4ea7\:751f\:6b63\:786e\:7684 Wigner-Seitz \:539f\:80de\:ff0c\:9700\:8981\:6240\:53d6\:5012
   \:683c\:70b9\:7684\:7a7a\:95f4\:5206\:5e03\:533a\:57df\:5c3d\:91cf\:5728\:5404\:4e2a\:65b9\:5411\:4e0a\:5c3a\:5ea6\:76f8\:5f53\:3002\:4e3a\:6b64\:5148\:627e\:51fa\:5012\:539f\:80de\:4e2d\:5fc3\:5230\:5012\:539f\:80de\:5404\:8868\:9762\:7684\:6700\:5c0f\:8ddd\:79bb
   dmin\:ff0c\:7136\:540e\:6c42\:51fa\:6700\:957f\:5012\:683c\:57fa\:77e2 bmax \:4e0e dmin \:7684\:6bd4\:503c num\:ff0c\:518d\:6839\:636e num \:6765\:4ea7\:751f\:5012\:683c\:70b9\:5e76\:9009\:53d6\:5230\:4e2d\:5fc3\:4e00\:5b9a
@@ -1619,7 +1624,15 @@ WSCell3DMesh[reciLatt_]/;MatrixQ[reciLatt,NumericQ]&&Dimensions[reciLatt]=={3,3}
   hns=(#-cpts[[oidx]])&/@cpts[[DeleteCases[pc[[oidx]], oidx]]]; (* \:4ece\:7b2coidx\:4e2a\:70b9\:5230\:6240\:6709\:4e0e\:5176\:76f8\:8fde\:7684\:70b9\:7684\:77e2\:91cf *)
   hp=MapThread[HalfSpace, {hns, hpts}];
   vcells=BoundaryDiscretizeGraphics[#, PlotRange->bds]&/@hp;
-  RegionIntersection@@vcells
+  out=Check[RegionIntersection@@vcells, Print["WSCell3DMesh: Error occured! This error ",
+            "is caused by a bug in versions 12.2 and 12.3 which cannot run the function ",
+            "DelaunayMesh correctly. Versions <=12.1 and >=13.0 are all right."]; Abort[]];
+  If[Head[out]===BooleanRegion, 
+     Print["WSCell3DMesh: Warning! The function RegionIntersection cannot work correctly for certain ",
+           "parameters in mathematica v11.2. The known versions which do not have this problem ",
+           "are 12.0, 12.1, and 13.0."]
+  ];
+  out
  ]
  
 (* Find the range of u for the kpoint in a high-symmetry line. Taking k={u,u,0} for example, 
@@ -1634,9 +1647,9 @@ findURange0[basVec_, kOrList_, bz_]/;MatrixQ[basVec,NumericQ]&&Dimensions[basVec
   forOneK[k_]:=Module[{n=0, umin=0, umax=0.7},
     t=(umin+umax)/2;    kcart=k.reciLatt//Simplify;
     d1=Check[SignedRegionDistance[bz,kcart/.u->umin],
-         Print["findURange0: This error is because RegionIntersection cannot work well for certain ",
-           "parameters in mathematica v11.2, but this problem does not occur in v12.0. In this case ",
-           "this function only returns 0.5."]; Return[0.5], 
+         Print["Warning: findURange0 has run into problem and always returns 0.5 in this case. This ",
+               "is because RegionIntersection cannot work correctly for certain parameters in ",
+               "mathematica v11.2."];  Return[0.5], 
          SignedRegionDistance::rnimpl];
     d2=SignedRegionDistance[bz,kcart/.u->umax];
     If[d1>eps&&d2>eps, Return[0]];
@@ -1691,8 +1704,8 @@ showBZDemo[fullBZtype_, basVec_]/;StringQ[fullBZtype]&&MatrixQ[basVec,NumericQ]&
     ];
     
   mm=Check[(#2-#1)&@@@MinMax/@(MeshCoordinates[bz]\[Transpose]),
-           Print["showBZDemo: This error is because RegionIntersection cannot work well for certain ",
-           "parameters in mathematica v11.2, but this problem does not occur in v12.0."];  Abort[] ];
+           Print["showBZDemo: This error is inherited from the RegionIntersection problem in WSCell3DMesh."];
+           Abort[] ];
   rs=Max[mm];   {x,y,z}=IdentityMatrix[3]*0.75mm;
   o={0,0,0};   cs={Red, Green, Blue};
   hsk=BCHighSymKpt[realBZtype];
