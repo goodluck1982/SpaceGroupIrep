@@ -28,6 +28,7 @@ In a word, the package SpaceGroupIrep is a database and tool set for IRs of spac
 * **AbstractGroupData.wl** The abstract group data in BC-Tab. 5.1 (meaning the Tab. 5.1 in the BC book).
 * **LittleGroupIrepData.wl** This file contains the data of LG IRs in BC-Tabs. 5.7, 5.11, 6.13, and 6.15.
 * **allBCSkLGdat.mx** This file contains the BCS data of LG IRs collected from the output of [irvsp](https://github.com/zjwang11/irvsp). 
+* **allBCSkLGdat.mx_RaspberryPi** On raspberry pi, use this file and rename it to allBCSkLGdat.mx. *Note that mathematica can be used **free of charge** on raspberry pi for non-commercial use, see [this page](https://www.wolfram.com/raspberry-pi/).*
 * **examples/test.nb**  A simple test file or demo file.
 * **examples/document and examples.nb**  A more detailed example file including some explanations.
 * **doc/SpaceGroupIrep程序包说明.docx**  A Chinese version of the introduction of this package.
