@@ -6,7 +6,7 @@
    
 (* Package Name: SpaceGroupIrep *)
 (* Author: Gui-Bin Liu *)
-(* Package verseion: 1.2.1 *)
+(* Package verseion: 1.2.2 *)
 (* Mathematica version: >=11.2 *)
 (* License: GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt *)
 
