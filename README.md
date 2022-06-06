@@ -100,5 +100,6 @@ For the details of the arguments, please refer to the [paper](https://doi.org/10
 
 ## Newly discovered typos in the BC book
 In the supplementary material of the paper [Comput. Phys. Commun.  **265**  , 107993 (2021)](https://doi.org/10.1016/j.cpc.2021.107993) we list the typos found in the BC book. However, I found new typos in the BC book after the publication of the paper. They are listed here:
+### 2021-05-22:
 * In BC-Tab 5.1, for the abstract group $G_{96}^4$ (p.271), the generator $S$ for reps R7, R8, and R9 is wrong because it does not satisfy $S^2=P^3$. There should be $S=\kappa$ for them all. This affects the single-valued LG IR of $H$ point of the No. 230 space group.
-* In BC-Tab 5.1, for the abstract group $G_{192}^2$ (p.281), the generator $S$ of R18 does not satisfy $S^2=E$. There should be $S=\{\{0,\varepsilon\},\{\varepsilon,0\}\}$. This affects the double-valued LG IR of $R$ point of the Nos. 222 and 223 space groups and $H$ point of the No. 230 space group.
+* In BC-Tab 5.1, for the abstract group $G_{192}^2$ (p.281), the generator $S$ of R18 does not satisfy $S^2=E$. There should be $S=\pmatrix{0&\varepsilon\newline\varepsilon&0}$. This affects the double-valued LG IR of $R$ point of the Nos. 222 and 223 space groups and $H$ point of the No. 230 space group.

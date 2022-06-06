@@ -61,6 +61,7 @@ getRotMat::usage="getRotMat[brav,rotname]  returns the rotation matirx of rotnam
 getRotName::usage="getRotName[brav,rotmat]  returns the rotation name of the matrix rotmat for Bravais lattice brav.";
 getRotMatOfK::usage="getRotMatOfK[brav,rotname]  returns the rotation matirx in reciprocal space "<>
    "(for wave vector k) of rotname for Bravais lattice brav.";
+RotMatCart::usage="RotMatCart[rotname]  returns the rotation matrix of rotname in cartesian coordinate system.";
 checkRotMatOfK::usage="checkRotMatOfK[brav]  shows the result of rotation matrix in reciprocal space "<>
    "applied on reciprocal basic vectors (g1,g2,g3) in table form like BC Tab. 3.4.";
 TMspglibToBC::usage="TMspglibToBC[brav]  gives transformation matrix and rotation matrix "<>
@@ -152,9 +153,11 @@ getHLGElem::usage="Two usages:  getHLGElem[brav,{m,n},gens]  or  getHLGElem[sgno
    "The second one gives the Herring little group according to sgno and kname directly. "<>
    "For double space group the option \"DSG\"->True is needed.";
 getLGElem::usage="getLGElem[sgno,k]  gives the little group of k for space gorup sgno. In fact this is only the coset "<>
-   "representatives with respect to translation group. k can be either its name or coordinates. For double space group the "<>
+   "representatives with respect to the translation group. k can be either its name or coordinates. For double space group the "<>
    "option \"DSG\"->True is needed."
-getSGElem::usage="getSGElem[sgno]  gives the elements of space group sgno. This is equivalent to getLGElem[sgno,\"\[CapitalGamma]\"].";
+getSGElem::usage="getSGElem[sgno]  gives the elements of space group sgno. This is equivalent to getLGElem[sgno,\"\[CapitalGamma]\"]. "<>
+   "In fact, it gives the coset representatives with respect to the translation group. For double space group, the option "<>
+   "\"DSG\"->True is needed.";
 aCentExt::usage="Three usages:\naCentExt[sgno,kname,BZtype]  or  aCentExt[sgno,kname]  or  aCentExt[brav,Gk,k]\n"<>
    "This function gives the a(Hj,Hk) in the BC eq.(3.7.27) for central extension of little cogroup. kname is a string "<>
    "and k is coordinates. Gk is little group. If BZtype is not given, it is \"a\" by default. For double space group the "<>
@@ -186,6 +189,7 @@ formatRepMat::usage="formatRepMat[mat]  is used to format the matrix elements of
 mapLGIrepLabel::usage="mapLGIrepLabel[sgno,kname]  gives the correspondence/mapping between the abstract-group irep label, "<>
    "the extended Mulliken label, and the Gamma label for the LG ireps of kname. If kname is not designated, all k-points of the "<>
    "space group sgno are used. Option \"DSG\"->True can be used for double-valued ireps.";
+getPGElem::usage="getPGElem[pg]  gives the elements of the point group pg. Default option is \"double\"->False.";
 getPGCharTab::usage="getPGCharTab[pg]  gives the character table of point group pg. pg can be the sequence number or the name string "<>
    "of a point group, e.g. 14, or \"D2d\", or \"-42m\". Full list can be obtained by showPGinfo[], or by triggering a tip via a wrong "<>
    "input such as getPGCharTab[0]. When the option \"double\"->True is used, the character table of the corresponding double "<>
@@ -206,13 +210,13 @@ showPGIrepTab::usage="showPGIrepTab[pg]  shows the table of irep matrices for po
 PGIrepDirectProduct::usage="PGIrepDirectProduct[pg, ireps1, ireps2]  gives the direct products between ireps1 and "<>
    "ireps2 for point group pg. ireps1 and ireps2 are both optional. If ireps2 is omitted, it takes the same value "<>
    "as ireps1, and if both of them are omitted, they both take the vaule All. The output styles 1-4 can be controlled "<>
-   "by the option \"mode\" with default value 1. For available values of the input arguments pg, ireps1, and ireps2, "<>
-   "and the option \"mode\", tips will be triggered by a wrong input, e.g. \"mode\"->0. Note that both single-valued "<>
+   "by the option \"output\" with default value 1. For available values of the input arguments pg, ireps1, and ireps2, "<>
+   "and the option \"output\", tips will be triggered by a wrong input, e.g. \"output\"->0. Note that both single-valued "<>
    "and double-valued ireps are calculated.";
 showPGIrepDirectProduct::usage="showPGIrepDirectProduct[pg, ireps1, ireps2]  shows the direct products between ireps1 and "<>
    "ireps2 for point group pg in a user-friendly table form. ireps1 and ireps2 are both optional. If ireps2 is omitted, "<>
    "it takes the same value as ireps1, and if both of them are omitted, they both take the vaule All. Default options "<>
-   "are \"label\"->1 (1 for Mulliken labels and 2 for Gamma labels), \"double\"->True, \"linewidth\"->2, and \"emph\"->None."<>
+   "are \"label\"->1 (1 for Mulliken labels and 2 for Gamma labels), \"double\"->True, \"linewidth\"->2, and \"emph\"->None. "<>
    "For available values of the input arguments pg, ireps1, and ireps2, and the option \"emph\", tips will be triggered "<>
    "by a wrong input, e.g. \"emph\"->0. Note that both single-valued and double-valued ireps are shown by default, and "<>
    "only single-valued ireps are shown when \"double\"->False is used.";
@@ -843,6 +847,12 @@ Module[{names,rots,dict1,dict2,brav,opname,mat},
    Do[getRotName[brav,mat]=dict2[mat],{mat,rots}];
    ,{brav,Values[BravLatt]}]
 ];
+
+(*Rotation matrices in cartesian coordinate system.*)
+RotMatCart=<||>;
+(RotMatCart[#]=getRotMat["CubiPrim",#])&/@RotMat[[1]]["CubiPrim"];
+(RotMatCart[#]=With[{bv=Transpose@BasicVectors["HexaPrim"]},bv.getRotMat["HexaPrim",#].Inverse[bv]])&/@
+  DeleteCases[RotMat[[1]]["HexaPrim"],"E"|"I"];
 
 (* Note that the rotation matrix rotmat has to be basend on the t1,t2,t3 defined in Tab. 3.1.
    In fact, if the basic vectors are (t1',t2',t3')=(R.t1,R.t2,R.t3) in which R is a O(3) rotation
@@ -2481,7 +2491,9 @@ getLGElem[sgno_Integer, k_, OptionsPattern[]]/;1<=sgno<=230&&VectorQ[k,NumericQ]
     Gk
   ]
   
-getSGElem[sgno_Integer]/;1<=sgno<=230:=getLGElem[sgno,"\[CapitalGamma]"]
+Options[getSGElem]={"DSG"->False};
+getSGElem[sgno_Integer, OptionsPattern[]]/;1<=sgno<=230:=
+  getLGElem[sgno,"\[CapitalGamma]", "DSG"->OptionValue["DSG"]]
 
 
 (* ::Subsection:: *)
@@ -3637,6 +3649,15 @@ checkPGinput[numOrName_, fun_String]:=Module[{pgno,pgs,err=False,adjust},
   pgno
 ]
 
+Options[getPGElem]={"double"->False};
+getPGElem[numOrName_, OptionsPattern[]]:=Module[{pgno,cs,elems,agno,gens},
+  pgno=checkPGinput[numOrName, "getPGElem"];
+  {agno,gens}=PGinfo[[pgno,{6,7}]];
+  cs=SortBy[#,RotNameIndex]&/@getAGClassesByGen[Sequence@@agno,gens,RotTimes];
+  elems=Flatten[Values@cs];
+  If[OptionValue["double"]=!=True, elems, Join[elems,"bar"<>#&/@elems]]
+]
+
 Options[getPGCharTab]={"double"->False};
 getPGCharTab[numOrName_, OptionsPattern[]]:=Module[{pgno,agno,cs,gens,nc,name1,name2,sg,
   dagno,dgens,dnc,dcs,ct,dct,slabel,iridx,cidx,dct1,dct2,ibarE,tmp,diridx,dlabel,IRidx,
@@ -4095,7 +4116,7 @@ showPGIrepDirectProduct[numOrName_, ireps1_, ireps2_, OptionsPattern[]]/;
   bg5=Join[Table[{i,j}->Lighter[Blue,0.9],{i,s1pos},{j,d2pos}],
            Table[{i,j}->Lighter[Blue,0.9],{i,d1pos},{j,s2pos}]]//Flatten[#,1]&;
 
-  grid=Grid[tab, Frame->All, Alignment->Center, ItemSize->{{{},{1->2.4,2->2.4}},{}}, 
+  Grid[tab, Frame->All, Alignment->Center, ItemSize->{{{},{1->2.4,2->2.4}},{}}, 
                  Dividers->{{{{sty2}},Join[#->sty1&/@{1,3,-1},#->sty2&/@{2}]},
                             {{{sty2}},#->sty1&/@{1,2,-1}}},
                  Background->{None,None,{bg0,Sequence@@Join[bg1,bg2,bg3,bg4,bg5]}}
