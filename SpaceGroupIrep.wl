@@ -6,10 +6,11 @@
    
 (* Package Name: SpaceGroupIrep *)
 (* Author: Gui-Bin Liu *)
-(* Package verseion: 1.2.2 *)
+(* Package verseion: See the following SpaceGroupIrep`Private`Version *)
 (* Mathematica version: >=11.2 *)
 (* License: GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt *)
 
+SpaceGroupIrep`Private`Version={1,2,2};
 
 With[{p=DirectoryName[$InputFileName]}, If[!MemberQ[$Path,p],AppendTo[$Path, p]]];
 
@@ -267,7 +268,9 @@ getSGIrepMat::usage="getSGIrepMat[repinfo,IRids][RvOrRvList]  get the representa
    "are both False by default.";
 checkSGIrep::usage="checkSGIrep[repinfo]  checks whether the representation matrices in the result of getSGIrepTab "<>
    "satisfy correct multiplications for SG IR. repinfo is the returned value of getSGIrepTab. Things are all right "<>
-   "if all the returned numbers are zero."
+   "if all the returned numbers are zero.";
+generateLibLGIrep::usage="generateLibLGIrep[filename]  is used to generate a MX file which stores LG IRs "<>
+  "for all named k's. The argument filename is optional and is \"libLGIrep.mx\" (under Directory[]) by default.";
 SGIrepDirectProduct::usage="SGIrepDirectProduct[sgno, kin1, kin2]  calculates the decomposition of the "<>
    "direct product of the SG ireps of kin1 star and SG ireps of kin2 star. The input k-point (kin1 or kin2) can "<>
    "be either its name (only for high-symmetry k-points not k-lines) or its numeric coordinates. Option \"abcOrBasVec\"->None "<>
@@ -1828,9 +1831,10 @@ keqmod[k1_,k2_]:=keqmod[k1,k2,1.0*^-5]
   To achieve this, we change the default behavior to "selectNoTranslation"\[Rule]False, that is only items 
   with no rotation are selected first and whether translations are zero is not cared. 
   This makes sure that k-points differing by RLV all have the same {S|w}.
-  Fortunately, after system check it's found that this change will not affect the result of krepBCStoBC.
+  Fortunately, after systematic check it's found that this change will not affect the result of krepBCStoBC.
   Note that:
   SetOptions[identifyBCHSKpt,"selectNoTranslation"\[Rule]True] will change the behavior to the former (\[LessEqual]v1.0.4). 
+  And this option should be used only for debug purpose.
 *)
 Options[identifyBCHSKpt]={"selectNoTranslation"->False};
 identifyBCHSKpt[fullBZtype_, klist_, OptionsPattern[]]/;MatrixQ[klist,NumericQ]&&Dimensions[klist][[2]]==3 :=
@@ -1903,7 +1907,7 @@ identifyBCHSKpt[fullBZtype_, klist_, OptionsPattern[]]/;MatrixQ[klist,NumericQ]&
         re=With[{s=Select[#,#[[5]]=="E"&]}, 
              If[s!={},{First[s]},
                If[OptionValue["selectNoTranslation"]===True,
-                 With[{s2=Select[#,#[[-2]]=={0,0,0}&]}, If[s2!={},{First[s2]},{First[#]}]], (*the behavior of version\[LessEqual]v1.0.4*)
+                 With[{s2=Select[#,#[[-2]]=={0,0,0}&]}, If[s2!={},{First[s2]},{First[#]}]], (*the behavior of version\[LessEqual]v1.0.4, for debug purpose*)
                  {First[#]} (*default behavior of version \[GreaterEqual] v1.0.5*)
                ]
            ]]&/@re;
@@ -5057,6 +5061,58 @@ checkSGIrep[repinfo_]:=Module[{G,mtab,sirep,direp, time, brav, fBZ, rot2elem,n,t
    
   empty=If[sirep=={}||direp=={}, 1, 0];
   {empty, check[#,"s"]&/@sirep, check[#,"d"]&/@direp}//Simplify
+]
+
+
+(* ::Subsection:: *)
+(*Generate libLGIrep.mx file containing LG IR data for all named k*)
+
+
+ (*Note that this function will take somewhat a long time to regenerate the libLGIrep.mx file. 
+  By default, the file will be output to the file libLGIrep.mx under the directory Directory[]
+  and this can be changed by designating a user-defined file. *)
+generateLibLGIrep[]:=generateLibLGIrep["libLGIrep.mx"];
+generateLibLGIrep[filename_String]:=Module[{sgno,brav,knames,kcoords,lib,kstars,fullsymSG,fullsymPG,fsPG,i,k,
+  kco,kcos,nukcos,tmp,usub=u->1/10,kBZs,tryabc,ir,j,dictkco,dictk,dictLG,dictLabel,dictType,dictIrep},
+  tryabc=<|"OrthBase(a)"->{a->3,b->2,c->4}, "OrthBase(b)"->{a->2,b->3,c->4},
+      "OrthBody(a)"->{a->4,b->2,c->3}, "OrthBody(b)"->{a->3,b->4,c->2},
+      "OrthBody(c)"->{a->2,b->3,c->4}, "OrthFace(a)"->{a->3,b->3.5`,c->4},
+      "OrthFace(b)"->{a->3,b->4,c->1.8}, "OrthFace(c)"->{a->4,b->1.8,c->3},
+      "OrthFace(d)"->{a->1.8,b->3,c->4}, "TetrBody(a)"->{a->3,c->2},
+      "TetrBody(b)"->{a->2,c->4}, "TrigPrim(a)"->{a->5,c->2},
+      "TrigPrim(b)"->{a->2,c->3}|>;
+  fullsymSG=<|"Tric"->2,"Mono"->10,"Orth"->47,"Tetr"->123,"Trig"->166,"Hexa"->191,"Cubi"->221|>;
+  fullsymPG[sg_]:=getSGElem[fullsymSG[StringTake[getSGLatt[sg],4]]][[All,1]];
+  lib=<||>;   dictLG=dictLabel=dictType=dictIrep=<||>;
+  ParallelNeeds["SpaceGroupIrep`"];
+  SetSharedVariable[lib,tryabc,fullsymSG,usub];
+  SetSharedFunction[fullsymPG];
+  ParallelDo[
+    brav=getSGLatt[sgno];
+    knames=LGIrep[sgno]//Keys;   
+    kcoords=kBCcoord[sgno,#][[1,1]]&/@knames;
+    kBZs=kBCcoord[sgno,#][[1,2,1]]&/@knames;
+    fsPG=fullsymPG[sgno];
+    dictk=<||>;
+    For[i=1,i<=Length[knames],i++, k=knames[[i]]; kco=kcoords[[i]];
+      kcos=Gather[getRotMatOfK[brav,#].kco&/@fsPG,keqmod][[All,1]];
+      nukcos=modone[kcos/.usub];
+      dictkco=<||>;
+      For[j=1,j<=Length[nukcos],j++,
+        tmp=tryabc[kBZs[[i]]];  
+        ir=First@getLGIrepTab[sgno,nukcos[[j]],"abcOrBasVec"->If[MissingQ[tmp],None,tmp]];
+        tmp={ir["sirep"],ir["direp"]};
+        dictkco[nukcos[[j]]]=<|"k"->kcos[[j]], "LG"->ir["Gkin"], 
+            "label"->{ir["slabel"],ir["dlabel"]}, "reality"->{ir["sreality"],ir["dreality"]},
+            "trace"->Map[If[MatrixQ[#],Tr[#],#]&,tmp,{3}]//Simplify,  "irep"->tmp|>;
+      ];
+      dictk[k]=dictkco;
+    ];
+   (*lib[sgno]=dictk;*)
+   AppendTo[lib,sgno->dictk];
+  ,{sgno,Range[230]}];  
+  lib=KeySort[lib];
+  Export[filename,lib];
 ]
 
 

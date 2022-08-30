@@ -1,3 +1,13 @@
+025.  2022-08-30 21:19:46
+
+    Add SpaceGroupIrep`Private`Version to store version.
+
+
+024.  2022-06-19 21:48:15
+
+    Add generateLibLGIrep.
+
+
 023.  2022-05-24 13:00:45
 
     Add RotMatCart and getPGElem.
@@ -5,7 +15,7 @@
     Some fixes.
 
 
-022.  2022-05-18 03:31:52
+022.  2022-05-18 03:31:52  v1.2.2
 
     Update the allBCSkLGdat.mx file for raspberry pi.
     Update error tips for WSCell3DMesh and showBZDemo.
