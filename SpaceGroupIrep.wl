@@ -10,11 +10,14 @@
 (* Mathematica version: >=11.2 *)
 (* License: GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt *)
 
-SpaceGroupIrep`Private`Version={1,2,2};
+SpaceGroupIrep`Private`Version={1,2,3};  (*Specify version here.*)
 
 With[{p=DirectoryName[$InputFileName]}, If[!MemberQ[$Path,p],AppendTo[$Path, p]]];
 
 BeginPackage["SpaceGroupIrep`", {"AbstractGroupData`", "LittleGroupIrepData`"}]
+
+Unprotect@@Names["SpaceGroupIrep`*"];
+ClearAll@@Names["SpaceGroupIrep`*"];
 
 Protect[u,v,w,a,b,c,\[Alpha],\[Beta],\[Gamma],t\:2081,t\:2082,t\:2083];
 
@@ -2048,8 +2051,9 @@ identifyBCHSKptBySG[sgno_, BZtypeOrBasVec_, klist_, OptionsPattern[]]/;
       tmp=outklist[[i,tmp]];   
       If[(!OptionValue["allowtwok"])||MatrixQ[BZtypeOrBasVec],
         (*If "allowtwok"\[Rule]Flase, tmp has two entries only when u\[Equal]umax, i.e. the critical case, 
-          otherwise only one entry of kinfo is selected from tmp*)
-        tmp=With[{s=Select[tmp,#[[-2]]=={0,0,0}&]}, If[s!={},First[s],First[tmp]]];
+          otherwise only one entry of kinfo is selected from tmp. For the critical case, here we choose one k to output.*)
+        (*To keep the similar behavior with identifyBCHSKpt, change "select no translation" to "select no rotation"*)
+        tmp=With[{s=Select[tmp,#[[6]]=="E"&]}, If[s!={},First[s],First[tmp]]];
       ];
       If[Length[Dimensions[tmp]]==1,
         outklist[[i]]=Append[tmp,uRange[tmp[[2]]]],

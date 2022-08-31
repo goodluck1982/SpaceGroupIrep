@@ -1,3 +1,9 @@
+026.  2022-08-31 14:45:20 v1.2.3
+
+    Fix a bug in identifyBCHSKptBySG for the critical case of u==umax with
+    "allowtwok"->True and given numerical basic vectors.
+
+
 025.  2022-08-30 21:19:46
 
     Add SpaceGroupIrep`Private`Version to store version.
