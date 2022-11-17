@@ -1,3 +1,9 @@
+027.  2022-11-18 03:16:57 v1.2.4
+
+    Make the following four functions can multiply more than two elements:
+    SeitzTimes, DSGSeitzTimes, RotTimes, DRotTimes
+
+
 026.  2022-08-31 14:45:20 v1.2.3
 
     Fix a bug in identifyBCHSKptBySG for the critical case of u==umax with

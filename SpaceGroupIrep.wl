@@ -10,7 +10,7 @@
 (* Mathematica version: >=11.2 *)
 (* License: GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt *)
 
-SpaceGroupIrep`Private`Version={1,2,3};  (*Specify version here.*)
+SpaceGroupIrep`Private`Version={1,2,4};  (*Specify version here.*)
 
 With[{p=DirectoryName[$InputFileName]}, If[!MemberQ[$Path,p],AppendTo[$Path, p]]];
 
@@ -111,9 +111,10 @@ identifyBCHSKptBySG::usage="identifyBCHSKptBySG[sgno, BZtypeOrBasVec, kOrKlist] 
    "be determined correctly. With default option, this function returns one entry of information with only one kname. "<>
    "But if the option \"allowtwok\"->True is used, when only BZtype is given, this function will return two entries of "<>
    "information with different knames in the cases with umax depneding on lattice constants.";
-SeitzTimes::usage="Two usages:\nSeitzTimes[{R1,v1},{R2,v2}]  or  SeitzTimes[brav][{Rname1,v1},{Rname2,v2}]\n"<>
-   "Multiplication of two space group operations. R1 and R2 are directly rotation matrices, while Rname1 and "<>
-   "Rname2 are the names of the two rotations. For the second usage, the Bravais lattice brav has to be given.";
+SeitzTimes::usage="Usages:\nSeitzTimes[{R1,v1}, {R2,v2}]    OR\nSeitzTimes[{R1,v1}, ..., {Rn,vn}]    OR\n"<>
+                           "SeitzTimes[brav][{Rname1,v1}, {Rname2,v2}]    OR\nSeitzTimes[brav][{Rname1,v1}, ..., {Rnamen,vn}]\n"<>
+   "Multiplication of two or more space group operations. R1, R2, and Rn are rotation matrices, while Rname1, Rname2, and "<>
+   "Rnamen are the names of the rotations. For the last two usages, the Bravais lattice brav has to be given.";
 invSeitz::usage="Two usages:  invSeitz[{R,v}]  or  invSeitz[brav][{Rname,v}]  gives the inverse of the space "<>
    "group operation {R,v} or {Rname,v}.";
 powerSeitz::usage="Two usages:  powerSeitz[{R,v},n]  or powerSeitz[brav][{Rname,v},n]  gives {R,v}^n or {Rname,v}^n";
@@ -136,8 +137,9 @@ getSpinRotName::usage="getSpinRotName[brav,{srot, o3det}]  gives the double spac
    "lattices. Here srot is SU(2) matrix and o3det is the determinant of corresponding O(3) matrix.";   
 SpinRotTimes::usage="Two usages:\nSpinRotTimes[{srot1,o3det1},{srot2,o3det2}]  or  SpinRotTimes[brav][rotname1, rotname2]\n"<>
    "Multiplication between two double space group rotations."; 
-DSGSeitzTimes::usage="DSGSeitzTimes[brav][{Rname1,v1},{Rname2,v2}]  multiplies two double space group operations "<>
-   "{Rname1,v1} and {Rname2,v2}";   
+DSGSeitzTimes::usage="DSGSeitzTimes[brav][{Rname1,v1}, {Rname2,v2}]    OR\n"<>
+                     "DSGSeitzTimes[brav][{Rname1,v1}, ..., {Rnamen,vn}]\n"<>
+   "calculates the multiplication of two or more elements of double space group.";
 DSGpowerSeitz::usage="DSGpowerSeitz[brav][{Rname,v},n]  gives {Rname,v}^n for double space group.";
 DSGinvSeitz::usage="DSGinvSeitz[brav][{Rname,v}]  gives the inversion of double space group operation {Rname,v}."; 
 DSGCentExtTimes::usage="DSGCentExtTimes[brav,adict][{Rname1,alpha},{Rname2,beta}]  multiplies two elements {Rname1,alpha} and "<>
@@ -2166,7 +2168,8 @@ identifyBCHSKptBySG[sgno_, BZtypeOrBasVec_, k_, OptionsPattern[]]/;VectorQ[k,Num
 
 (* Definition of the multiplication and inverse of space group Seitz symbols *)
 SeitzTimes[{R1_,v1_},{R2_,v2_}]:={R1.R2,R1.v2+v1}
-g1_\[CircleDot]g2__:=Fold[SeitzTimes,g1,{g2}]
+SeitzTimes[Rv1_,Rv2_,more__]:=Fold[SeitzTimes,Rv1,{Rv2,more}]
+(* g1_\[CircleDot]g2__:=Fold[SeitzTimes,g1,{g2}] *)
 invSeitz[{R_,v_}]:={Inverse[R],-Inverse[R].v}
 powerSeitz[{R_,v_},n_Integer]/;n>=0:=If[n==0,{IdentityMatrix[3],{0,0,0}},
                                              Fold[SeitzTimes,{R,v},Table[{R,v},{i,n-1}]]]
@@ -2174,6 +2177,7 @@ SeitzTimes[brav_][{Rname1_,v1_},{Rname2_,v2_}]:=Module[{R1,R2},
   R1=getRotMat[brav,Rname1];  R2=getRotMat[brav,Rname2];
   {getRotName[brav,R1.R2],R1.v2+v1}
 ]
+SeitzTimes[brav_][Rv1_,Rv2_,more__]:=Fold[SeitzTimes[brav],Rv1,{Rv2,more}]
 powerSeitz[brav_][{Rname_,v_},n_Integer]/;n>=0:=If[n==0,{"E",{0,0,0}},
                                         Fold[SeitzTimes[brav],{Rname,v},Table[{Rname,v},{i,n-1}]]]
 invSeitz[brav_][{Rname_,v_}]:=Block[{R=getRotMat[brav,Rname],iR}, iR=invRotMat[R]; {getRotName[brav,iR],-iR.v}]
@@ -2209,6 +2213,7 @@ RotTimes[Rname1_String,Rname2_String]:=Module[{crots,hrots,brav,EI={"E","I"},tmp
   ];
   getRotName[brav, getRotMat[brav,Rname1].getRotMat[brav,Rname2]]
 ]
+RotTimes[R1_, R2_, more__]:=Fold[RotTimes, R1, {R2,more}]
 
 powerRot[Rname_String, n_Integer]/;n>=0:=If[n==0, "E", Fold[RotTimes,Rname,Table[Rname,n-1]]]
 
@@ -2294,6 +2299,7 @@ SpinRotTimes[brav_String][opname1_String,opname2_String]:=
 SpinRotTimes[opname1_String,opname2_String]:=DRotTimes[opname1,opname2]
 DSGSeitzTimes[brav_][{Rname1_,v1_},{Rname2_,v2_}]:=
   {SpinRotTimes[brav][Rname1,Rname2], getRotMat[brav,StringReplace[Rname1,"bar"->""]].v2+v1}
+DSGSeitzTimes[brav_][Rv1_, Rv2_, more__]:=Fold[DSGSeitzTimes[brav], Rv1, {Rv2,more}]
 DSGpowerSeitz[brav_][{Rname_,v_},n_Integer]/;n>=0:=If[n==0,{"E",{0,0,0}},
                                       Fold[DSGSeitzTimes[brav],{Rname,v},Table[{Rname,v},{i,n-1}]]]
 DSGinvSeitz[brav_][{Rname_,v_}]:=With[{R=getRotMat[brav,StringReplace[Rname,"bar"->""]]},
@@ -2320,6 +2326,7 @@ DRotTimes[Rname1_String,Rname2_String]:=Module[{crots,hrots,brav,barEI={"E","I",
   ];
   getSpinRotName[brav,SpinRotTimes[getSpinRotOp[Rname1],getSpinRotOp[Rname2]]]
 ]
+DRotTimes[R1_, R2_, more__]:=Fold[DRotTimes, R1, {R2,more}]
 powerDRot[Rname_String, n_Integer]/;n>=0:=If[n==0, "E", Fold[DRotTimes,Rname,Table[Rname,n-1]]]
 invDRot[Rname_String]:=Module[{brav},
   brav=If[MemberQ[SpinRotName[[1]]//Values, Rname], "CubiPrim", "HexaPrim"];
@@ -6089,10 +6096,12 @@ End[]
 So they have to be defined before these usages call them. And this is why this part is moved to the end of file.
 IN PARTICLUAR, SpinRotName and str2Mulliken are still in the context `Private`, therefore we have to use the 
 `Private` prefix to call them. *)
-RotTimes::usage="RotTimes[Rname1,Rname2]  performs the multiplication between two rotations by their name strings "<>
+RotTimes::usage="RotTimes[Rname1, Rname2]    OR    RotTimes[Rname1, ..., Rnamen]\n"<>
+   "performs the multiplication of two or more rotations by their name strings "<>
    "defined in the BC book, i.e. the names in\n"<>
    ToString@DeleteDuplicates@Join[RotMat[[1]]["CubiPrim"],RotMat[[1]]["HexaPrim"]];
-DRotTimes::usage="DRotTimes[Rname1,Rname2]  performs the multiplication between two double-point-group rotations "<>
+DRotTimes::usage="DRotTimes[Rname1, Rname2]    OR    DRotTimes[Rname1, ..., Rnamen]\n"<>
+   "performs the multiplication of two or more double-point-group rotations "<>
    "by their name strings defined in the BC book, i.e. the names in\n"<>
    ToString@DeleteDuplicates@Join[`Private`SpinRotName[[1]]//Values, `Private`SpinRotName[[2]]//Values];
 str2Mulliken::usage="str2Mulliken[str]  converts the plain text string str to the Mulliken-form string. e.g.\n"<>
