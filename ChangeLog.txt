@@ -1,3 +1,9 @@
+028.  2022-11-25 22:42:44 v1.2.5
+
+    Add a function showBandRep to show the result of getBandRep.
+    Add an option "generationProcess" to generateGroup.
+
+
 027.  2022-11-18 03:16:57 v1.2.4
 
     Make the following four functions can multiply more than two elements:

@@ -10,7 +10,7 @@
 (* Mathematica version: >=11.2 *)
 (* License: GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt *)
 
-SpaceGroupIrep`Private`Version={1,2,4};  (*Specify version here.*)
+SpaceGroupIrep`Private`Version={1,2,5};  (*Specify version here.*)
 
 With[{p=DirectoryName[$InputFileName]}, If[!MemberQ[$Path,p],AppendTo[$Path, p]]];
 
@@ -151,7 +151,8 @@ rotAxisAngle::usage="rotAxisAngle[O3RotMat]  gives the rotation axis and angle o
 getKStar::usage="getKStar[sgno,kin]  gives the star of kin for space group sgno. kin can be the coordinates or name of the "<>
    "k-point. Option \"cosets\"->True (default: False) will also gives the cosets.";
 generateGroup::usage="generateGroup[gens,identityElement,multiply]  gives all the elements of a group according to its "<>
-   "generators, identity element, and multiplication.";
+   "generators, identity element, and multiplication. If the option \"generationProcess\"->True is used, the process of "<>
+   "generating each element is given in the form of multiplication sequence of generators.";
 modone::usage="modone[x]  is my version of Mod[x,1] in which x can be anything. For non-numeric quantity nothing is done.";
 seteq::usage="seteq[s1,s2]  judges whether sets s1 is equal to s2.";
 getHLGElem::usage="Two usages:  getHLGElem[brav,{m,n},gens]  or  getHLGElem[sgno,kname]\nThe first one gives the Herring "<>
@@ -295,6 +296,10 @@ getBandRep::usage="Three usages:\ngetBandRep[sgno, BZtypeOrBasVec, traceData, ik
    "is not of BC standard then the traceData has to be converted to BC standard by convTraceToBC before being "<>
    "used by getBandRep. BZtypeOrBasVec can be BZtype (\"a\", \"b\", \"c\", \"d\", \"\") or basic vectors and if "<>
    "it is basic vectors then the names of some high-symmetry k lines can be identified correctly.";
+showBandRep::usage="showBandRep[rep, ik, ibOrListOrSpan]  shows the small reps (LG IRs) at the ik-th k-point for the bands "<>
+  "specified by ibOrListOrSpan. If ibOrListOrSpan is omitted, all bands at the k-point are shown. rep is the returned "<>
+  "value of getBandRep[sgno, BZtypeOrBasVec, tr]. Default option is \"bottomUp\"->True which means that the band energy "<>
+  "increases from the bottom up in the table shown."
 convTraceToBC::usage="convTraceToBC[sgno,traceData,P,p0,stdR]  converts traceData from non-BC standard to BC "<>
    "standard for getBandRep to determinate little group ireps. P, p0, and stdR are respectively "<>
    "dataset['transformation_matrix'], dataset['origin_shift'] and dataset['std_rotation_matrix'] "<>
@@ -2396,23 +2401,60 @@ rotAxisAngle[O3RotMat_]/;MatrixQ[O3RotMat,NumericQ]:=
 
 
 (* Generate all group elements from its generators gens for any group, provided that
-   the group multiplication and identity element are given. *)
-generateGroup[gens_,identityElement_,multiply_]:=
- Module[{i,j,ng,MAXORDER=200,orders,subs,mlist,g1,g2,g3},
-   ng=Length[gens];   orders=subs=Range[ng]*0;
+   the group multiplication and identity element are given. If the option
+   "generationProcess"->True is used, the process of generating each element is given
+   in the form of multiplication sequence of generators. *)
+Options[generateGroup]={"generationProcess"->False};
+generateGroup[gens_,identityElement_,multiply_,OptionsPattern[]]:=
+ Module[{i,j,ng,MAXORDER=200,orders,subs,mlist,g1,g2,g3,g1tmp,powers,g2tmp,mseq,gp},
+   gp=OptionValue["generationProcess"]===True;
+   ng=Length[gens];    orders=subs=Table[0,ng];
+   powers=<||>;
+   powers[identityElement]={1,0};
    For[i=1,i<=ng,i++,
-     mlist=FoldList[multiply,Table[gens[[i]],MAXORDER]];
-     orders[[i]]=FirstPosition[mlist,identityElement][[1]];
+     If[gens[[i]]==identityElement, orders[[i]]=1; subs[[i]]={identityElement}; Continue[]];
+     mlist=Range[MAXORDER];  mlist[[1]]=gens[[i]];
+     For[j=2,j<=MAXORDER,j++, mlist[[j]]=multiply[mlist[[j-1]],gens[[i]]];
+       If[mlist[[j]]==identityElement, orders[[i]]=j; Break[]]
+     ];
+     If[j>MAXORDER,
+       Print["Error: The order of ",gens[[i]]," is larger than MAXORDER(=",MAXORDER,")."];
+       Print["       The list of powers is: ",mlist];
+       Abort[]
+     ];
      subs[[i]]=mlist[[;;orders[[i]]]];
+     If[gp, For[j=1,j<orders[[i]],j++, powers[subs[[i,j]]]={i,j}]]
    ];
-   g1=Union@@subs;
-   g2=Union@@Table[multiply[g1[[i]],g1[[j]]],{i,Length[g1]},{j,Length[g1]}];
-   g3=Complement[g2,g1];  g1=g2;
-   While[g3!={},
-     g2=Union@@Table[multiply[g3[[i]],g1[[j]]],{i,Length[g3]},{j,Length[g1]}];
+   g1=Union@@subs; 
+   If[gp,
+     g2tmp=Table[multiply[g1[[i]],g1[[j]]]->{g1[[i]],g1[[j]]},{i,Length[g1]},{j,Length[g1]}];
+     g2tmp=Union[Sequence@@g2tmp,SameTest->(#1[[1]]==#2[[1]]&)];
+     g2=g2tmp[[All,1]];
+     g3=Complement[g2,g1];  g1=g2;
+     mseq=<||>;  (mseq[#]={#})&/@Keys[powers];  (*mseq records the multiplication sequence of elements*)
+     g2tmp=Association[g2tmp]; (mseq[#]=g2tmp[#])&/@g3,   
+     (*--------else---------*)
+     g2=Union@@Table[multiply[g1[[i]],g1[[j]]],{i,Length[g1]},{j,Length[g1]}];
      g3=Complement[g2,g1];  g1=g2;
    ];
-   g2
+   While[g3!={},
+     g1tmp=DeleteCases[g1,identityElement];
+     If[gp,
+       g2tmp=Table[multiply[g3[[i]],g1tmp[[j]]]->{g3[[i]],g1tmp[[j]]},{i,Length[g3]},{j,Length[g1tmp]}];
+       g2tmp=Union[Sequence@@g2tmp,SameTest->(#1[[1]]==#2[[1]]&)];
+       g2=g2tmp[[All,1]];
+       g3=Complement[g2,g1];  g1=g2;
+       g2tmp=Association[g2tmp];  (mseq[#]=g2tmp[#])&/@g3,
+       (*-------else------*)
+       g2=Union@@Table[multiply[g3[[i]],g1tmp[[j]]],{i,Length[g3]},{j,Length[g1tmp]}];
+       g3=Complement[g2,g1]; g1=g2;
+     ]
+   ]; 
+   If[gp,
+     mseq=NestWhile[Table[Sequence@@mseq[i],{i,#}]&,#,Or@@(MissingQ[powers[#]]&/@#)&]&/@mseq;
+     powers=mseq/.Normal[powers],
+     g2
+   ]
  ]
 
 
@@ -5707,6 +5749,40 @@ getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, ikOrListOrSpan_, OptionsPatt
   getBandRep[sgno,BZtypeOrBasVec,traceData, ikOrListOrSpan, All, "CompressDegeneracy"->OptionValue["CompressDegeneracy"], "showdim"->OptionValue["showdim"]]
 getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, OptionsPattern[]]:= 
   getBandRep[sgno,BZtypeOrBasVec,traceData, All, All, "CompressDegeneracy"->OptionValue["CompressDegeneracy"], "showdim"->OptionValue["showdim"]]
+
+
+(*rep should be the returned value of getBandRep[sgno, BZtypeOrBasVec, tr] without specifying ik and ib. 
+  Although result will be given when rep=getBandRep[sgno, BZtypeOrBasVec, tr, ik], a warning will be issued. *)
+SetAttributes[showBandRep,HoldFirst];
+Options[showBandRep]={"bottomUp"->True};
+showBandRep[rep_, ik_Integer, OptionsPattern[]]:=showBandRep[rep,ik,All,"bottomUp"->OptionValue["bottomUp"]]
+showBandRep[rep_, ik_Integer, ibOrListOrSpan_, OptionsPattern[]]:=Module[{ir,irik,ibmax,iball,ibs,ibs0,ibs1,irout,tab},
+  ir=rep["rep"];
+  If[IntegerQ[ir[[1]]]||VectorQ[ir[[1]],IntegerQ],
+    Print["showBandRep: the rep should be the returned value of getBandRep without specifying band index."]; Abort[]
+  ];
+  If[Length[ir[[1]]]==4 && (IntegerQ[ir[[1,1]]]||VectorQ[ir[[1,1]],IntegerQ]),
+    Print["Warning: there is only one k-point in the data of "<>StringTake[ToString@Hold[rep],{6,-2}]<>"."];
+    irik=ir,  (* for the case in which ik has been specified in getBandRep, i.e. rep=getBandRep[sgno, "a", tr, ik]*)
+    (*---- else: for the case rep=getBandRep[sgno, "a", tr] ------*)
+    Check[irik=ir[[ik]], Print["showBandRep: ik out of range [1,",Length[ir],"]!"]; Abort[],
+      {Part::partw,Part::take}];
+  ];
+  ibs0=irik[[All,1]];  ibmax=Max@Flatten@ibs0;  iball=Range[ibmax];
+  ibs=Check[iball[[ibOrListOrSpan]],
+        Print["showBandRep: ib ",ibOrListOrSpan," out of range [1,",ibmax,"]."]; Abort[],
+        {Part::partw,Part::pkspec1,Part::take}];
+  If[IntegerQ[ibOrListOrSpan], ibs={ibs}];
+  If[ibOrListOrSpan===0, ibs=iball];
+  ibs1=(Position[Range@@@ibs0,#][[1,1]]&/@ibs)//Union;
+  irout=If[OptionValue["bottomUp"]===True, irik[[ibs1]]//Reverse, irik[[ibs1]]];
+  tab=MapAt[If[IntegerQ[#], #, If[#[[1]]==#[[2]],#[[1]],Row[#,"-"]]]&, irout, {All,1}];
+  tab=MapAt[Sequence@@Reverse[#]&, tab, {All,4}];
+  tab=Prepend[tab,{"Band","Energy","Degeneracy","GammaLabel","Mulliken"}];
+  Grid[tab, Alignment->{{Left,Left,Center,Left,Center}}, Spacings -> {{Default, 3, 1, 1,1}},
+            Dividers->{{},{2->Directive[Thickness[0.4],Gray]}}, Frame->Thickness[0.4]]
+]
+
   
 (* Convert the traceData from any primitive input cell to the trace data for BC cell. 
    P, p0, and stdR are the dataset['transformation_matrix'], dataset['origin_shift'] 
