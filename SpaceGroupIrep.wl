@@ -2406,7 +2406,7 @@ rotAxisAngle[O3RotMat_]/;MatrixQ[O3RotMat,NumericQ]:=
    in the form of multiplication sequence of generators. *)
 Options[generateGroup]={"generationProcess"->False};
 generateGroup[gens_,identityElement_,multiply_,OptionsPattern[]]:=
- Module[{i,j,ng,MAXORDER=200,orders,subs,mlist,g1,g2,g3,g1tmp,powers,g2tmp,mseq,gp},
+ Module[{i,j,ng,MAXORDER=200,orders,subs,mlist,g1,g2,g3,powers,g2tmp,mseq,gp},
    gp=OptionValue["generationProcess"]===True;
    ng=Length[gens];    orders=subs=Table[0,ng];
    powers=<||>;
@@ -2438,15 +2438,14 @@ generateGroup[gens_,identityElement_,multiply_,OptionsPattern[]]:=
      g3=Complement[g2,g1];  g1=g2;
    ];
    While[g3!={},
-     g1tmp=DeleteCases[g1,identityElement];
      If[gp,
-       g2tmp=Table[multiply[g3[[i]],g1tmp[[j]]]->{g3[[i]],g1tmp[[j]]},{i,Length[g3]},{j,Length[g1tmp]}];
+       g2tmp=Table[multiply[g3[[i]],g1[[j]]]->{g3[[i]],g1[[j]]},{i,Length[g3]},{j,Length[g1]}];
        g2tmp=Union[Sequence@@g2tmp,SameTest->(#1[[1]]==#2[[1]]&)];
        g2=g2tmp[[All,1]];
        g3=Complement[g2,g1];  g1=g2;
        g2tmp=Association[g2tmp];  (mseq[#]=g2tmp[#])&/@g3,
        (*-------else------*)
-       g2=Union@@Table[multiply[g3[[i]],g1tmp[[j]]],{i,Length[g3]},{j,Length[g1tmp]}];
+       g2=Union@@Table[multiply[g3[[i]],g1[[j]]],{i,Length[g3]},{j,Length[g1]}];
        g3=Complement[g2,g1]; g1=g2;
      ]
    ]; 
