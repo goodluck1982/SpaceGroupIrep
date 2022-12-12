@@ -1,3 +1,11 @@
+030.  2022-12-12 19:21:39 v1.2.7
+
+    The fix in 1.2.6 is not good. The change from Simplify to FullSimplify
+    in num=Simplify[mat] will cause new problem. 
+    ((-I/2)*(-I + Sqrt[3]))/Sqrt[2]//FullSimplify will gives Root[1+2 #1^2+4 #1^4&,1]
+    Change back to Simplify. Add a judgement for the zero norm case to calculate Arg.
+
+
 029.  2022-12-03 20:41:17 v1.2.6
 
     Fix a bug in formatRepMat which returns Indeterminate:
@@ -6,6 +14,7 @@
       showMLGCorep[{222, 100},{-1/3,2/3,1/4},"trace"->True]
     The reason is that Simplify can not simplify the above number which is indeed 0.
     Just change the Simplify in formatRepMat to FullSimplify to fix it.
+    
 
 028.  2022-11-25 22:42:44 v1.2.5
 

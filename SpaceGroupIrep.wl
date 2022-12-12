@@ -10,7 +10,7 @@
 (* Mathematica version: >=11.2 *)
 (* License: GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt *)
 
-SpaceGroupIrep`Private`Version={1,2,6};  (*Specify version here.*)
+SpaceGroupIrep`Private`Version={1,2,7};  (*Specify version here.*)
 
 With[{p=DirectoryName[$InputFileName]}, If[!MemberQ[$Path,p],AppendTo[$Path, p]]];
 
@@ -4200,10 +4200,10 @@ formatRepMat[mat_]:=Module[{norm,arg,fl,pu,poth,num},
   If[MachineNumberQ[mat], Return[Round[mat,1.*^-6]]];
   num=formatRepMatDict[mat];
   If[num=!=None, Return[num]];
-  num=FullSimplify[mat];
+  num=Simplify[mat];
   If[Flatten[Position[num,#]&/@{t\:2081,t\:2082,t\:2083}]!={}, formatRepMatDict[mat]=num; Return[num]];
   If[Position[num,u]=={}, 
-    norm=Norm[num]//FullSimplify;   arg=Arg[num]//FullSimplify;
+    norm=Norm[num]//FullSimplify;   arg=If[norm=!=0, Arg[num]//FullSimplify, 0];
     (* For AG {48,6},{96,7},{96,8}, there are matrix elements Sqrt[2]+I or Sqrt[2]-I whose arg 
        contains ArcTan or ArcCot, e.g. SG212, "R". In this case we do not use exp form. *)
     If[Position[arg,ArcTan]!={}||Position[arg,ArcCot]!={}, formatRepMatDict[mat]=num; Return[num]];
