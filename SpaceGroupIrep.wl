@@ -1765,7 +1765,7 @@ showBZDemo[fullBZtype_, basVec_]/;StringQ[fullBZtype]&&MatrixQ[basVec,NumericQ]&
      If[kname2=={}, {}, {Thick,Purple,Line[#2[[;;2]]],
         Text[Style[#1,Italic,FontSize->18], #2[[3]]*1.15]}&@@@({kname2,kpos2}\[Transpose])]
      }, Boxed -> False];
-  Show[bz, g, ImageSize->600]
+  Show[bz, g, ImageSize->600, ViewProjection -> "Orthographic"]
  ]
  
 showBZDemo[fullBZtype_]/;StringQ[fullBZtype]:=
