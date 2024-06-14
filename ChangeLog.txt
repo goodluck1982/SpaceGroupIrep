@@ -1,3 +1,9 @@
+031.  2024-06-15 03:28:25 v1.2.8
+
+    Add reality for point group ireps.
+    Affect getPGCharTab, showPGCharTab, getPGIrepTab, showPGIrepTab.
+
+
 030.  2022-12-12 19:21:39 v1.2.7
 
     The fix in 1.2.6 is not good. The change from Simplify to FullSimplify

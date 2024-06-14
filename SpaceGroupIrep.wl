@@ -3717,7 +3717,7 @@ getPGElem[numOrName_, OptionsPattern[]]:=Module[{pgno,cs,elems,agno,gens},
 Options[getPGCharTab]={"double"->False};
 getPGCharTab[numOrName_, OptionsPattern[]]:=Module[{pgno,agno,cs,gens,nc,name1,name2,sg,
   dagno,dgens,dnc,dcs,ct,dct,slabel,iridx,cidx,dct1,dct2,ibarE,tmp,diridx,dlabel,IRidx,
-  d1label,d2label,dcidx},
+  d1label,d2label,dcidx,sre,dre},
   pgno=checkPGinput[numOrName, "getPGCharTab"];
   {name1,name2,sg,nc,agno,gens,dnc,dagno,dgens}=PGinfo[[pgno,2;;]];
   cs=SortBy[#,RotNameIndex]&/@getAGClassesByGen[Sequence@@agno,gens,RotTimes];
@@ -3733,9 +3733,11 @@ getPGCharTab[numOrName_, OptionsPattern[]]:=Module[{pgno,agno,cs,gens,nc,name1,n
   ct=ct[[IRidx,cidx]];  
   cs=Thread[Keys[cs]->Values[cs][[cidx]]]//Association;
   (*TableForm[ct,TableHeadings->{slabel,Column/@cs//Values}]*)
+  (*For 32 point groups, no pseudoreal irep exists, irep with complex characters must be complex, otherwise real*)
+  sre=If[Total[#]==0,1,3]&/@(Abs@Im[ct]);
   If[OptionValue["double"]==False,
     Return[<|"number"->pgno, "symbol"->{name1,name2}, "double"->False, 
-             "class"->cs, "label"->slabel, "charTab"->ct, "iridx"->IRidx|>]
+             "class"->cs, "label"->slabel, "reality"->sre, "charTab"->ct, "iridx"->IRidx|>]
   ];
   (*--------process double point group---------*)
   dcs=SortBy[#,RotNameIndex]&/@getAGClassesByGen[Sequence@@dagno,dgens,DRotTimes];
@@ -3758,9 +3760,12 @@ getPGCharTab[numOrName_, OptionsPattern[]]:=Module[{pgno,agno,cs,gens,nc,name1,n
   tmp=dct[[All,dcidx]];
   dct=Join[dct1,dct2][[diridx/@dlabel[[All,1]],dcidx]];
   IRidx=Position[Round[tmp,0.01],#][[1,1]]&/@Round[dct,0.01];
+  (*For double-valued irep, irep with complex characters must be complex, otherwise 1D irep is real and >=2D irep is pseudoreal*)
+  dre=If[Total[Abs@Im[#]]==0,If[#[[1]]==1,1,2],3]&/@dct[[Length[dct1]+1;;]];
+  dre=Join[sre,dre];
   (*TableForm[dct[[All,dcidx]],TableHeadings->{dlabel,Column/@Values[dcs]}]//Print;*)
   Return[<|"number"->pgno, "symbol"->{name1,name2}, "double"->True, 
-           "class"->dcs, "label"->dlabel, "charTab"->dct, "iridx"->IRidx|>]
+           "class"->dcs, "label"->dlabel, "reality"->dre, "charTab"->dct, "iridx"->IRidx|>]
 ]
 
 
@@ -3853,8 +3858,8 @@ showPGCharTab[numOrName_, OptionsPattern[]]:=Module[{pgct,cs,cskey,label,ct,mode
   If[MatchQ[mode,3|4]&&clsopt===Automatic, clsopt=If[nc==Length[elems],Off,On]];
   
   tmp=Row[{showPGInt[#2],"(",showPGSch[#1],")"}]&@@pgct["symbol"];
-  tab=pper[headR[[All,1]],pper[headR[[All,2]],ct]];
-  tab=Prepend[tab,{tmp,SpanFromLeft,Sequence@@headC}];
+  tab=pper[headR[[All,1]],pper[headR[[All,2]],pper[pgct["reality"],ct]]];
+  tab=Prepend[tab,{tmp,SpanFromLeft,SpanFromLeft,Sequence@@headC}];
 
   sty1=Directive[Black,Thickness[OptionValue["linewidth"]]];
   sty2=Directive[Thin,GrayLevel[0.8]];
@@ -3865,12 +3870,12 @@ showPGCharTab[numOrName_, OptionsPattern[]]:=Module[{pgct,cs,cskey,label,ct,mode
   sidx=Complement[Range@Length[headR],didx];
   bg2={{#,#}+1,{1,-1}}->Lighter[Green,0.95]&/@sidx;
   bg3={{#,#}+1,{1,-1}}->Lighter[Blue,0.95]&/@didx;
-  bg4={{#,#}+1,{1,2}}->Lighter[Green,0.90]&/@sidx;
-  bg5={{#,#}+1,{1,2}}->Lighter[Blue,0.90]&/@didx;
+  bg4={{#,#}+1,{1,3}}->Lighter[Green,0.90]&/@sidx;
+  bg5={{#,#}+1,{1,3}}->Lighter[Blue,0.90]&/@didx;
 
-  grid=Grid[tab, Frame->All, Alignment->{{Center,Center,{Right}}, Center,{{1,1},{1,-1}}->Center}, 
-                 ItemSize->{{{},{1->2.4,2->2.4}},{}}, 
-                 Dividers->{{{{sty2}},Join[#->sty1&/@{1,3,-1},#->sty2&/@{2}]},
+  grid=Grid[tab, Frame->All, Alignment->{{Center,Center,Left,{Right}}, Center,{{1,1},{1,-1}}->Center}, 
+                 ItemSize->{{{},{1->2.0,2->2.0,3->0.6}},{}}, 
+                 Dividers->{{{{sty2}},Join[#->sty1&/@{1,4,-1},#->sty2&/@{2,3}]},
                             {{{sty2}},#->sty1&/@{1,2,-1}}},
                  Background->{None,None,{bg0,bg1,Sequence@@Join[bg2,bg3,bg4,bg5]}}
            ];
@@ -3906,7 +3911,7 @@ getPGIrepTab[numOrName_, OptionsPattern[]]:=Module[{pgno,name1,name2,tmp,nc,agno
   irt=irt[[pgct["iridx"],elemidx]];
   If[OptionValue["double"]==False,
     Return[<|"number"->pgno, "symbol"->{name1,name2}, "double"->False, 
-             "elem"->elem, "label"->pgct["label"], "irep"->irt|>]
+             "elem"->elem, "label"->pgct["label"], "reality"->pgct["reality"], "irep"->irt|>]
   ];
 (*TableForm[irt, TableHeadings->{pgct["label"],elem}]//Print;*)
   (*---------------process double point group--------------*)
@@ -3930,7 +3935,7 @@ getPGIrepTab[numOrName_, OptionsPattern[]]:=Module[{pgno,name1,name2,tmp,nc,agno
   dirt[[;;nc,Length[elem]+1;;]]=irt;
 (*TableForm[dirt, TableHeadings->{dpgct["label"],delem}]//Print;*)
   Return[<|"number"->pgno, "symbol"->{name1,name2}, "double"->True, 
-           "elem"->delem, "label"->dpgct["label"], "irep"->dirt|>]
+           "elem"->delem, "label"->dpgct["label"], "reality"->dpgct["reality"], "irep"->dirt|>]
 ]
 
 
@@ -3942,7 +3947,7 @@ Options[showPGIrepTab]={"double"->True,"rotmat"->True,"elem"->All,"irep"->All,"t
                         "spin"->"downup","cartesian"->False,"linewidth"->2};
 showPGIrepTab[numOrName_, OptionsPattern[]]:=Module[{pgirt,label,irt,elmopt,tmp,elmidx,dbl,
   elems,nelm,elmerr,nc,snc,txtirl,iropt,irerr,iridx,row1,rots1,rots2,brav,tab,nstart,grid,
-  sty1,sty2,sidx,didx,bg0,bg1,bg1a,bg2,bg3,bg4,bg5},
+  sty1,sty2,sidx,didx,bg0,bg1,bg1a,bg2,bg3,bg4,bg5,reality},
   (*-------check option "double"---------*)
   dbl=OptionValue["double"];
   If[!MemberQ[{True,False,Full},dbl],
@@ -3954,11 +3959,11 @@ showPGIrepTab[numOrName_, OptionsPattern[]]:=Module[{pgirt,label,irt,elmopt,tmp,
   ];
 
   pgirt=getPGIrepTab[numOrName,"double"->True, "trace"->OptionValue["trace"]];
-  elems=pgirt["elem"];   irt=pgirt["irep"];   label=pgirt["label"];
+  elems=pgirt["elem"];   irt=pgirt["irep"];   label=pgirt["label"];   reality=pgirt["reality"];
   nelm=Length[elems];
   {snc,nc}=PGinfo[[pgirt["number"],{5,8}]];  
   If[dbl===False,
-    nc=snc; nelm=nelm/2; elems=elems[[;;nelm]]; irt=irt[[;;nc,;;nelm]]; label=label[[;;nc]]
+    nc=snc; nelm=nelm/2; elems=elems[[;;nelm]]; irt=irt[[;;nc,;;nelm]]; label=label[[;;nc]]; reality=reality[[;;nc]]
   ]; 
 
   (*-------check option "elem"---------*)
@@ -4002,10 +4007,10 @@ showPGIrepTab[numOrName_, OptionsPattern[]]:=Module[{pgirt,label,irt,elmopt,tmp,
   tab=Map[formatRepMat,irt,{2}];
   tab=Map[If[MatrixQ[#],MatrixForm[#],#]&, tab, {2}];
 
-  tab=Transpose[Join@@Transpose/@{label,tab}];
+  tab=Transpose[Join@@Transpose/@{label,Transpose@{reality},tab}];
   
   tmp=Row[{showPGInt[#2],"(",showPGSch[#1],")"}]&@@pgirt["symbol"];
-  row1={tmp,SpanFromLeft,Sequence@@showRot/@elems};
+  row1={tmp,SpanFromLeft,SpanFromLeft,Sequence@@showRot/@elems};
   If[OptionValue["rotmat"]=!=False,
     brav=If[16<=pgirt["number"]<=27, "HexaPrim", "CubiPrim"];
     rots1=getRotMat[brav,StringReplace[#,"bar"->""]]&/@elems;
@@ -4013,13 +4018,13 @@ showPGIrepTab[numOrName_, OptionsPattern[]]:=Module[{pgirt,label,irt,elmopt,tmp,
       tmp=Transpose@BasicVectors[brav];  rots1=Simplify[tmp.#.Inverse[tmp]]&/@rots1;
       tmp="(cart.)",  (*else:*) tmp=Nothing
     ];
-    rots1={Column[{"Rotation","matrix",tmp}], SpanFromLeft, Sequence@@MatrixForm/@rots1};
+    rots1={Column[{"Rotation","matrix",tmp}], SpanFromLeft,SpanFromLeft, Sequence@@MatrixForm/@rots1};
     rots2=ComplexExpand@First@getSpinRotOp[#]&/@elems;
     tmp="(\[DownArrow]\[UpArrow])";
     If[OptionValue["spin"]==="updown", 
        tmp="(\[UpArrow]\[DownArrow])"; rots2={{0,1},{1,0}}.#.{{0,1},{1,0}}&/@rots2
     ];
-    rots2={Column[{"Spin"<>tmp,"rotation","matrix"}], SpanFromLeft, Sequence@@MatrixForm/@rots2};
+    rots2={Column[{"Spin"<>tmp,"rotation","matrix"}], SpanFromLeft,SpanFromLeft, Sequence@@MatrixForm/@rots2};
     tab=Prepend[tab,rots1];  nstart=3;
     If[dbl=!=False, tab=Insert[tab,rots2,2];  nstart=4]; 
     , (*----else----*)
@@ -4037,11 +4042,11 @@ showPGIrepTab[numOrName_, OptionsPattern[]]:=Module[{pgirt,label,irt,elmopt,tmp,
   sidx=Complement[Range@Length[iridx],didx];
   bg2={{#,#}+nstart-1,{1,-1}}->Lighter[Green,0.95]&/@sidx;
   bg3={{#,#}+nstart-1,{1,-1}}->Lighter[Blue,0.95]&/@didx;
-  bg4={{#,#}+nstart-1,{1,2}}->Lighter[Green,0.90]&/@sidx;
-  bg5={{#,#}+nstart-1,{1,2}}->Lighter[Blue,0.90]&/@didx;
+  bg4={{#,#}+nstart-1,{1,3}}->Lighter[Green,0.90]&/@sidx;
+  bg5={{#,#}+nstart-1,{1,3}}->Lighter[Blue,0.90]&/@didx;
 
-  grid=Grid[tab, Frame->All, Alignment->Center, ItemSize->{{{},{1->2.4,2->2.4}},{}}, 
-                 Dividers->{{{{sty2}},Join[#->sty1&/@{1,3,-1},#->sty2&/@{2}]},
+  grid=Grid[tab, Frame->All, Alignment->Center, ItemSize->{{{},{1->2.0,2->2.0,3->0.6}},{}}, 
+                 Dividers->{{{{sty2}},Join[#->sty1&/@{1,4,-1},#->sty2&/@{2,3}]},
                             {{{sty2}},#->sty1&/@{1,2,-1}}},
                  Background->{None,None,{bg0,bg1a,bg1,Sequence@@Join[bg2,bg3,bg4,bg5]}}
            ]
@@ -4172,7 +4177,7 @@ showPGIrepDirectProduct[numOrName_, ireps1_, ireps2_, OptionsPattern[]]/;
   bg5=Join[Table[{i,j}->Lighter[Blue,0.9],{i,s1pos},{j,d2pos}],
            Table[{i,j}->Lighter[Blue,0.9],{i,d1pos},{j,s2pos}]]//Flatten[#,1]&;
 
-  Grid[tab, Frame->All, Alignment->Center, ItemSize->{{{},{1->2.4,2->2.4}},{}}, 
+  Grid[tab, Frame->All, Alignment->Center, ItemSize->{{{},{1->2.5,2->2.5}},{}}, 
                  Dividers->{{{{sty2}},Join[#->sty1&/@{1,3,-1},#->sty2&/@{2}]},
                             {{{sty2}},#->sty1&/@{1,2,-1}}},
                  Background->{None,None,{bg0,Sequence@@Join[bg1,bg2,bg3,bg4,bg5]}}
