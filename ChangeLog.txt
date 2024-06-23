@@ -1,4 +1,11 @@
-031.  2024-06-15 03:28:25 v1.2.8
+032.  2024-06-18 14:10:42 v1.2.8
+
+    Change the method to adjust the width of the E column in showPGCharTab,
+    because the old method makes E misaligned in the row of the exported pdf file.
+    Adjust the colume width of irep label for PG ireps.
+
+
+031.  2024-06-15 03:28:25
 
     Add reality for point group ireps.
     Affect getPGCharTab, showPGCharTab, getPGIrepTab, showPGIrepTab.

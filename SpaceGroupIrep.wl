@@ -3776,7 +3776,7 @@ getPGCharTab[numOrName_, OptionsPattern[]]:=Module[{pgno,agno,cs,gens,nc,name1,n
 Options[showPGCharTab]={"double"->False,"mode"->4,"class"->Automatic,"elem"->All,"irep"->All, "linewidth"->2};
 showPGCharTab[numOrName_, OptionsPattern[]]:=Module[{pgct,cs,cskey,label,ct,mode,clsopt,elmopt,tmp,elmidx,
   elems,elmerr,pper,nc,snc,txtirl,iropt,irerr,iridx,headC,headR,showclass,tab,grid,sty1,sty2,sidx,didx,
-  bg0,bg1,bg2,bg3,bg4,bg5},
+  bg0,bg1,bg2,bg3,bg4,bg5,idxE},
   (*-------check option "mode"---------*)
   mode=OptionValue["mode"];
   If[!MemberQ[{1,2,3,4},mode],
@@ -3848,17 +3848,19 @@ showPGCharTab[numOrName_, OptionsPattern[]]:=Module[{pgct,cs,cskey,label,ct,mode
     3, showRot/@If[VectorQ[elmopt,StringQ], elmopt, cs[[elmidx,1]]],
     4, If[nc==Length[elems], showRot/@elems[[elmidx]], cskey[[elmidx]]]
   ];
-
-  tmp=Position[headC,"E"]; (*Adjust the width of "E"*)
-  If[Length[tmp]==2, tmp=First@SortBy[tmp,Length]];
-  If[tmp!={}, headC=MapAt[Row[{#},ImageMargins->{{5,5},{0,0}}]&,headC,tmp]];
+  
+  tmp=Position[headC,"E"]; (*To adjust the width of "E", find its index, remove index of barE.*)
+  idxE=tmp[[All,1]];
+  tmp=Position[headC,showRot["barE"]]; 
+  idxE=Complement[idxE,tmp[[All,1]]];
+  idxE+=3;
 
   If[mode==1&&clsopt===Automatic, clsopt=On];
   If[mode==2&&clsopt===Automatic, clsopt=Off];
   If[MatchQ[mode,3|4]&&clsopt===Automatic, clsopt=If[nc==Length[elems],Off,On]];
   
-  tmp=Row[{showPGInt[#2],"(",showPGSch[#1],")"}]&@@pgct["symbol"];
-  tab=pper[headR[[All,1]],pper[headR[[All,2]],pper[pgct["reality"],ct]]];
+  tmp=Row[{showPGInt[#2],"\[VeryThinSpace](",showPGSch[#1],")"}]&@@pgct["symbol"];
+  tab=pper[headR[[All,1]],pper[headR[[All,2]],pper[pgct["reality"][[iridx]],ct]]];
   tab=Prepend[tab,{tmp,SpanFromLeft,SpanFromLeft,Sequence@@headC}];
 
   sty1=Directive[Black,Thickness[OptionValue["linewidth"]]];
@@ -3873,8 +3875,8 @@ showPGCharTab[numOrName_, OptionsPattern[]]:=Module[{pgct,cs,cskey,label,ct,mode
   bg4={{#,#}+1,{1,3}}->Lighter[Green,0.90]&/@sidx;
   bg5={{#,#}+1,{1,3}}->Lighter[Blue,0.90]&/@didx;
 
-  grid=Grid[tab, Frame->All, Alignment->{{Center,Center,Left,{Right}}, Center,{{1,1},{1,-1}}->Center}, 
-                 ItemSize->{{{},{1->2.0,2->2.0,3->0.6}},{}}, 
+  grid=Grid[tab, Frame->All, Alignment->{{Center,Center,Left,{Right}}, Center (*,{{1,1},{1,-1}}->Center*) }, 
+                 ItemSize->{{Full,{1->Full,2->Full,3->0.6,Sequence@@(#->1&/@idxE)}},{}},
                  Dividers->{{{{sty2}},Join[#->sty1&/@{1,4,-1},#->sty2&/@{2,3}]},
                             {{{sty2}},#->sty1&/@{1,2,-1}}},
                  Background->{None,None,{bg0,bg1,Sequence@@Join[bg2,bg3,bg4,bg5]}}
@@ -4007,9 +4009,9 @@ showPGIrepTab[numOrName_, OptionsPattern[]]:=Module[{pgirt,label,irt,elmopt,tmp,
   tab=Map[formatRepMat,irt,{2}];
   tab=Map[If[MatrixQ[#],MatrixForm[#],#]&, tab, {2}];
 
-  tab=Transpose[Join@@Transpose/@{label,Transpose@{reality},tab}];
+  tab=Transpose[Join@@Transpose/@{label,Transpose@{reality[[iridx]]},tab}];
   
-  tmp=Row[{showPGInt[#2],"(",showPGSch[#1],")"}]&@@pgirt["symbol"];
+  tmp=Row[{showPGInt[#2],"\[VeryThinSpace](",showPGSch[#1],")"}]&@@pgirt["symbol"];
   row1={tmp,SpanFromLeft,SpanFromLeft,Sequence@@showRot/@elems};
   If[OptionValue["rotmat"]=!=False,
     brav=If[16<=pgirt["number"]<=27, "HexaPrim", "CubiPrim"];
@@ -4045,7 +4047,7 @@ showPGIrepTab[numOrName_, OptionsPattern[]]:=Module[{pgirt,label,irt,elmopt,tmp,
   bg4={{#,#}+nstart-1,{1,3}}->Lighter[Green,0.90]&/@sidx;
   bg5={{#,#}+nstart-1,{1,3}}->Lighter[Blue,0.90]&/@didx;
 
-  grid=Grid[tab, Frame->All, Alignment->Center, ItemSize->{{{},{1->2.0,2->2.0,3->0.6}},{}}, 
+  grid=Grid[tab, Frame->All, Alignment->Center, ItemSize->{{Full,{1->Full,2->Full,3->0.6}},{}}, 
                  Dividers->{{{{sty2}},Join[#->sty1&/@{1,4,-1},#->sty2&/@{2,3}]},
                             {{{sty2}},#->sty1&/@{1,2,-1}}},
                  Background->{None,None,{bg0,bg1a,bg1,Sequence@@Join[bg2,bg3,bg4,bg5]}}
@@ -4159,7 +4161,7 @@ showPGIrepDirectProduct[numOrName_, ireps1_, ireps2_, OptionsPattern[]]/;
 
   tab=Table[dp[{label[[i,lopt]],label[[j,lopt]]}], {i,ir1}, {j,ir2}];
   tab=Transpose@Join[Transpose@label[[ir1]], Transpose@tab];
-  tmp=Row[{showPGInt[#2],"(",showPGSch[#1],")"}]&@@pgct["symbol"];
+  tmp=Row[{showPGInt[#2],"\[VeryThinSpace](",showPGSch[#1],")"}]&@@pgct["symbol"];
   tab=Prepend[tab, {tmp,SpanFromLeft,Sequence@@label[[ir2,lopt]]}];
 
   tmp=Association@Table[ir1[[i]]->i+1,{i,Length[ir1]}];
