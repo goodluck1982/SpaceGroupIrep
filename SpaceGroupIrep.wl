@@ -2221,6 +2221,7 @@ RotTimes[Rname1_String,Rname2_String]:=Module[{crots,hrots,brav,EI={"E","I"},tmp
 RotTimes[R1_, R2_, more__]:=Fold[RotTimes, R1, {R2,more}]
 
 powerRot[Rname_String, n_Integer]/;n>=0:=If[n==0, "E", Fold[RotTimes,Rname,Table[Rname,n-1]]]
+powerRot[Rname_String, n_Integer]/;n<0:=powerRot[invRot[Rname],-n];
 
 invRot[Rname_String]:=Module[{brav},
   brav=If[MemberQ[RotMat[[1]]["CubiPrim"], Rname], "CubiPrim", "HexaPrim"];
