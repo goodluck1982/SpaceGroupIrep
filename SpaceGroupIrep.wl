@@ -700,24 +700,24 @@ JonesTM=Module[{L0,M,brav}, M=<||>; Block[{a,b,c,\[Gamma]},
    M["TricPrim"]=M["MonoPrim"]=M["HexaPrim"]=IdentityMatrix[3];
    (* for MonoBase *)
    L0=BasicVectors["MonoPrim"];
-   brav="MonoBase";  M[brav]=Inverse[L0\[Transpose]].BasicVectors[brav]\[Transpose]//Simplify;
+   brav="MonoBase";  M[brav]=Inverse[L0\[Transpose]] . BasicVectors[brav]\[Transpose]//Simplify;
    (* for OthPrim, OrthBase, OrthBody, OrthFace *)
    L0={{a,0,0},{0,b,0},{0,0,c}};  
-   brav="OrthPrim";   M[brav]=Inverse[L0\[Transpose]].BasicVectors[brav]\[Transpose]//Simplify;
-   brav="OrthBase";  M[brav]=Inverse[L0\[Transpose]].BasicVectors[brav]\[Transpose]//Simplify;
-   brav="OrthBody";  M[brav]=Inverse[L0\[Transpose]].BasicVectors[brav]\[Transpose]//Simplify;
-   brav="OrthFace";  M[brav]=Inverse[L0\[Transpose]].BasicVectors[brav]\[Transpose]//Simplify;
+   brav="OrthPrim";   M[brav]=Inverse[L0\[Transpose]] . BasicVectors[brav]\[Transpose]//Simplify;
+   brav="OrthBase";  M[brav]=Inverse[L0\[Transpose]] . BasicVectors[brav]\[Transpose]//Simplify;
+   brav="OrthBody";  M[brav]=Inverse[L0\[Transpose]] . BasicVectors[brav]\[Transpose]//Simplify;
+   brav="OrthFace";  M[brav]=Inverse[L0\[Transpose]] . BasicVectors[brav]\[Transpose]//Simplify;
    (* for TrigPrim *)
    L0=BasicVectors["HexaPrim"]; 
-   brav="TrigPrim";   M[brav]=Inverse[L0\[Transpose]].BasicVectors[brav]\[Transpose]//Simplify;
+   brav="TrigPrim";   M[brav]=Inverse[L0\[Transpose]] . BasicVectors[brav]\[Transpose]//Simplify;
    (* for TetrPrim, TetrBody, CubiPrim, CubiBadyC, CubiFace *)  
    L0=BasicVectors["TetrPrim"];  
-   brav="TetrPrim";   M[brav]=Inverse[L0\[Transpose]].BasicVectors[brav]\[Transpose]//Simplify;
-   brav="TetrBody";  M[brav]=Inverse[L0\[Transpose]].BasicVectors[brav]\[Transpose]//Simplify;
+   brav="TetrPrim";   M[brav]=Inverse[L0\[Transpose]] . BasicVectors[brav]\[Transpose]//Simplify;
+   brav="TetrBody";  M[brav]=Inverse[L0\[Transpose]] . BasicVectors[brav]\[Transpose]//Simplify;
    L0=BasicVectors["CubiPrim"];  
-   brav="CubiPrim";   M[brav]=Inverse[L0\[Transpose]].BasicVectors[brav]\[Transpose]//Simplify;
-   brav="CubiBody";  M[brav]=Inverse[L0\[Transpose]].BasicVectors[brav]\[Transpose]//Simplify;
-   brav="CubiFace";  M[brav]=Inverse[L0\[Transpose]].BasicVectors[brav]\[Transpose]//Simplify;
+   brav="CubiPrim";   M[brav]=Inverse[L0\[Transpose]] . BasicVectors[brav]\[Transpose]//Simplify;
+   brav="CubiBody";  M[brav]=Inverse[L0\[Transpose]] . BasicVectors[brav]\[Transpose]//Simplify;
+   brav="CubiFace";  M[brav]=Inverse[L0\[Transpose]] . BasicVectors[brav]\[Transpose]//Simplify;
 ]; M];
 
 (* get the Bravais lattice of the space group with number SGNo *)
@@ -744,15 +744,15 @@ getSGLatt[SGNo_Integer]:=Module[{BLNo=<||>, brav,i},
 checkBasVec[brav_,bvec_]/;MatrixQ[bvec,NumericQ]&&Dimensions[bvec]=={3,3}:=
  Block[{a,b,c,\[Alpha],\[Beta],\[Gamma],a1,b1,c1,\[Alpha]1,\[Beta]1,\[Gamma]1,pbv,TM,prec=1*^-5,type},
    If[brav=="TricPrim", {a1,b1,c1}=Norm/@bvec;
-     \[Alpha]1=ArcCos[bvec[[2]].bvec[[3]]/(b1*c1)];
-     \[Beta]1=ArcCos[bvec[[1]].bvec[[3]]/(a1*c1)];
-     \[Gamma]1=ArcCos[bvec[[1]].bvec[[2]]/(a1*b1)];
+     \[Alpha]1=ArcCos[bvec[[2]] . bvec[[3]]/(b1*c1)];
+     \[Beta]1=ArcCos[bvec[[1]] . bvec[[3]]/(a1*c1)];
+     \[Gamma]1=ArcCos[bvec[[1]] . bvec[[2]]/(a1*b1)];
      Return[{True,"",{a->a1,b->b1,c->c1,\[Alpha]->\[Alpha]1,\[Beta]->\[Beta]1,\[Gamma]->\[Gamma]1}}]
      ];
      
    If[MemberQ[{"MonoPrim","MonoBase"},brav],
      TM=JonesTM[brav];
-     pbv=Chop[Transpose[bvec\[Transpose].Inverse[TM]],prec]; 
+     pbv=Chop[Transpose[bvec\[Transpose] . Inverse[TM]],prec]; 
      If[Flatten[pbv][[{1,3,6,7,8}]]!={0,0,0,0,0},Return[{False}]];
      b1=-pbv[[1,2]];   a1=Norm[pbv[[2]]];  c1=pbv[[3,3]];
      \[Gamma]1=ArcCos[-pbv[[2,2]]/a1];
@@ -762,8 +762,8 @@ checkBasVec[brav_,bvec_]/;MatrixQ[bvec,NumericQ]&&Dimensions[bvec]=={3,3}:=
     ];
     
    If[MemberQ[{"OrthPrim","OrthBase","OrthBody","OrthFace"},brav],
-     TM={{0,-1,0},{1,0,0},{0,0,1}}.JonesTM[brav];
-     pbv=Chop[Transpose[bvec\[Transpose].Inverse[TM]],prec]; 
+     TM={{0,-1,0},{1,0,0},{0,0,1}} . JonesTM[brav];
+     pbv=Chop[Transpose[bvec\[Transpose] . Inverse[TM]],prec]; 
      If[Flatten[pbv][[{1,3,5,6,7,8}]]!={0,0,0,0,0,0},Return[{False}]];
      b1=-pbv[[1,2]];   a1=pbv[[2,1]];  c1=pbv[[3,3]];
      If[!(a1>0&&b1>0&&c1>0), Return[{False}]];
@@ -780,7 +780,7 @@ checkBasVec[brav_,bvec_]/;MatrixQ[bvec,NumericQ]&&Dimensions[bvec]=={3,3}:=
     
    If[MemberQ[{"TetrPrim","TetrBody"},brav],
      TM=JonesTM[brav];
-     pbv=Chop[Transpose[bvec\[Transpose].Inverse[TM]],prec]; 
+     pbv=Chop[Transpose[bvec\[Transpose] . Inverse[TM]],prec]; 
      If[Flatten[pbv][[{2,3,4,6,7,8}]]!={0,0,0,0,0,0},Return[{False}]];
      a1=pbv[[1,1]];   b1=pbv[[2,2]];  c1=pbv[[3,3]];  
      If[!(Abs[a1-b1]<prec&&a1>0&&c1>0), Return[{False}]];
@@ -804,7 +804,7 @@ checkBasVec[brav_,bvec_]/;MatrixQ[bvec,NumericQ]&&Dimensions[bvec]=={3,3}:=
    
    If[MemberQ[{"CubiPrim","CubiBody","CubiFace"},brav],
      TM=JonesTM[brav];
-     pbv=Chop[Transpose[bvec\[Transpose].Inverse[TM]],prec]; 
+     pbv=Chop[Transpose[bvec\[Transpose] . Inverse[TM]],prec]; 
      If[Flatten[pbv][[{2,3,4,6,7,8}]]!={0,0,0,0,0,0},Return[{False}]];
      a1=pbv[[1,1]];   b1=pbv[[2,2]];  c1=pbv[[3,3]];  
      If[Abs[a1-b1]>prec||Abs[a1-c1]>prec||Abs[b1-c1]>prec, Return[{False}]];
@@ -834,7 +834,7 @@ RotMat=Module[{opNames,M,tmp,i,brav,opMats},
    opNames["CubiPrim"]=opNames["CubiBody"]=opNames["CubiFace"]=JonesSymbol[[1,All,1]];
    For[i=1,i<=14,i++,
       brav=BravLatt[i];   M=JonesTM[brav];  
-      opMats[brav]=Inverse[M].getJones[#,"type"->"mat"].M&/@opNames[brav];
+      opMats[brav]=Inverse[M] . getJones[#,"type"->"mat"] . M&/@opNames[brav];
    ];
    {opNames,opMats}
 ];
@@ -845,7 +845,7 @@ invRotMat=Association[#->Inverse[#]&/@(Join@@Values[RotMat[[2]]]//DeleteDuplicat
 (* Show the result of RotMat applied on basic vectors (t1,t2,t3) in table form like Tab. 3.2 *)
 checkRotMat[brav_]:=Module[{names,tt},
    names=RotMat[[1]][brav];
-   tt={"t1","t2","t3"}.#&/@RotMat[[2]][brav]//Simplify;
+   tt={"t1","t2","t3"} . #&/@RotMat[[2]][brav]//Simplify;
    Column[{brav,TableForm[tt,TableHeadings->{names}]},Center,Dividers-> {{},{2->Black,3->Black}}]
 ]
 
@@ -864,7 +864,7 @@ Module[{names,rots,dict1,dict2,brav,opname,mat},
 (*Rotation matrices in cartesian coordinate system.*)
 RotMatCart=<||>;
 (RotMatCart[#]=getRotMat["CubiPrim",#])&/@RotMat[[1]]["CubiPrim"];
-(RotMatCart[#]=With[{bv=Transpose@BasicVectors["HexaPrim"]},bv.getRotMat["HexaPrim",#].Inverse[bv]])&/@
+(RotMatCart[#]=With[{bv=Transpose@BasicVectors["HexaPrim"]},bv . getRotMat["HexaPrim",#] . Inverse[bv]])&/@
   DeleteCases[RotMat[[1]]["HexaPrim"],"E"|"I"];
 
 (* Note that the rotation matrix rotmat has to be basend on the t1,t2,t3 defined in Tab. 3.1.
@@ -878,7 +878,7 @@ RotMatCart=<||>;
    in table form like Tab. 3.4 *)
 checkRotMatOfK[brav_]:=Module[{names,tg},
    names=RotMat[[1]][brav];
-   tg={"g1","g2","g3"}.Inverse[#\[Transpose]]&/@RotMat[[2]][brav]//Simplify;
+   tg={"g1","g2","g3"} . Inverse[#\[Transpose]]&/@RotMat[[2]][brav]//Simplify;
    Column[{brav,TableForm[tg,TableHeadings->{names}]},Center,Dividers-> {{},{2->Black,3->Black}}]
 ]
 
@@ -921,7 +921,7 @@ TMspglibToBC[brav_]:=Module[{spgbvec=<||>,BCbvec,rotBCbvec,Q,S1,BCrotMats=<||>,L
      spgbvec["Tric"]=BasicVectors["TricPrim"];
    BCrotMats["Tric"]=IdentityMatrix[3];
      spgbvec["Mono"]={{a,0,0},{0,c,0},{b Cos[\[Gamma]],0,b Sin[\[Gamma]]}};
-   BCrotMats["Mono"]=Inverse[RotationMatrix[4Pi/3,{1,1,1}].RotationMatrix[Pi-\[Gamma],{0,0,1}]]//Simplify;
+   BCrotMats["Mono"]=Inverse[RotationMatrix[4Pi/3,{1,1,1}] . RotationMatrix[Pi-\[Gamma],{0,0,1}]]//Simplify;
      spgbvec["Orth"]={{a,0,0},{0,b,0},{0,0,c}};
    BCrotMats["Orth"]=IdentityMatrix[3];     
      spgbvec["Tetr"]={{a,0,0},{0,a,0},{0,0,c}};
@@ -943,8 +943,8 @@ TMspglibToBC[brav_]:=Module[{spgbvec=<||>,BCbvec,rotBCbvec,Q,S1,BCrotMats=<||>,L
    BCrotMats["Cubi"]=IdentityMatrix[3];
    BCbvec=BasicVectors[brav];     (* (t1,t2,t3)^T *) 
    S1=BCrotMats[LS[brav]];
-   rotBCbvec=BCbvec.S1//Simplify;  (* (t1',t2',t3')^T *)
-   Q=Inverse[spgbvec[LS[brav]]\[Transpose]].(rotBCbvec\[Transpose])//Simplify;
+   rotBCbvec=BCbvec . S1//Simplify;  (* (t1',t2',t3')^T *)
+   Q=Inverse[spgbvec[LS[brav]]\[Transpose]] . (rotBCbvec\[Transpose])//Simplify;
    ];
    {Q,S1}
 ]
@@ -953,9 +953,9 @@ getQandS[SGNo_]:=Module[{Q,S,S1,S2,OBC2A},
    Block[{a,b,c,OBvecC,OBvecA},
       OBvecC=BasicVectors["OrthBase"];
       OBvecA={{0,-b,c}/2,{a,0,0},{0,b,c}/2};
-      OBC2A=Inverse[OBvecC\[Transpose]].OBvecA\[Transpose];
+      OBC2A=Inverse[OBvecC\[Transpose]] . OBvecA\[Transpose];
    ];
-   If[38<=SGNo<=41,Q=Q.OBC2A];   (*\:8fd9\:51e0\:4e2a\:7a7a\:95f4\:7fa4\:4f7f\:7528\:4e86A\:7684\:6b63\:4ea4\:5e95\:5fc3\:ff0c\:89c1Tab.3.1\:7684note(v)*)
+   If[38<=SGNo<=41,Q=Q . OBC2A];   (*\:8fd9\:51e0\:4e2a\:7a7a\:95f4\:7fa4\:4f7f\:7528\:4e86A\:7684\:6b63\:4ea4\:5e95\:5fc3\:ff0c\:89c1Tab.3.1\:7684note(v)*)
    S2=IdentityMatrix[3];
    If[MemberQ[{17,19,28,29,31,33,36,46,53,61,70,122},SGNo],
       S2=RotationMatrix[-Pi/2,{0,0,1}]];  (* C4z-, for "b -a c" orientation *)
@@ -963,7 +963,7 @@ getQandS[SGNo_]:=Module[{Q,S,S1,S2,OBC2A},
       S2=RotationMatrix[-2Pi/3,{1,1,1}]];  (* C3(111)-, for "b c a" orientation *)
    If[MemberQ[{51,54},SGNo],S2=RotationMatrix[-Pi/2,{0,1,0}]];  (* C4y-, for "-c b a" orientation *)
    If[MemberQ[{52,60},SGNo],S2=RotationMatrix[Pi/2,{1,0,0}]];  (* C4x+, for "a -c b" orientation *)
-   S=S2.S1;
+   S=S2 . S1;
    {Q,S}
 ]
 
@@ -984,21 +984,21 @@ UbAc0=Block[{a,b,c},Transpose@Normal@CoefficientArrays[{b,-a,c},{a,b,c}][[2]]];
 Ubca0=Block[{a,b,c},Transpose@Normal@CoefficientArrays[{b,c,a},{a,b,c}][[2]]];
 UCba0=Block[{a,b,c},Transpose@Normal@CoefficientArrays[{-c,b,a},{a,b,c}][[2]]];
 UaCb0=Block[{a,b,c},Transpose@Normal@CoefficientArrays[{a,-c,b},{a,b,c}][[2]]];
-UbAcOrthP=With[{X=TMspglibToBC["OrthPrim"][[1]]},Inverse[X].UbAc0.X];
-UbAcOrthC=With[{X=TMspglibToBC["OrthBase"][[1]]},Inverse[X].UbAc0.X];
-UbAcOrthB=With[{X=TMspglibToBC["OrthBody"][[1]]},Inverse[X].UbAc0.X];
-UbAcOrthF=With[{X=TMspglibToBC["OrthFace"][[1]]},Inverse[X].UbAc0.X];
-UbAcTetrB=With[{X=TMspglibToBC["TetrBody"][[1]]},Inverse[X].UbAc0.X];
-UbcaOrthP=With[{X=TMspglibToBC["OrthPrim"][[1]]},Inverse[X].Ubca0.X];
-UbcaOrthC=With[{X=TMspglibToBC["OrthBase"][[1]]},Inverse[X].Ubca0.X];
-UCbaOrthP=With[{X=TMspglibToBC["OrthPrim"][[1]]},Inverse[X].UCba0.X];
-UaCbOrthP=With[{X=TMspglibToBC["OrthPrim"][[1]]},Inverse[X].UaCb0.X];
+UbAcOrthP=With[{X=TMspglibToBC["OrthPrim"][[1]]},Inverse[X] . UbAc0 . X];
+UbAcOrthC=With[{X=TMspglibToBC["OrthBase"][[1]]},Inverse[X] . UbAc0 . X];
+UbAcOrthB=With[{X=TMspglibToBC["OrthBody"][[1]]},Inverse[X] . UbAc0 . X];
+UbAcOrthF=With[{X=TMspglibToBC["OrthFace"][[1]]},Inverse[X] . UbAc0 . X];
+UbAcTetrB=With[{X=TMspglibToBC["TetrBody"][[1]]},Inverse[X] . UbAc0 . X];
+UbcaOrthP=With[{X=TMspglibToBC["OrthPrim"][[1]]},Inverse[X] . Ubca0 . X];
+UbcaOrthC=With[{X=TMspglibToBC["OrthBase"][[1]]},Inverse[X] . Ubca0 . X];
+UCbaOrthP=With[{X=TMspglibToBC["OrthPrim"][[1]]},Inverse[X] . UCba0 . X];
+UaCbOrthP=With[{X=TMspglibToBC["OrthPrim"][[1]]},Inverse[X] . UaCb0 . X];
 Block[{a,b,c},
    OBvecC=BasicVectors["OrthBase"];
    OBvecA={{0,-b,c}/2,{a,0,0},{0,b,c}/2};
-   OBA2C=Inverse[OBvecA\[Transpose]].OBvecC\[Transpose];
+   OBA2C=Inverse[OBvecA\[Transpose]] . OBvecC\[Transpose];
 ];
-U38to41=OBA2C.UbcaOrthC;
+U38to41=OBA2C . UbcaOrthC;
 SGGenElem=<||>;
 SGGenElem[1]={{{"E",o}},o,I3,{}};
 SGGenElem[2]={{{"I",o}},o,I3,{}};
@@ -1489,7 +1489,7 @@ BCHighSymKpt=Block[{u,hskpt,i,idx,D2hxyz,C2vx,C2vy,C2vz,C2vazb,C2vzab,C2vbza,D4h
   hskpt["TrigPrim(b)"]=verb;
 
   D6h=JonesSymbol[[2,All,1]];
-  D3h={"E","C3+","C3-","C21pp","C22pp","c23pp","\[Sigma]h","S3+","S3-","\[Sigma]d1","\[Sigma]d2","\[Sigma]d3"};
+  D3h={"E","C3+","C3-","C21pp","C22pp","C23pp","\[Sigma]h","S3+","S3-","\[Sigma]d1","\[Sigma]d2","\[Sigma]d3"};
   C6v={"E","C6+","C6-","C3+","C3-","C2","\[Sigma]v1","\[Sigma]v2","\[Sigma]v3","\[Sigma]d1","\[Sigma]d2","\[Sigma]d3"};
   hskpt["HexaPrim"]={ 
     {"\[CapitalGamma]","",{0,0,0},"D6h",D6h},
@@ -1576,7 +1576,7 @@ checkBCHSKpt[fullBZtype_]:=Block[{u,keys, hsk, lat, i, j, opnames, op, k, ok=Tru
    k=hsk[[i,3]];  opnames=hsk[[i, 5]];
    For[j=1, j<=Length[opnames], j++, 
     op=getRotMatOfK[lat, opnames[[j]]];
-    If[Mod[op.k-k,1]!={0,0,0}, 
+    If[Mod[op . k-k,1]!={0,0,0}, 
      Print[fullBZtype, ": ", hsk[[i,1]], " is not invariant under ", opnames[[j]]]; o =False]; ]
    ];
   If[ok, "OK", "NotOK"]
@@ -1631,7 +1631,7 @@ WSCell3DMesh[reciLatt_]/;MatrixQ[reciLatt,NumericQ]&&Dimensions[reciLatt]=={3,3}
   dmin=Abs[SignedRegionDistance[pp, {0, 0, 0}]];
   bmax=Max[Norm /@ reciLatt];
   num=Ceiling[bmax/dmin];
-  pts=Flatten[Table[{i,j,k}.reciLatt, {i,-num,num-1}, {j,-num,num-1}, {k,-num,num-1}], 2];
+  pts=Flatten[Table[{i,j,k} . reciLatt, {i,-num,num-1}, {j,-num,num-1}, {k,-num,num-1}], 2];
   pts=Select[pts, Norm[#]<=2.0bmax&];
   (*------------------------------------*)
   oidx=Position[N[pts], N[{0,0,0}]][[1,1]];
@@ -1639,7 +1639,7 @@ WSCell3DMesh[reciLatt_]/;MatrixQ[reciLatt,NumericQ]&&Dimensions[reciLatt]=={3,3}
   bds=pad[.1]/@ MinMax/@Transpose[pts]; (* \:753b\:56fe\:8303\:56f4 *)
   dm=DelaunayMesh[pts]; 
   conn=dm["ConnectivityMatrix"[0, 1]];  (* \:5f97\:5230\:6240\:6709\:70b9\:4e0e\:7ebf\:4e4b\:95f4\:7684\:8fde\:63a5\:77e9\:9635 *)
-  adj=conn.Transpose[conn]; (* \:5f97\:5230\:6240\:6709\:70b9\:4e0e\:70b9\:4e4b\:95f4\:7684\:8fde\:63a5\:77e9\:9635 *)
+  adj=conn . Transpose[conn]; (* \:5f97\:5230\:6240\:6709\:70b9\:4e0e\:70b9\:4e4b\:95f4\:7684\:8fde\:63a5\:77e9\:9635 *)
   lc=conn["MatrixColumns"]; (* \:5f97\:5230\:4e0e\:6240\:6709\:70b9\:76f8\:8fde\:7684\:7ebf\:7684\:7f16\:53f7 *)
   pc=adj["MatrixColumns"];  (* \:5f97\:5230\:4e0e\:6240\:6709\:70b9\:76f8\:8fde\:7684\:70b9\:7684\:7f16\:53f7 *)
   cpts= MeshCoordinates[dm]; (* \:6240\:6709\:70b9\:7684\:5750\:6807 *)
@@ -1668,7 +1668,7 @@ findURange0[basVec_, kOrList_, bz_]/;MatrixQ[basVec,NumericQ]&&Dimensions[basVec
   reciLatt=Inverse@Transpose[basVec];
   ds=1.*^-8;  eps=0.1ds;
   forOneK[k_]:=Module[{n=0, umin=0, umax=0.7},
-    t=(umin+umax)/2;    kcart=k.reciLatt//Simplify;
+    t=(umin+umax)/2;    kcart=k . reciLatt//Simplify;
     d1=Check[SignedRegionDistance[bz,kcart/.u->umin],
          Print["Warning: findURange0 has run into problem and always returns 0.5 in this case. This ",
                "is because RegionIntersection cannot work correctly for certain parameters in ",
@@ -1738,7 +1738,7 @@ showBZDemo[fullBZtype_, basVec_]/;StringQ[fullBZtype]&&MatrixQ[basVec,NumericQ]&
     kname2=kname2p=kpos2={}];
   Print[Transpose[{kname1,kpos1}]];
   Print[{#1<>"("<>#2<>")",#3}&@@@Transpose[{kname2,kname2p,kpos2}]];
-  kpos1=#.reciLatt&/@kpos1;
+  kpos1=# . reciLatt&/@kpos1;
 
   For[i=1, i<=Length[kname2],i ++, 
     kn1=StringTake[kname2p[[i]],1];    kn2=StringTake[kname2p[[i]],-1];
@@ -1749,7 +1749,7 @@ showBZDemo[fullBZtype_, basVec_]/;StringQ[fullBZtype]&&MatrixQ[basVec,NumericQ]&
       (* uMax= findURange0[basVec,kpos2[[i]],bz]; *)
       uMax=findURange[fullBZtype,basVec,kname2[[i]]];
       Print[kname2[[i]],"(",kname2p[[i]],"): ",kpos2[[i]],", u range is [0,",uMax,"]"];
-      kp1=kpos2[[i]].reciLatt/.u->0;    kp2=kpos2[[i]].reciLatt/.u->uMax;
+      kp1=kpos2[[i]] . reciLatt/.u->0;    kp2=kpos2[[i]] . reciLatt/.u->uMax;
     ];    
     kpos2[[i]]={kp1,kp2,(kp1+kp2)/2}
   ];
@@ -1860,12 +1860,12 @@ identifyBCHSKpt[fullBZtype_, klist_, OptionsPattern[]]/;MatrixQ[klist,NumericQ]&
   G0 = hsk[[1, 5]];
   keq[k1_,k2_] := Module[{dk}, dk = Rationalize[k2 - k1, prec];
                          If[!VectorQ[dk,NumberQ], Return[False]]; dk == 0*dk ];
-  stars0=Table[{i, getRotMatOfK[lat,i].hsk[[j,3]]}, {j, Length[hsk]}, {i,G0}];
+  stars0=Table[{i, getRotMatOfK[lat,i] . hsk[[j,3]]}, {j, Length[hsk]}, {i,G0}];
   stars0=DeleteDuplicates[#, keq[#1[[2]],#2[[2]]]&]& /@ stars0;
   stars=DeleteDuplicates[#, keqmod[#1[[2]],#2[[2]]]&]& /@ stars0;  
   nstars=Length/@stars;
   identifyOneK[k_] := Block[{re = {}},
-    kstar0={#, getRotMatOfK[lat, #].k} & /@ G0;
+    kstar0={#, getRotMatOfK[lat, #] . k} & /@ G0;
     Gk=Select[kstar0, keqmod[k, #[[2]]] &][[All, 1]];
     If[Gk=={"E"}, re = {{"GP", "", "C1"}}; Goto["endfor"]];    (* GP means general point *)
     kstar=DeleteDuplicates[kstar0, keqmod[#1[[2]],#2[[2]]]&];
@@ -2085,7 +2085,7 @@ identifyBCHSKptBySG[sgno_, BZtypeOrBasVec_, klist_, OptionsPattern[]]/;
     If[outk[[2]]=="GP",Return[outk]];
     G0=GSQ[[1,All,1]];   
     k=outk[[1]];    
-    Gk0=Select[{#, getRotMatOfK[lat, #].k}&/@G0, keqmod[k, #[[2]]] &][[All, 1]];
+    Gk0=Select[{#, getRotMatOfK[lat, #] . k}&/@G0, keqmod[k, #[[2]]] &][[All, 1]];
     If[outk[[2]]=="UN", 
       If[Sort[Gk0]==Sort[outk[[4]]], Return[outk]];
       If[Gk0=={"E"},Return[{k,"GP", "", "C1"}]];
@@ -2095,8 +2095,8 @@ identifyBCHSKptBySG[sgno_, BZtypeOrBasVec_, klist_, OptionsPattern[]]/;
 
     kbd=outk[[5]];  (* The k in basic domain *)
     If[Position[outk//Last,u]!={},kbd=kbd/.Last[outk]];
-    starP={#, getRotMatOfK[lat, #].kbd}&/@P;     
-    star0={#, getRotMatOfK[lat, #].kbd}&/@G0; 
+    starP={#, getRotMatOfK[lat, #] . kbd}&/@P;     
+    star0={#, getRotMatOfK[lat, #] . kbd}&/@G0; 
     R=outk[[6]];
     op=GSQ[[Sequence@@(Position[GSQ,R][[1,;;2]])]];
     Rkbd=Association[Rule@@@starP][R];        
@@ -2109,7 +2109,7 @@ identifyBCHSKptBySG[sgno_, BZtypeOrBasVec_, klist_, OptionsPattern[]]/;
       sec=Select[star0,keqmod[Rkbd,#[[2]]]&][[All,1]];
       If[sec!={},
         op=GSQ[[Sequence@@(Position[GSQ,First[sec]][[1,;;2]])]];
-        newk[[7]]=getRotMatOfK[lat,op[[1]]].newk[[5]];
+        newk[[7]]=getRotMatOfK[lat,op[[1]]] . newk[[5]];
         (*Note that Rationalize[-0.1, 0.1] returns -1/9 *)
         tmp=If[Position[newk[[7]],u]!={}, newk[[-2]], {}];
         newk[[8]]=Rationalize[(newk[[1]]-newk[[7]])/.tmp,0.1];
@@ -2119,19 +2119,19 @@ identifyBCHSKptBySG[sgno_, BZtypeOrBasVec_, klist_, OptionsPattern[]]/;
      ];
     (* \:82e5R\:5728Q\:4e2d\:ff0c\:5219\:5c1d\:8bd5\:4ece GSQ[[2]] \:4e2d\:627e\:5230\:64cd\:4f5c\:4f7f\:5176\:540c\:6837\:628ak\:8f6c\:5230 R.k\:3002
        \:5426\:5219 getLGIRtab[144,{0.2,-0.6,-0.5}] \:4f1a\:51fa\:9519\:ff0c\:5176\:4e2dk\:70b9\:4e3a -S' \:70b9 *)
-    starS={#, getRotMatOfK[lat, #].kbd}&/@GSQ[[2,All,1]]; 
+    starS={#, getRotMatOfK[lat, #] . kbd}&/@GSQ[[2,All,1]]; 
     If[MemberQ[GSQ[[3]],R],
       sec=Select[starS,keqmod[Rkbd,#[[2]]]&][[All,1]];
       If[sec!={},
         op=GSQ[[Sequence@@(Position[GSQ,First[sec]][[1,;;2]])]];
-        newk[[7]]=getRotMatOfK[lat,op[[1]]].newk[[5]];
+        newk[[7]]=getRotMatOfK[lat,op[[1]]] . newk[[5]];
         tmp=If[Position[newk[[7]],u]!={}, newk[[-2]], {}];
         newk[[8]]=Rationalize[(newk[[1]]-newk[[7]])/.tmp,0.1];
        ]
      ];
      
     If[sgno==205&&outk[[2]]=="Z"&&!MemberQ[G0,R],      
-      Zpstar=Table[{i, getRotMatOfK[lat,i].{1/2,u,0}}, {i,G0}];
+      Zpstar=Table[{i, getRotMatOfK[lat,i] . {1/2,u,0}}, {i,G0}];
       Zpstar=DeleteDuplicates[Zpstar, keqmod[#1[[2]],#2[[2]]]&];
       re={};
       For[j = 1, j <= Length[Zpstar], j++, k1=Zpstar[[j,2]];
@@ -2172,20 +2172,20 @@ identifyBCHSKptBySG[sgno_, BZtypeOrBasVec_, k_, OptionsPattern[]]/;VectorQ[k,Num
 
 
 (* Definition of the multiplication and inverse of space group Seitz symbols *)
-SeitzTimes[{R1_,v1_},{R2_,v2_}]:={R1.R2,R1.v2+v1}
+SeitzTimes[{R1_,v1_},{R2_,v2_}]:={R1 . R2,R1 . v2+v1}
 SeitzTimes[Rv1_,Rv2_,more__]:=Fold[SeitzTimes,Rv1,{Rv2,more}]
 (* g1_\[CircleDot]g2__:=Fold[SeitzTimes,g1,{g2}] *)
-invSeitz[{R_,v_}]:={Inverse[R],-Inverse[R].v}
+invSeitz[{R_,v_}]:={Inverse[R],-Inverse[R] . v}
 powerSeitz[{R_,v_},n_Integer]/;n>=0:=If[n==0,{IdentityMatrix[3],{0,0,0}},
                                              Fold[SeitzTimes,{R,v},Table[{R,v},{i,n-1}]]]
 SeitzTimes[brav_][{Rname1_,v1_},{Rname2_,v2_}]:=Module[{R1,R2},
   R1=getRotMat[brav,Rname1];  R2=getRotMat[brav,Rname2];
-  {getRotName[brav,R1.R2],R1.v2+v1}
+  {getRotName[brav,R1 . R2],R1 . v2+v1}
 ]
 SeitzTimes[brav_][Rv1_,Rv2_,more__]:=Fold[SeitzTimes[brav],Rv1,{Rv2,more}]
 powerSeitz[brav_][{Rname_,v_},n_Integer]/;n>=0:=If[n==0,{"E",{0,0,0}},
                                         Fold[SeitzTimes[brav],{Rname,v},Table[{Rname,v},{i,n-1}]]]
-invSeitz[brav_][{Rname_,v_}]:=Block[{R=getRotMat[brav,Rname],iR}, iR=invRotMat[R]; {getRotName[brav,iR],-iR.v}]
+invSeitz[brav_][{Rname_,v_}]:=Block[{R=getRotMat[brav,Rname],iR}, iR=invRotMat[R]; {getRotName[brav,iR],-iR . v}]
 
 CentExtTimes[brav_,adict_][{R1_,alpha_},{R2_,beta_}]:=Module[{g,R1mat,R1name,R2mat,R2name},
   g=adict["g"];  
@@ -2194,7 +2194,7 @@ CentExtTimes[brav_,adict_][{R1_,alpha_},{R2_,beta_}]:=Module[{g,R1mat,R1name,R2m
     R1mat=R1;  R2mat=R2;  R1name=getRotName[brav,R1];  R2name=getRotName[brav,R2],
     R1name=R1;  R2name=R2;  R1mat=getRotMat[brav,R1];  R2mat=getRotMat[brav,R2]
   ];
-  {getRotName[brav,R1mat.R2mat],Mod[alpha+beta+adict[{R1name,R2name}],g]}
+  {getRotName[brav,R1mat . R2mat],Mod[alpha+beta+adict[{R1name,R2name}],g]}
 ]
 CentExtPower[brav_,adict_][{R_,alpha_},n_Integer]/;n>=0:=If[n==0,{"E",0},
                            Fold[CentExtTimes[brav,adict],{R,alpha},Table[{R,alpha},{i,n-1}]]]
@@ -2216,7 +2216,7 @@ RotTimes[Rname1_String,Rname2_String]:=Module[{crots,hrots,brav,EI={"E","I"},tmp
       If[brav!=tmp, Print["RotTimes: Error! Rname1 and Rname2 should be in the same list of either\n",crots,"\nor\n",hrots]; Abort[]];
     ] 
   ];
-  getRotName[brav, getRotMat[brav,Rname1].getRotMat[brav,Rname2]]
+  getRotName[brav, getRotMat[brav,Rname1] . getRotMat[brav,Rname2]]
 ]
 RotTimes[R1_, R2_, more__]:=Fold[RotTimes, R1, {R2,more}]
 
@@ -2299,17 +2299,17 @@ getSpinRotName[brav_String,{srot_, o3det_Integer}]/;MatrixQ[srot,NumericQ]&&Dime
    FullSimplify \:6216 ComplexExpand \:64cd\:4f5c\:80fd\:89e3\:51b3\:95ee\:9898\:ff0c\:4f46\:4f1a\:663e\:8457\:589e\:52a0\:8ba1\:7b97\:91cf\:ff0c\:4e0d\:53ef\:53d6\:3002\:7528 Re + I*Im \:65b9\:5f0f
    \:867d\:7136\:76f8\:5bf9\:597d\:4e9b\:ff0c\:4f46\:4e5f\:589e\:52a0\:4e0d\:5c11\:8ba1\:7b97\:91cf\:3002\:800c\:540d\:79f0\:76f8\:4e58\:7684\:7248\:672c\:7531\:4e8e\:8c03\:7528\:4e86 Round \:8fdb\:884c\:4e86\:6570\:503c\:5316\:5904\:7406\:ff0c\:65e2\:4fdd\:8bc1
    \:6b63\:786e\:53c8\:4fdd\:8bc1\:4e86\:8ba1\:7b97\:901f\:5ea6\:3002*)
-SpinRotTimes[{srot1_,o3det1_Integer},{srot2_,o3det2_Integer}]:={srot1.srot2,o3det1*o3det2}
+SpinRotTimes[{srot1_,o3det1_Integer},{srot2_,o3det2_Integer}]:={srot1 . srot2,o3det1*o3det2}
 SpinRotTimes[brav_String][opname1_String,opname2_String]:=
   getSpinRotName[brav,SpinRotTimes[getSpinRotOp[opname1],getSpinRotOp[opname2]]]
 SpinRotTimes[opname1_String,opname2_String]:=DRotTimes[opname1,opname2]
 DSGSeitzTimes[brav_][{Rname1_,v1_},{Rname2_,v2_}]:=
-  {SpinRotTimes[brav][Rname1,Rname2], getRotMat[brav,StringReplace[Rname1,"bar"->""]].v2+v1}
+  {SpinRotTimes[brav][Rname1,Rname2], getRotMat[brav,StringReplace[Rname1,"bar"->""]] . v2+v1}
 DSGSeitzTimes[brav_][Rv1_, Rv2_, more__]:=Fold[DSGSeitzTimes[brav], Rv1, {Rv2,more}]
 DSGpowerSeitz[brav_][{Rname_,v_},n_Integer]/;n>=0:=If[n==0,{"E",{0,0,0}},
                                       Fold[DSGSeitzTimes[brav],{Rname,v},Table[{Rname,v},{i,n-1}]]]
 DSGinvSeitz[brav_][{Rname_,v_}]:=With[{R=getRotMat[brav,StringReplace[Rname,"bar"->""]]},
-          {getSpinRotName[brav,{ConjugateTranspose[#1],#2}]&@@getSpinRotOp[Rname],-invRotMat[R].v}]
+          {getSpinRotName[brav,{ConjugateTranspose[#1],#2}]&@@getSpinRotOp[Rname],-invRotMat[R] . v}]
 
 DSGCentExtTimes[brav_,adict_][{opname1_,alpha_},{opname2_,beta_}]:=Module[{g},
   g=adict["g"];  
@@ -2346,7 +2346,7 @@ rotAxisAngle[O3RotMat_]/;MatrixQ[O3RotMat,NumericQ]:=
  Module[{eps=1.*^-5,mateq,a,sol1,ax,det,so3,eqs,x,y,z,I3,pos,vars,idx,ap1,ap2,X1,X2,X3,tmp,depend},
    I3=IdentityMatrix[3];
    mateq[m1_,m2_]:=Max@Abs@Flatten[N[m1]-m2]<eps;
-   If[!mateq[O3RotMat\[Transpose].O3RotMat,I3],
+   If[!mateq[O3RotMat\[Transpose] . O3RotMat,I3],
        Print["The matrix is not an O(3) rotation matrix."]; Abort[]
    ];
    If[mateq[O3RotMat,I3], Return[{1,{0,0,1},0}]];
@@ -2389,7 +2389,7 @@ rotAxisAngle[O3RotMat_]/;MatrixQ[O3RotMat,NumericQ]:=
    X1={{0,0,0},{0,0,-1},{0,1,0}};
    X2={{0,0,1},{0,0,0},{-1,0,0}};
    X3={{0,-1,0},{1,0,0},{0,0,0}};
-   tmp=MatrixExp[a*ax.{X1,X2,X3}];
+   tmp=MatrixExp[a*ax . {X1,X2,X3}];
    If[mateq[tmp\[Transpose],so3], ax=-ax, If[!mateq[tmp,so3],
       Print["rotAxisAngle: Error occurs when finding the axis and angle of ",O3RotMat]
    ]];
@@ -2543,7 +2543,7 @@ getLGElem[sgno_Integer,kname_,OptionsPattern[]]/;1<=sgno<=230&&StringQ[kname]:=
 getLGElem[sgno_Integer, k_, OptionsPattern[]]/;1<=sgno<=230&&VectorQ[k,NumericQ]:=
   Module[{G,Gk,brav},   brav=getSGLatt[sgno];
     G=getLGElem[sgno,"\[CapitalGamma]"];
-    Gk=Select[G,keqmod[getRotMatOfK[brav,#[[1]]].k,k]&];
+    Gk=Select[G,keqmod[getRotMatOfK[brav,#[[1]]] . k,k]&];
     If[OptionValue["DSG"], Gk=Join[Gk,{"bar"<>#1,#2}&@@@Gk]];
     Gk
   ]
@@ -2589,8 +2589,8 @@ aCentExt[brav_,Gk_,k_,OptionsPattern[]]/;VectorQ[k]:=
    vs=Gk[[All,2]];
    Rmatsk=getRotMatOfK[brav,StringReplace[#,"bar"->""]]&/@Gk[[All,1]];
    N0=Length[Rmatsk];
-   gi=Inverse[#//N].k-k&/@Rmatsk//Simplify//Chop;
-   aog=Table[-gi[[i]].vs[[j]],{i,N0},{j,N0}]//Rationalize;
+   gi=Inverse[#//N] . k-k&/@Rmatsk//Simplify//Chop;
+   aog=Table[-gi[[i]] . vs[[j]],{i,N0},{j,N0}]//Rationalize;
    g=Max[aog//Denominator];
    a=Mod[aog*g,g];   adict=<||>;     adict["g"]=g;
    Table[adict[{Gk[[i,1]],Gk[[j,1]]}]=a[[i,j]],{i,N0},{j,N0}];
@@ -2753,7 +2753,7 @@ Options[getKStar]={"cosets"->False};
 getKStar[sgno_Integer, kin_, OptionsPattern[]]:=Module[{k,SG,brav,kall,star0,star,cosets},
   k=If[!StringQ[kin], kin, kBCcoord[sgno,kin][[1,1]]];
   SG=getSGElem[sgno];   brav=getSGLatt[sgno];
-  kall={getRotMatOfK[brav,#[[1]]].k, #}&/@SG;
+  kall={getRotMatOfK[brav,#[[1]]] . k, #}&/@SG;
   star0=Gather[kall,keqmod[#1[[1]],#2[[1]]]&];
   star=star0[[All,1,1]];   cosets=star0[[All,All,2]];
   If[OptionValue["cosets"]===True, {star,cosets}, star]
@@ -2839,12 +2839,12 @@ calcRep[sgno_Integer,kinfo_,OptionsPattern[]]/;1<=sgno<=230:=
   G02=If[dsg,DSGSeitzTimes[brav],SeitzTimes[brav]][#,#]&/@G0; 
   (* Print["G0=",G0,"\nG0nobar=",G0nobar,"\nG02=",G02];   (*for debug*) *)
   If[kname=="GP",
-     idx=Select[Range[Length[G0]],keqmod[getRotMatOfK[brav,G0nobar[[#,1]]].k,-k]&]; 
+     idx=Select[Range[Length[G0]],keqmod[getRotMatOfK[brav,G0nobar[[#,1]]] . k,-k]&]; 
      If[idx=={}&&!dsg, Return[{"GP",k,{{1,"x"}},"a",{1,1},{{"E",0}}}]];
      If[idx=={}&&dsg,  Return[{"GP",k,{{2,"x"}},"a",{2,1},{{"E",0},{"barE",0}}}]];
-     re=Exp[-I*k.G02[[idx[[1]],2]]*2Pi]//Chop//Rationalize;
+     re=Exp[-I*k . G02[[idx[[1]],2]]*2Pi]//Chop//Rationalize;
      tmp=<|"E"->1,"barE"->-1|>;
-     re=Total[tmp[#1]*Exp[-I*k.#2*2Pi]&@@@G02[[idx]]]/Length[idx]//Chop//Rationalize;
+     re=Total[tmp[#1]*Exp[-I*k . #2*2Pi]&@@@G02[[idx]]]/Length[idx]//Chop//Rationalize;
      re=re/.{-1->2,0->3}; 
      If[!dsg,
        Return[{"GP",k,{{1,re}},"a",{1,1},{{"E",0}}}],
@@ -2889,11 +2889,11 @@ calcRep[sgno_Integer,kinfo_,OptionsPattern[]]/;1<=sgno<=230:=
                  {#1,0}&@@@Gk[[{3,4}]], {#1,1}&@@@Gk[[{1,2}]]];
        ];
      ];
-     idx=Select[Range[Length[G0]],keqmod[getRotMatOfK[brav,G0nobar[[#,1]]].k,-k]&];
+     idx=Select[Range[Length[G0]],keqmod[getRotMatOfK[brav,G0nobar[[#,1]]] . k,-k]&];
      If[idx=={},Return[{"UN",k,{#,"x"}&/@allow,reptype,AGno,CE}]];
      idx2=Position[CE,{#,0}][[1,1]]&/@G02[[idx,1]];
      idx3=clsidx[[idx2]];
-     factor=Exp[-I k.#*2.*Pi]&/@G02[[idx,2]]//Simplify//Chop; 
+     factor=Exp[-I k . #*2.*Pi]&/@G02[[idx,2]]//Simplify//Chop; 
      ct=AGCharTab@@AGno;
      sG02char=#[[idx3]]*factor&/@ct//Chop; 
      re=Total[#]/Length[Gk]&/@sG02char[[allow]]//Chop//Rationalize;
@@ -2903,7 +2903,7 @@ calcRep[sgno_Integer,kinfo_,OptionsPattern[]]/;1<=sgno<=230:=
   
   kBD=kinfo[[5]];    kname2=kname;
   If[brav=="TrigPrim"&&kname=="F",kname2=If[kBD=={0,1/2,-1/2},"aF","bF"]];
-  idx=Select[Range[Length[G0]],keqmod[getRotMatOfK[brav,G0nobar[[#,1]]].kBD,-kBD]&];
+  idx=Select[Range[Length[G0]],keqmod[getRotMatOfK[brav,G0nobar[[#,1]]] . kBD,-kBD]&];
   {AGno,gens,avRep,reptype}=If[!dsg, LGIrep[sgno][kname2], DLGIrep[sgno][kname2]];
    
   (*===============\[Equal] begin: calculate the allowed reps ======================*)
@@ -2927,7 +2927,7 @@ calcRep[sgno_Integer,kinfo_,OptionsPattern[]]/;1<=sgno<=230:=
     idx2=Position[HLG,#][[1,1]]&/@G02[[idx,1]];
     idx3=clsidx[[idx2]];
     dt=G02[[idx[[#]],2]]-HLG[[idx2[[#]],2]]&/@Range[Length[idx]]; 
-    factor=Exp[-I kBD.#*2.*Pi]&/@dt//Chop;
+    factor=Exp[-I kBD . #*2.*Pi]&/@dt//Chop;
     sG02char=#[[idx3]]*factor&/@ct//Chop;
     (* Print["HLG=",HLG,"\nidx2=",idx2,"\nidx3=",idx3,"\nfactor=",factor,
              "\ndt=",dt,"\nsG02char=",sG02char]; (*for debug*)  *)
@@ -2936,7 +2936,7 @@ calcRep[sgno_Integer,kinfo_,OptionsPattern[]]/;1<=sgno<=230:=
        (*\:4e0d\:80fd\:76f4\:63a5\:627e {"barE",{0,0,0}}, \:56e0\:4e3a\:5bf9\:4e8eHerring\:5c0f\:7fa4\:5199\:4e3a\:4e0e\:67d0\:4e2a\:5e73\:79fb\:7fa4\:76f4\:79ef\:5f62\:5f0f\:7684\:60c5\:51b5\:ff0c
          \:53ef\:80fd\:6ca1\:6709 {"barE",{0,0,0}}\:ff0c\:6b64\:65f6 "barE" \:5bf9\:5e94\:7684\:662f\:975e\:96f6\:7684\:5e73\:79fb *)
        posbarE=Position[HLG,"barE"][[1,1]];
-       barEfac=Exp[-I*2Pi*kBD.HLG[[posbarE,2]]];  
+       barEfac=Exp[-I*2Pi*kBD . HLG[[posbarE,2]]];  
        allow0=Select[Range[Length[ct]], ct[[#,clsidx[[posbarE]]]]==-ct[[#,1]]*barEfac&];
     ];
     If[Length[HLG]==Length[LG], allow=allow0,
@@ -2945,7 +2945,7 @@ calcRep[sgno_Integer,kinfo_,OptionsPattern[]]/;1<=sgno<=230:=
       allow={};
       Do[
         Gmnchar=Association[Rule@@@Transpose[{HLG,ct[[i]][[clsidx]]}]];
-        tmp=Table[Exp[-I*kBD.gE[[j,2]]*2Pi]Gmnchar[gE[[1]]]==Gmnchar[gE[[j]]],
+        tmp=Table[Exp[-I*kBD . gE[[j,2]]*2Pi]Gmnchar[gE[[1]]]==Gmnchar[gE[[j]]],
                  {j,2,n1}]//Simplify//Flatten//DeleteDuplicates;
         If[tmp==={True},allow=Append[allow,i]];
        ,{i,allow0}];
@@ -2957,7 +2957,7 @@ calcRep[sgno_Integer,kinfo_,OptionsPattern[]]/;1<=sgno<=230:=
     CE=getCentExt[sgno,kname, "DSG"->dsg]; 
     idx2=Position[CE,{#,0}][[1,1]]&/@G02[[idx,1]];
     idx3=clsidx[[idx2]];
-    factor=Exp[-I kBD.#*2.*Pi]&/@G02[[idx,2]]//Simplify//Chop; 
+    factor=Exp[-I kBD . #*2.*Pi]&/@G02[[idx,2]]//Simplify//Chop; 
     sG02char=#[[idx3]]*factor&/@ct//Chop; 
     (*Print["CE=",CE,"\nidx2=",idx2,"\nidx3=",idx3,"\nfactor=",factor,"\nsG02char=",sG02char]; (*for debug*) *)
     (* ----------- calculate the allowed small reps and compare with avRep -------------*)
@@ -4018,14 +4018,14 @@ showPGIrepTab[numOrName_, OptionsPattern[]]:=Module[{pgirt,label,irt,elmopt,tmp,
     brav=If[16<=pgirt["number"]<=27, "HexaPrim", "CubiPrim"];
     rots1=getRotMat[brav,StringReplace[#,"bar"->""]]&/@elems;
     If[OptionValue["cartesian"]===True&&brav=="HexaPrim",
-      tmp=Transpose@BasicVectors[brav];  rots1=Simplify[tmp.#.Inverse[tmp]]&/@rots1;
+      tmp=Transpose@BasicVectors[brav];  rots1=Simplify[tmp . # . Inverse[tmp]]&/@rots1;
       tmp="(cart.)",  (*else:*) tmp=Nothing
     ];
     rots1={Column[{"Rotation","matrix",tmp}], SpanFromLeft,SpanFromLeft, Sequence@@MatrixForm/@rots1};
     rots2=ComplexExpand@First@getSpinRotOp[#]&/@elems;
     tmp="(\[DownArrow]\[UpArrow])";
     If[OptionValue["spin"]==="updown", 
-       tmp="(\[UpArrow]\[DownArrow])"; rots2={{0,1},{1,0}}.#.{{0,1},{1,0}}&/@rots2
+       tmp="(\[UpArrow]\[DownArrow])"; rots2={{0,1},{1,0}} . # . {{0,1},{1,0}}&/@rots2
     ];
     rots2={Column[{"Spin"<>tmp,"rotation","matrix"}], SpanFromLeft,SpanFromLeft, Sequence@@MatrixForm/@rots2};
     tab=Prepend[tab,rots1];  nstart=3;
@@ -4101,7 +4101,7 @@ PGIrepDirectProduct[numOrName_, ireps1_, ireps2_, OptionsPattern[]]/;
 
   kc=Length/@Values[cs];  conjct=Conjugate[ct];  kcconjct=kc*#&/@conjct;
   nelm=Total[kc];
-  DP1pair[i_,j_]:=Simplify[(ct[[i]]*ct[[j]]).#/nelm]&/@kcconjct;
+  DP1pair[i_,j_]:=Simplify[(ct[[i]]*ct[[j]]) . #/nelm]&/@kcconjct;
   out3=Table[{i,j}->DP1pair[i,j], {i,ir1idx},{j,ir2idx}]//Flatten[#,1]&//Association;
   out1=label[[#,1]]->(If[#[[1]]==1,#[[2]],#]&/@Select[Transpose@{out3[#],label[[All,1]]},#[[1]]!=0&])&/@Keys[out3]//Association;
   out2=label[[#,2]]->(If[#[[1]]==1,#[[2]],#]&/@Select[Transpose@{out3[#],label[[All,2]]},#[[1]]!=0&])&/@Keys[out3]//Association;
@@ -4341,7 +4341,7 @@ getLGIrepTab[sgno_, kNameOrCoordOrInfodict_,OptionsPattern[]]:=Block[{u,brav,ks,
       {davRep,dreptype,dAGno,dCE}=calcRep[sgno,kinfo,"DSG"->True][[3;;]];
       GkBC=Gkin;   dGkBC=Gkin;    
       idx=(Flatten[Position[CE,{#[[1]],0}]]&/@GkBC)[[All,1]];   
-      factor=Exp[-I*2Pi*kstd.#]&/@GkBC[[All,2]]//Simplify;
+      factor=Exp[-I*2Pi*kstd . #]&/@GkBC[[All,2]]//Simplify;
       didx=(Flatten[Position[dCE,{#[[1]],0}]]&/@dGkBC)[[All,1]];
       dfactor=factor;
       Goto["got_idx_and_factor"];
@@ -4359,17 +4359,17 @@ getLGIrepTab[sgno_, kNameOrCoordOrInfodict_,OptionsPattern[]]:=Block[{u,brav,ks,
     If[hskp,
       HLG=getHLGElem[brav,AGno,gens];
       idx=(Flatten[Position[HLG[[All,1]],#[[1]]]]&/@GkBC)[[All,1]];
-      factor=Exp[-I*2Pi*kstd.#]&/@(GkBC[[All,2]]-HLG[[idx]][[All,2]])//Simplify;
+      factor=Exp[-I*2Pi*kstd . #]&/@(GkBC[[All,2]]-HLG[[idx]][[All,2]])//Simplify;
       dHLG=getHLGElem[brav,dAGno,dgens,"DSG"->True];
       didx=(Flatten[Position[dHLG[[All,1]],#[[1]]]]&/@dGkBC)[[All,1]];
-      dfactor=Exp[-I*2Pi*kstd.#]&/@(dGkBC[[All,2]]-dHLG[[didx]][[All,2]])//Simplify,
+      dfactor=Exp[-I*2Pi*kstd . #]&/@(dGkBC[[All,2]]-dHLG[[didx]][[All,2]])//Simplify,
       (*-----------else: hskp\[Equal]False----------*)
       CE=getCentExt[sgno,kname];   
       idx=(Flatten[Position[CE,{#[[1]],0}]]&/@GkBC)[[All,1]];
-      factor=Exp[-I*2Pi*kstd.#]&/@GkBC[[All,2]]//Simplify;
+      factor=Exp[-I*2Pi*kstd . #]&/@GkBC[[All,2]]//Simplify;
       dCE=getCentExt[sgno,kname,"DSG"->True];   
       didx=(Flatten[Position[dCE,{#[[1]],0}]]&/@dGkBC)[[All,1]];
-      dfactor=Exp[-I*2Pi*kstd.#]&/@dGkBC[[All,2]]//Simplify;
+      dfactor=Exp[-I*2Pi*kstd . #]&/@dGkBC[[All,2]]//Simplify;
     ];
     
     Label["got_idx_and_factor"];
@@ -4458,10 +4458,10 @@ checkLGIrep[repinfo_]:=Module[{Gk,mtab,sirep,direp, time, brav, fBZ, rot2elem,n,
   mtab=Table[time[i,j],{i,Gk},{j,Gk}];
   itab=Table[rot2idx[mtab[[i,j,1]]],{i,n},{j,n}];  
   dvtab=Table[tmp=mtab[[i,j]];tmp=tmp[[2]]-rot2elem[tmp[[1]]][[2]],{i,n},{j,n}];
-  ftab=Table[Exp[-I*k.dvtab[[i,j]]*2Pi]//Chop,{i,n},{j,n}]; 
+  ftab=Table[Exp[-I*k . dvtab[[i,j]]*2Pi]//Chop,{i,n},{j,n}]; 
   reptime[rep_,i_,j_]:=Module[{m1,m2},
      m1=rep[[i]]; m2=rep[[j]];
-     If[MatrixQ[m1],m1.m2, m1*m2]//Simplify[#,u\[Element]Reals]&
+     If[MatrixQ[m1],m1 . m2, m1*m2]//Simplify[#,u\[Element]Reals]&
   ];
   repmtab[rep_]:=Table[reptime[rep,i,j],{i,n},{j,n}];
 
@@ -4503,7 +4503,7 @@ getRepMat[k_/;VectorQ[k],Gk_,rep_][RvOrRvList_]:=Module[{trans,ir,id,forOneRv,re
     dv=Rv[[2]]-trans[Rv[[id]]];   
     If[modone[dv]!={0,0,0}, Print["getRepMat: Warning, the difference between ",Rv," and ",
        Insert[Rv[[id]],trans[Rv[[id]]],2], " is not a lattice vector."]];
-    m*Exp[-I*k.dv*2Pi]//Simplify
+    m*Exp[-I*k . dv*2Pi]//Simplify
   ];
   re=If[StringQ[RvOrRvList[[1]]], forOneRv[RvOrRvList], forOneRv/@RvOrRvList];
   If[StringQ[RvOrRvList[[1]]]||oneRep, re, re\[Transpose]]
@@ -4665,7 +4665,7 @@ showLGIrepTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,irepTabs,showOne
     rot=MatrixForm[getRotMat[brav,#]]&/@Gkin[[idxelm,1]];
     trans=MatrixForm[{InputForm/@#}\[Transpose]]&/@Gkin[[idxelm,2]];
     srot=getSpinRotOp[#][[1]]&/@Gkin[[idxelm,1]];
-    If[OptionValue["spin"]=="updown", srot=sx.#.sx&/@srot];
+    If[OptionValue["spin"]=="updown", srot=sx . # . sx&/@srot];
     srot=MatrixForm[Expand[#]]&/@srot;
     sfl=SpanFromLeft;   sfa=SpanFromAbove;
     table={idxelm, showSeitz/@Gkin[[idxelm]], 
@@ -4788,7 +4788,7 @@ getSGIrepTab[sgno_Integer, kNameOrCoord_, OptionsPattern[]]:=Block[{u,t\:2081,t\
     
     If[Last[kinfo]==="in G"&&kinfo[[6,1]]!="E",
       dv=(Gk1[[#,2]]-GkBC[[#,2]])&/@Range[Length[Gk1]];
-      factor=Exp[-I*k1.#*2Pi]&/@dv//Simplify;
+      factor=Exp[-I*k1 . #*2Pi]&/@dv//Simplify;
       barfac=If[StringLength[#[[1]]]>3&&StringTake[#[[1]],3]=="bar",-1,1]&/@dGkBC;
       k1srep=#*factor&/@k1srep;
       k1drep=#*factor*barfac&/@k1drep;
@@ -4799,7 +4799,7 @@ getSGIrepTab[sgno_Integer, kNameOrCoord_, OptionsPattern[]]:=Block[{u,t\:2081,t\
       If[pos!={}, pos=pos[[1,1]], Print["getSGIrepTab: ",R," not in ",Gk1[[All,1]]]; Abort[]];
       dv=v-Gk1[[pos,2]];
       If[!VectorQ[dv,IntegerQ], Print["getSGIrepTab: ",dv, " is not an integer vector"]; Abort[]];
-      fac=Exp[-I*k1.dv*2Pi]//Simplify;
+      fac=Exp[-I*k1 . dv*2Pi]//Simplify;
       rep=k1srep[[All,pos]]*fac;
       If[OptionValue["format"]&&R!="E", rep=formatRepMat/@rep, rep=rep//Simplify];
       rep
@@ -4811,13 +4811,13 @@ getSGIrepTab[sgno_Integer, kNameOrCoord_, OptionsPattern[]]:=Block[{u,t\:2081,t\
       If[pos!={}, pos=pos[[1,1]], Print["getSGIrepTab: ",Rnobar," not in ",Gk1[[All,1]]]; Abort[]];
       dv=v-Gk1[[pos,2]];
       If[!VectorQ[dv,IntegerQ], Print["getSGIrepTab: ",dv, " is not an integer vector"]; Abort[]];
-      fac=If[hasbar,-1,1]*Exp[-I*k1.dv*2Pi]//Simplify;
+      fac=If[hasbar,-1,1]*Exp[-I*k1 . dv*2Pi]//Simplify;
       rep=k1drep[[All,pos]]*fac;
       If[OptionValue["format"]&&R!="E", rep=formatRepMat/@rep, rep=rep//Simplify];
       rep
     ];    
     
-    tmp={#,getRotMatOfK[brav,#[[1]]].k1}&/@G;
+    tmp={#,getRotMatOfK[brav,#[[1]]] . k1}&/@G;
     tmp=Gather[tmp,keqmod[#1[[2]],#2[[2]]]&];
     cosetrep=tmp[[All,1,1]];
     kstar=tmp[[All,1,2]];
@@ -4825,7 +4825,7 @@ getSGIrepTab[sgno_Integer, kNameOrCoord_, OptionsPattern[]]:=Block[{u,t\:2081,t\
     tm=SeitzTimes[brav];        inv=invSeitz[brav];
     dtm=DSGSeitzTimes[brav];    dinv=DSGinvSeitz[brav];
     Ettt={"E",{t\:2081,t\:2082,t\:2083}};
-    Efac=Exp[-I*2Pi*k1.tm[tm[inv[#],Ettt],#][[2]]]&/@cosetrep//Simplify;
+    Efac=Exp[-I*2Pi*k1 . tm[tm[inv[#],Ettt],#][[2]]]&/@cosetrep//Simplify;
     
     invcsr=inv/@cosetrep;
     ggj=Table[tm[g,gj],{g,G}, {gj,cosetrep}];
@@ -4964,7 +4964,7 @@ showSGIrepTab[sgno_, kNameOrCoord_, OptionsPattern[]]:=Block[{u,t\:2081,t\:2082,
     rot=MatrixForm[getRotMat[brav,#]]&/@G[[idxelm,1]];
     trans=MatrixForm[{InputForm/@#}\[Transpose]]&/@G[[idxelm,2]];
     srot=getSpinRotOp[#][[1]]&/@G[[idxelm,1]];
-    If[OptionValue["spin"]=="updown", srot=sx.#.sx&/@srot];
+    If[OptionValue["spin"]=="updown", srot=sx . # . sx&/@srot];
     srot=MatrixForm[Expand[#]]&/@srot;
     sfl=SpanFromLeft;   sfa=SpanFromAbove;
     table={idxelm, showSeitz/@G[[idxelm]], 
@@ -5037,7 +5037,7 @@ getFullRepMat[G_,rep_,OptionsPattern[]][RvOrRvList_]:=Module[{trans,ir,id,forOne
   (trans[MapAt["bar"<>#&,#,1]]=trans[#])&/@G[[All,id]];
   (ir[MapAt["bar"<>#&,#,1]]=-ir[#])&/@G[[All,id]]; 
   Ettt[{v1_,v2_,v3_}]:=reps[[1]]/.{t\:2081->v1,t\:2082->v2,t\:2083->v3};
-  times=If[MatrixQ[#1],#1.#2,#1*#2]&;
+  times=If[MatrixQ[#1],#1 . #2,#1*#2]&;
   forOneRv[Rv_]:=Module[{dv,m,m2,tr}, 
     m=ir[Rv[[id]]];
     If[Head[m]===Missing, Print["getFullRepMat: no rotation ",
@@ -5103,7 +5103,7 @@ checkSGIrep[repinfo_]:=Module[{G,mtab,sirep,direp, time, brav, fBZ, rot2elem,n,t
   mtab=Table[time[i,j],{i,G},{j,G}];
   itab=Table[rot2idx[mtab[[i,j,1]]],{i,n},{j,n}];  
   dvtab=Table[tmp=mtab[[i,j]];tmp=tmp[[2]]-rot2elem[tmp[[1]]][[2]],{i,n},{j,n}];
-  reptime[m1_,m2_]:=If[MatrixQ[m1],m1.m2, m1*m2]//Simplify[#,u\[Element]Reals]&;
+  reptime[m1_,m2_]:=If[MatrixQ[m1],m1 . m2, m1*m2]//Simplify[#,u\[Element]Reals]&;
   repmtab[rep_]:=Table[reptime[rep[[i]],rep[[j]]],{i,n},{j,n}];
 
   dtime=DSGSeitzTimes[brav];
@@ -5155,7 +5155,7 @@ generateLibLGIrep[filename_String]:=Module[{sgno,brav,knames,kcoords,lib,kstars,
     fsPG=fullsymPG[sgno];
     dictk=<||>;
     For[i=1,i<=Length[knames],i++, k=knames[[i]]; kco=kcoords[[i]];
-      kcos=Gather[getRotMatOfK[brav,#].kco&/@fsPG,keqmod][[All,1]];
+      kcos=Gather[getRotMatOfK[brav,#] . kco&/@fsPG,keqmod][[All,1]];
       nukcos=modone[kcos/.usub];
       dictkco=<||>;
       For[j=1,j<=Length[nukcos],j++,
@@ -5232,7 +5232,7 @@ SGIrepDirectProduct[sgno_Integer, kin1_, kin2_, OptionsPattern[]]:=Block[{u,Irep
     Gk=reptab["Gkin"];   k=reptab["kinfo"][[1]];
     pos=Position[Gk,Rnobar][[1,1]]; 
     dv=Rv[[2]]-Gk[[pos,2]];
-    fac=Exp[-I*2Pi*k.dv]//Simplify;
+    fac=Exp[-I*2Pi*k . dv]//Simplify;
     srep=fac*reptab["scharTab"][[All,pos]];
     drep=facbar*fac*reptab["dcharTab"][[All,pos]];
     Join[srep,drep]
@@ -5285,7 +5285,7 @@ SGIrepDirectProduct[sgno_Integer, kin1_, kin2_, OptionsPattern[]]:=Block[{u,Irep
     k1=kcoord1;    k2=kcoord2;   kname1=kinfo1[[2]];    kname2=kinfo2[[2]];
     
     (* calculate the left cosets, coset representatives, and k star of Gk1 and Gk2*)    
-    tmp=With[{R=getRotMatOfK[brav,#[[1]]]},{{#,R.k1},{#,R.k2}}]&/@G;
+    tmp=With[{R=getRotMatOfK[brav,#[[1]]]},{{#,R . k1},{#,R . k2}}]&/@G;
     tmp1=Gather[tmp[[All,1]],keqmod[#1[[2]],#2[[2]]]&];
     tmp2=Gather[tmp[[All,2]],keqmod[#1[[2]],#2[[2]]]&];
     Gk1Lcst=tmp1[[All,All,1]];    k1csr=Gk1Lcst[[All,1]];   kstar1=tmp1[[All,1,2]];
@@ -5303,7 +5303,7 @@ SGIrepDirectProduct[sgno_Integer, kin1_, kin2_, OptionsPattern[]]:=Block[{u,Irep
     k1k2=If[Length[kstar1]<Length[kstar2], k2+#&/@kstar1, k1+#&/@kstar2];
     i=0; k3s=<||>;  
     While[k1k2!={}, ktest=First[k1k2];
-      startest=getRotMatOfK[brav,#].ktest&/@G0;
+      startest=getRotMatOfK[brav,#] . ktest&/@G0;
       k3s[++i]=Intersection[k1k2,startest,SameTest->keqmod]; 
       k1k2=Complement[k1k2,startest,SameTest->keqmod];
     ];
@@ -5357,7 +5357,7 @@ SGIrepDirectProduct[sgno_Integer, kin1_, kin2_, OptionsPattern[]]:=Block[{u,Irep
           bbeta=doubleCosetRep[La,Gk1Lcst];
           (* Print["bbeta=",bbeta];  (*for debug*) *)
           Do[ (* find alpha and beta satisfying beta.k1+alpha.k2 \[DoubleLeftRightArrow] k3 *)
-            If[keqmod[getRotMatOfK[brav,bb[[1]]].k1+getRotMatOfK[brav,da[[1]]].k2,k3],
+            If[keqmod[getRotMatOfK[brav,bb[[1]]] . k1+getRotMatOfK[brav,da[[1]]] . k2,k3],
               Nab=Intersection[La,modone[times[times[bb,#],inv[bb]]&/@Gk1]];
               AppendTo[alphabeta,{da,bb,Nab}];
             ];
@@ -5589,7 +5589,7 @@ getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, ikOrListOrSpan_, ibOrListOrS
     (*Note that the bases of spin rotation matrices of BC are {down,up}, different from the
       usual {up,down} we used. So, a transformation by sx is needed. *)
     sx={{0,1},{1,0}};
-    getSpinRotName[brav,{sx.#1.sx,Det[#2]}]&@@@Transpose[{traceData["srot"],traceData["rot"]}]
+    getSpinRotName[brav,{sx . #1 . sx,Det[#2]}]&@@@Transpose[{traceData["srot"],traceData["rot"]}]
   ];
           
   kpathstr=StringRiffle[If[#1[[2]]!=""||#1[[1]]=="UN"||#1[[1]]=="GP", #1[[1]],
@@ -5632,7 +5632,7 @@ getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, ikOrListOrSpan_, ibOrListOrS
       ];
       (* idx makes|Gk2|\[Equal]|CE| and all rotations are in the same order, i.e. Gk2[[All,1]]\[Equal]CE[[All,1]]. *)
       Gk2=Gk[[idx]];
-      factor=With[{v=Gk2[[#,2]],aa=CE[[#,2]]},Exp[I*(k.v+aa/g)*2Pi]]&/@Range[Length[CE]]//Chop;
+      factor=With[{v=Gk2[[#,2]],aa=CE[[#,2]]},Exp[I*(k . v+aa/g)*2Pi]]&/@Range[Length[CE]]//Chop;
       factor=factor*facbar;
       Goto["determine reps"];
     ];
@@ -5667,7 +5667,7 @@ getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, ikOrListOrSpan_, ibOrListOrS
       ];            
       (* idx makes|Gk2|\[Equal]|HLG| and all rotations are in the same order, i.e. Gk2[[All,1]]\[Equal]HLG[[All,1]]. *)
       Gk2=Gk1[[idx]];
-      factor=If[dt=HLG[[#,2]]-Gk2[[#,2]];dt!={0,0,0},Exp[-I*kBD.dt*2Pi],1]&/@Range[Length[HLG]]//Chop;  
+      factor=If[dt=HLG[[#,2]]-Gk2[[#,2]];dt!={0,0,0},Exp[-I*kBD . dt*2Pi],1]&/@Range[Length[HLG]]//Chop;  
       factor=factor*facbar;    
     ];
     
@@ -5686,7 +5686,7 @@ getBandRep[sgno_Integer,BZtypeOrBasVec_,traceData_, ikOrListOrSpan_, ibOrListOrS
       ];            
       (* idx makes|Gk2|\[Equal]|CE| and all rotations are in the same order, i.e. Gk2[[All,1]]\[Equal]CE[[All,1]]. *)
       Gk2=Gk1[[idx]];
-      factor=With[{v=Gk2[[#,2]],aa=CE[[#,2]]},Exp[I*(kBD.v+aa/g)*2Pi]]&/@Range[Length[CE]]//Chop;
+      factor=With[{v=Gk2[[#,2]],aa=CE[[#,2]]},Exp[I*(kBD . v+aa/g)*2Pi]]&/@Range[Length[CE]]//Chop;
       factor=factor*facbar;    
      ];
 
@@ -5803,7 +5803,7 @@ convTraceToBC[sgno_Integer,traceData_,P_,p0_,stdR_]:=Block[{\[Gamma],trdat,Q,S,U
   {Q,S}=getQandS[sgno];
   {iP,iQ,iU}=Inverse/@{P,Q,U};
   rot=traceData["rot"];   trans=traceData["trans"];
-  newrot=iU.iQ.P.#.iP.Q.U&/@rot//Round;
+  newrot=iU . iQ . P . # . iP . Q . U&/@rot//Round;
   (* Note: srot need to be transformed also for SOC case. *)
   srot=traceData["srot"];   newsrot=srot;
   If[trdat["soc"]==1,
@@ -5811,14 +5811,14 @@ convTraceToBC[sgno_Integer,traceData_,P_,p0_,stdR_]:=Block[{\[Gamma],trdat,Q,S,U
     S=S/.\[Gamma]->Pi/2;  (*For monoclinic system, the parameter \[Gamma] can be any non-zero value. They are all
     equivalent in terms of converting C2y to C2z.*)
     {tmp2,Saxis,Sang}=rotAxisAngle[S];  
-    tmp1=MatrixExp[-I*Rang*Raxis.(PauliMatrix/@{1,2,3})/2]//Simplify;
-    tmp2=MatrixExp[-I*Sang*Saxis.(PauliMatrix/@{1,2,3})/2]//Simplify;
-    SR=tmp2.tmp1//Simplify;
-    newsrot=SR.#.SR\[ConjugateTranspose]&/@srot;
+    tmp1=MatrixExp[-I*Rang*Raxis . (PauliMatrix/@{1,2,3})/2]//Simplify;
+    tmp2=MatrixExp[-I*Sang*Saxis . (PauliMatrix/@{1,2,3})/2]//Simplify;
+    SR=tmp2 . tmp1//Simplify;
+    newsrot=SR . # . SR\[ConjugateTranspose]&/@srot;
   ];
-  newtrans=iU.iQ.(P.trans[[#]]-P.rot[[#]].iP.p0+p0)-newrot[[#]].t0+t0&/@Range[Length[rot]];
-  Mk=Transpose@Inverse[iU.iQ.P];
-  newkpt=Mk.#&/@traceData["kpt"];
+  newtrans=iU . iQ . (P . trans[[#]]-P . rot[[#]] . iP . p0+p0)-newrot[[#]] . t0+t0&/@Range[Length[rot]];
+  Mk=Transpose@Inverse[iU . iQ . P];
+  newkpt=Mk . #&/@traceData["kpt"];
   trdat["rot"]=newrot;  trdat["trans"]=newtrans;   trdat["kpt"]=newkpt;  trdat["srot"]=newsrot;
   trdat
 ]
@@ -5834,7 +5834,7 @@ readPOSCAR[filename_String]:=Module[{poscar,basVec,a,pos,elem,nelem,type,n,ch,at
   ch=StringTake[poscar[[n,1]],1];
   If[ch=="S"||ch=="s", n++];   type=StringTake[poscar[[n++,1]],1];
   pos=poscar[[n;;,1;;3]];
-  If[MemberQ[{"c","C","k","K"},type], pos=#.Inverse[basVec]&/@pos];
+  If[MemberQ[{"c","C","k","K"},type], pos=# . Inverse[basVec]&/@pos];
   If[Length[pos]<Total[nelem], 
     Print["readPOSCAR: Error! The number of atomic positions ",Length[pos]," does not equal to the ",
           "sum of numbers of atoms for each element ",nelem,"."];
@@ -5903,8 +5903,8 @@ autoConvTraceToBC[poscarFile_,traceData_,prec_,OptionsPattern[]]:=
   {Q,S}=getQandS[sgno];
   trdat=convTraceToBC[sgno,traceData,sym["P"],sym["p0"],sym["R"]];
   BCcell=cell;
-  BCcell["basVec"]=Transpose@(S.sym["R"].Transpose[cell["basVec"]].Inverse[sym["P"]].Q.U)//Chop;
-  BCcell["pos"]=Inverse[Q.U].(sym["P"].#+sym["p0"])+t0&/@cell["pos"]//Chop;
+  BCcell["basVec"]=Transpose@(S . sym["R"] . Transpose[cell["basVec"]] . Inverse[sym["P"]] . Q . U)//Chop;
+  BCcell["pos"]=Inverse[Q . U] . (sym["P"] . #+sym["p0"])+t0&/@cell["pos"]//Chop;
   If[OptionValue["cellData"]===True, <|"trace"->trdat,"input_cell"->cell,"BCcell"->BCcell,"sym"->sym|>, trdat]
 ]
 
@@ -5957,19 +5957,19 @@ kptBCStoBC[sgno_Integer, BZtype_String]:=Block[{u,v,w,\[Alpha],BCSknames,BCSkc,M
   {t0,U}=SGGenElem[sgno][[{2,3}]];
   {Q,S}=getQandS[sgno];
   Mabc=ToExpression["SpaceGroupIrep`Private`"<>StringTake[allBCSkLGdat[[sgno]]["spgsym"],1]<>"abc"];
-  M=Q.U;
+  M=Q . U;
   
   brav=getSGLatt[sgno];   fullBZtype=brav;
   If[MemberQ[{"OrthBase","OrthBody","OrthFace","TetrBody","TrigPrim"},brav], 
      fullBZtype=brav<>"("<>BZtype<>")"];
   tmp=BCSanotherKvalue[fullBZtype];
-  BCSk2BCn=(#.M/.sub1)&/@BCSkc;   BCSkc2=BCSkc;
+  BCSk2BCn=(# . M/.sub1)&/@BCSkc;   BCSkc2=BCSkc;
   kifs=identifyBCHSKptBySG[sgno,BZtype,BCSk2BCn]/.u->\[Alpha];    
   For[j=1;i=1, i<=Length[BCSkc], i++;j++,  
     kn=BCSknames[[j]];  kn1=kifs[[j,2]];   
     If[!MemberQ[Keys[tmp],kn1], Continue[]];
     j++;
-    BCSk2BCn=Insert[BCSk2BCn, BCSkc[[i]].M/.tmp[kn1], j];
+    BCSk2BCn=Insert[BCSk2BCn, BCSkc[[i]] . M/.tmp[kn1], j];
     BCSknames=Insert[BCSknames, kn, j];
     BCSkc2=Insert[BCSkc2, BCSkc[[i]], j];
     kif=identifyBCHSKptBySG[sgno,BZtype,BCSk2BCn[[j]]]/.u->\[Alpha]; 
@@ -5980,8 +5980,8 @@ kptBCStoBC[sgno_Integer, BZtype_String]:=Block[{u,v,w,\[Alpha],BCSknames,BCSkc,M
   tab=Table[0,Length[BCSkc2]];
   For[i=1,i<=Length[BCSkc2],i++,
     kBCSc=BCSkc2[[i]]//Rationalize[#,0.0001]&;
-    kBCSp=kBCSc.Mabc//Simplify;
-    kBCS2BC=kBCSc.M//Simplify;
+    kBCSp=kBCSc . Mabc//Simplify;
+    kBCS2BC=kBCSc . M//Simplify;
     kif=kifs[[i]];
     If[kif[[2]]=="UN"||kif[[2]]=="GP",tmp={kif[[2]],"","",""},
       kBC=kif[[5]];
@@ -5998,7 +5998,7 @@ kptBCStoBC[sgno_Integer, BZtype_String]:=Block[{u,v,w,\[Alpha],BCSknames,BCSkc,M
     tab[[i]]={BCSknames[[i]],kBCSc,kBCSp,kBCS2BC,Sequence@@tmp};
     If[!MemberQ[{"","E"},tab[[i,7]]], tab[[i,5]]=tab[[i,5]]<>If[Last[kif]=="in G", "*","**"]];
   ];
-  tmp=#.Inverse[M].Mabc&/@BCSk2BCn;
+  tmp=# . Inverse[M] . Mabc&/@BCSk2BCn;
   <|"table"->tab, "BCSknames"->BCSknames, "BCSkp"->tab[[All,3]], "BCSkpn"->tmp|>
 ]
 
@@ -6045,8 +6045,8 @@ buildTr4BCSrep[sgno_Integer, BZtype_String, OptionsPattern[]]:=Block[{u,v,w,BCSk
   trdat["trans"]=kLGdat["SymElemtp"][[;;trdat["nsym"]]];
   If[sgno<143||sgno>194,
     trdat["srot"]=kLGdat["SymElemS"][[;;trdat["nsym"]]],
-    sx={{0,1},{1,0}};   sC4z=MatrixExp[-I(Pi/2){0,0,1}.(PauliMatrix/@{1,2,3})/2];
-    trdat["srot"]=sC4z.sx.#.sx.Inverse[sC4z]&/@kLGdat["SymElemS"][[;;trdat["nsym"]]]
+    sx={{0,1},{1,0}};   sC4z=MatrixExp[-I(Pi/2){0,0,1} . (PauliMatrix/@{1,2,3})/2];
+    trdat["srot"]=sC4z . sx . # . sx . Inverse[sC4z]&/@kLGdat["SymElemS"][[;;trdat["nsym"]]]
     ];
   trdat["nk"]=Length[BCSkpn];
   trdat["kpt"]=BCSkpn;
@@ -6064,7 +6064,7 @@ buildTr4BCSrep[sgno_Integer, BZtype_String, OptionsPattern[]]:=Block[{u,v,w,BCSk
     ene[[i]]=Range[nb];  (* no use *)
     If[!VectorQ[BCSkp[[i]],NumericQ],  (* k has u,v,w *)
       tmp=BCSkpn[[i]]-BCSkp[[i]]/.{u->0,v->0,w->0};
-      tmp=Exp[-I*2Pi*tmp.trdat["trans"][[#]]]&/@trdat["kisym"][[i]]//Chop;
+      tmp=Exp[-I*2Pi*tmp . trdat["trans"][[#]]]&/@trdat["kisym"][[i]]//Chop;
       tmp=tmp*#&/@(chtab[kn]\[Conjugate]),  (* Note that the BCS small reps are the conjugate of the BC ones. *)
     (* else: k is numeric *)
       tmp=chtab[kn]\[Conjugate]
