@@ -1,3 +1,9 @@
+033.  2025-04-27 22:54:30
+
+    Support negative n for powerRot and powerDRot, according to #36
+    Fix typos, according to #37
+    
+
 032.  2024-06-18 14:10:42 v1.2.8
 
     Change the method to adjust the width of the E column in showPGCharTab,

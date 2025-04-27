@@ -568,7 +568,7 @@ showPGinfo[OptionsPattern[]]:=Module[{stab,lt=0.90,bgc,bgs,cls,ncol,ltab,note,dt
            bgc[10,16,Lighter[Cyan,lt]], bgc[17,21,Lighter[Yellow,lt]], 
            bgc[22,28,Lighter[Green,lt]],bgc[29,33,Lighter[Purple,lt]]];
   ltab=Grid[ltab, Alignment->Left, Spacings->{2,0.3}, Frame->True, Dividers->{{},{2->True}}, 
-                  Background->If[OptionValue["color"],{{},cls},{}]];
+                  Background->If[OptionValue["color"],{{},cls},{}], ItemSize->Full];
   note="Note that the generators are not unique. The generators here are consistent with\n"<>
        "the rotation parts of the generators of the Herring little group at \[CapitalGamma] point of the\n"<>
        "first space group with this point group, NOT the same with those in BC-Tab. 5.2 or 6.4.";
@@ -1489,7 +1489,7 @@ BCHighSymKpt=Block[{u,hskpt,i,idx,D2hxyz,C2vx,C2vy,C2vz,C2vazb,C2vzab,C2vbza,D4h
   hskpt["TrigPrim(b)"]=verb;
 
   D6h=JonesSymbol[[2,All,1]];
-  D3h={"E","C3+","C3-","C21pp","C22pp","c23pp","\[Sigma]h","S3+","S3-","\[Sigma]d1","\[Sigma]d2","\[Sigma]d3"};
+  D3h={"E","C3+","C3-","C21pp","C22pp","C23pp","\[Sigma]h","S3+","S3-","\[Sigma]d1","\[Sigma]d2","\[Sigma]d3"};
   C6v={"E","C6+","C6-","C3+","C3-","C2","\[Sigma]v1","\[Sigma]v2","\[Sigma]v3","\[Sigma]d1","\[Sigma]d2","\[Sigma]d3"};
   hskpt["HexaPrim"]={ 
     {"\[CapitalGamma]","",{0,0,0},"D6h",D6h},
@@ -1528,7 +1528,7 @@ BCHighSymKpt=Block[{u,hskpt,i,idx,D2hxyz,C2vx,C2vy,C2vz,C2vazb,C2vzab,C2vbza,D4h
   hskpt["CubiFace"]={ 
     {"\[CapitalGamma]","",{0,0,0},"Oh",Oh},
     {"X","",{1/2,0,1/2},"D4h",D4hy},
-    {"L","",{1/2,1/2,1/2},"D3d",{"E","C31+","C31-","C2b","C2e","C2f","I","S6-","S6+","\[Sigma]db","\[Sigma]de","\[Sigma]df"}},
+    {"L","",{1/2,1/2,1/2},"D3d",{"E","C31+","C31-","C2b","C2e","C2f","I","S61-","S61+","\[Sigma]db","\[Sigma]de","\[Sigma]df"}},
     {"W","",{1/2,1/4,3/4},"D2d",{"E","C2x","C2d","C2f","\[Sigma]y","\[Sigma]z","S4x+","S4x-"}},
     {"\[CapitalDelta]","\[CapitalGamma]X",{u,0,u},"C4v",C4vy},
     {"\[CapitalLambda]","\[CapitalGamma]L",{u,u,u},"C3v",{"E","C31+","C31-","\[Sigma]db","\[Sigma]de","\[Sigma]df"}},
@@ -2221,6 +2221,7 @@ RotTimes[Rname1_String,Rname2_String]:=Module[{crots,hrots,brav,EI={"E","I"},tmp
 RotTimes[R1_, R2_, more__]:=Fold[RotTimes, R1, {R2,more}]
 
 powerRot[Rname_String, n_Integer]/;n>=0:=If[n==0, "E", Fold[RotTimes,Rname,Table[Rname,n-1]]]
+powerRot[Rname_String, n_Integer]/;n<0:=invRot[powerRot[Rname,-n]]
 
 invRot[Rname_String]:=Module[{brav},
   brav=If[MemberQ[RotMat[[1]]["CubiPrim"], Rname], "CubiPrim", "HexaPrim"];
@@ -2333,6 +2334,7 @@ DRotTimes[Rname1_String,Rname2_String]:=Module[{crots,hrots,brav,barEI={"E","I",
 ]
 DRotTimes[R1_, R2_, more__]:=Fold[DRotTimes, R1, {R2,more}]
 powerDRot[Rname_String, n_Integer]/;n>=0:=If[n==0, "E", Fold[DRotTimes,Rname,Table[Rname,n-1]]]
+powerDRot[Rname_String, n_Integer]/;n<0:=invDRot[powerDRot[Rname,-n]]
 invDRot[Rname_String]:=Module[{brav},
   brav=If[MemberQ[SpinRotName[[1]]//Values, Rname], "CubiPrim", "HexaPrim"];
   getSpinRotName[brav,{ConjugateTranspose[#1],#2}]&@@getSpinRotOp[Rname]
