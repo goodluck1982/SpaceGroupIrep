@@ -10,7 +10,7 @@
 (* Mathematica version: >=11.2 *)
 (* License: GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt *)
 
-SpaceGroupIrep`Private`Version={1,2,7};  (*Specify version here.*)
+SpaceGroupIrep`Private`Version={1,2,9};  (*Specify version here.*)
 
 With[{p=DirectoryName[$InputFileName]}, If[!MemberQ[$Path,p],AppendTo[$Path, p]]];
 
@@ -144,7 +144,7 @@ DSGpowerSeitz::usage="DSGpowerSeitz[brav][{Rname,v},n]  gives {Rname,v}^n for do
 DSGinvSeitz::usage="DSGinvSeitz[brav][{Rname,v}]  gives the inversion of double space group operation {Rname,v}."; 
 DSGCentExtTimes::usage="DSGCentExtTimes[brav,adict][{Rname1,alpha},{Rname2,beta}]  multiplies two elements {Rname1,alpha} and "<>
    "{Rname2,beta} of a central extension of little cogroup of double space group according to adict which is given by aCentExt "<>
-   "with option \"DSG\"->True. ";
+   "with option \"DSG\"->True or \"double\"->True. ";
 DSGCentExtPower::usage="DSGCentExtPower[brav,adict][{Rname,alpha},n]  gives {Rname,alpha}^n for a central extension of "<>
    "little cogroup for double space group.";
 rotAxisAngle::usage="rotAxisAngle[O3RotMat]  gives the rotation axis and angle of an O(3) rotation matrix O3RotMat.";
@@ -158,19 +158,19 @@ seteq::usage="seteq[s1,s2]  judges whether sets s1 is equal to s2.";
 getHLGElem::usage="Two usages:  getHLGElem[brav,{m,n},gens]  or  getHLGElem[sgno,kname]\nThe first one gives the Herring "<>
    "little group according to the abstract group G_m^n and generators given in BC Tab. 5.7 or 6.13. Bravais lattice is needed. "<>
    "The second one gives the Herring little group according to sgno and kname directly. "<>
-   "For double space group the option \"DSG\"->True is needed.";
+   "For double space group the option \"DSG\"->True or \"double\"->True is needed.";
 getLGElem::usage="getLGElem[sgno,k]  gives the little group of k for space gorup sgno. In fact this is only the coset "<>
    "representatives with respect to the translation group. k can be either its name or coordinates. For double space group the "<>
-   "option \"DSG\"->True is needed."
+   "option \"DSG\"->True or \"double\"->True is needed."
 getSGElem::usage="getSGElem[sgno]  gives the elements of space group sgno. This is equivalent to getLGElem[sgno,\"\[CapitalGamma]\"]. "<>
    "In fact, it gives the coset representatives with respect to the translation group. For double space group, the option "<>
-   "\"DSG\"->True is needed.";
+   "\"DSG\"->True or \"double\"->True is needed.";
 aCentExt::usage="Three usages:\naCentExt[sgno,kname,BZtype]  or  aCentExt[sgno,kname]  or  aCentExt[brav,Gk,k]\n"<>
    "This function gives the a(Hj,Hk) in the BC eq.(3.7.27) for central extension of little cogroup. kname is a string "<>
    "and k is coordinates. Gk is little group. If BZtype is not given, it is \"a\" by default. For double space group the "<>
-   "option \"DSG\"->True is needed."
+   "option \"DSG\"->True or \"double\"->True is needed."
 getCentExt::usage="getCentExt[sgno,kname]  returns the central extension of little cogroup of kname for space group sgno. "<>
-   "For double space group the option \"DSG\"->True is needed.";
+   "For double space group the option \"DSG\"->True or \"double\"->True is needed.";
 getSGElemAndSQ::usage="getSGElemAndSQ[sgno]  returns three sets {G,S,Q} in which G is all coset representatives of the "<>
    "space group G with respect to its translation subgroup, S consists of g elements which satisfy g.G.g^-1==G, and Q "<>
    "is used for debug.";
@@ -195,7 +195,7 @@ showDLGIrepLabel::usage="showDLGIrepLabel[{m,n}]  gives the table like BC Tab. 6
 formatRepMat::usage="formatRepMat[mat]  is used to format the matrix elements of mat.";
 mapLGIrepLabel::usage="mapLGIrepLabel[sgno,kname]  gives the correspondence/mapping between the abstract-group irep label, "<>
    "the extended Mulliken label, and the Gamma label for the LG ireps of kname. If kname is not designated, all k-points of the "<>
-   "space group sgno are used. Option \"DSG\"->True can be used for double-valued ireps.";
+   "space group sgno are used. Option \"DSG\"->True or \"double\"->True can be used for double-valued ireps.";
 getPGElem::usage="getPGElem[pg]  gives the elements of the point group pg. Default option is \"double\"->False.";
 getPGCharTab::usage="getPGCharTab[pg]  gives the character table of point group pg. pg can be the sequence number or the name string "<>
    "of a point group, e.g. 14, or \"D2d\", or \"-42m\". Full list can be obtained by showPGinfo[], or by triggering a tip via a wrong "<>
@@ -265,7 +265,7 @@ showSGIrepTab::usage="showSGIrepTab[sgno, k]  shows the space group ireps of k s
 getFullRepMat::usage="getFullRepMat[G,rep][RvOrRvList]  get the SG IR matrix(es) (or character(s), if "<>
    "option \"trace\"->True is used) of the element or list of elements RvOrRvList. G is the list of SG elements. rep is "<>
    "the representation matrices of G. rep can be for one representation or a list of representations. This function also "<>
-   "works for magnetic space group and corepresentations.";
+   "works for magnetic space group (MSG) and corepresentations.";
 getSGIrepMat::usage="getSGIrepMat[repinfo,IRids][RvOrRvList]  get the representation matrix(es) (or character(s)) "<>
    "of the element or list of elements RvOrRvList according to repinfo which returned by getSGIrepTab. repinfo can be "<>
    "the List of Association returned by getSGIrepTab (in this case the first Association is used) or one Association in "<>
@@ -321,11 +321,20 @@ kptBCStoBC::usage="kptBCStoBC[sgno, BZtype]  gives correspondence between k poin
 showKptBCStoBC::usage="showKptBCStoBC[sgno, BZtype]  shows correspondence between k points of BCS convention "<>
    "and BC convention in talbe form. BZtype is optional and is \"a\" by default.";
 buildTr4BCSrep::usage="buildTr4BCSrep[sgno, BZtype]  builds traceData from BCS ireps data and converts them "<>
-   "to BC convention which can be used by getBandRep. For double space group the option \"DSG\"->True is needed.";
+   "to BC convention which can be used by getBandRep. For double space group the option \"DSG\"->True or \"double\"->True is needed.";
 krepBCStoBC::usage="krepBCStoBC[sgno, BZtype]  gives correspondence between little-gorup ireps of BCS convention "<>
-   "and BC convention. BZtype is optional and is \"a\" by default.  For double space group the option \"DSG\"->True is needed.";
+   "and BC convention. BZtype is optional and is \"a\" by default.  For double space group the option \"DSG\"->True or \"double\"->True is needed.";
 showKrepBCStoBC::usage="showKrepBCStoBC[sgno, BZtype]  shows correspondence between little-gorup ireps of BCS convention "<>
-   "and BC convention in talbe form. BZtype is optional and is \"a\" by default. For double space group the option \"DSG\"->True is needed."
+   "and BC convention in talbe form. BZtype is optional and is \"a\" by default. For double space group the option \"DSG\"->True or \"double\"->True is needed."
+shiftOrigin::usage="shiftOrigin[sgno, os][RvOrRvList]  calculate the SG elements of RvOrRvList after shifting the origin by os. "<> 
+   "os is the vector from the old origin to the new origin, in the coordinates of the old origin.  Compatible with MSG elements.";
+TMabc2t123::usage="TMabc2t123[brav]  gives the transformation matrix from crystal-cell bases matrix (a,b,c) to BC primitive-cell bases matrix (t1,t2,t3), "<>
+   "i.e. (t1,t2,t3)=(a,b,c).TMabc2t123[brav].";
+HMPosition::usage="HMPosition[brav] or HMPosition[sgno]  returns an Association which associates a rotation name "<>
+   "to its position in the Hermann-Mauguin symbol of space group.";
+analyzeSeitz::usage="analyzeSeitz[sgno][{R,v}]  analyzes the position and vpara of a space group element {R,v}, in which "<>
+   "vpara is the component of v parallel to the rotation axis or the mirror plane. If the option \"describe\"->True is used, "<>
+   "the result will be described in words.";
 
 
 Begin["`Private`"]
@@ -2479,13 +2488,16 @@ seteq[s1_,s2_,OptionsPattern[]]:=Complement[s1,s2,SameTest->OptionValue[SameTest
    determine the ireps of little group and is more concise. *)
 
 (* Option "DSG" means double space group with value True or False. *)
-Options[getHLGElem]={"DSG"->False};
+(* 2025-04-28: Add option "double" with the same effect with "DSG". Use either one is OK.
+   But if both are specified explicitly, "double" takes effect. *)
+Options[getHLGElem]={"DSG"->False, "double"->None};
 getHLGElem[brav_String,{m_Integer,n_Integer},gens_,OptionsPattern[]]:=
- Module[{pows, ngen, namegens, times, power},
+ Module[{pows, ngen, namegens, times, power, dsg},
   pows=Flatten[AGClasses[m,n],1];   ngen=Length[pows[[1]]];
   If[ngen!=Length[gens], Print["getHLEGlem: Wrong number of generators!"]; Abort[]];
   namegens=gens;
-  If[OptionValue["DSG"]==False,
+  dsg=With[{vdbl=OptionValue["double"]}, If[vdbl===None, OptionValue["DSG"], vdbl]];
+  If[dsg==False,
     If[!StringQ[gens[[1,1]]], namegens={getRotName[brav,#1],#2}&@@@gens];  
     times=SeitzTimes[brav];  power=powerSeitz[brav],
     (*----else: "DSG"\[Rule]True for double space group, only rotation name supported ----*)
@@ -2496,15 +2508,16 @@ getHLGElem[brav_String,{m_Integer,n_Integer},gens_,OptionsPattern[]]:=
 ]
 
 getHLGElem[sgno_Integer, kname_String, OptionsPattern[]]:=Module[{AGNo,gens,brav,ks,
-  Irep},
+  Irep,dsg},
   brav=getSGLatt[sgno];
   ks=Select[LGIrep[sgno]//Keys,VectorQ[LGIrep[sgno,#][[2,1,2]]]&];   
   If[!MemberQ[ks,kname], 
     Print["getLGElem: kname ",kname," is not one of the high-symmetry k points ",ks]; 
     Abort[]];
-  Irep=If[OptionValue["DSG"], DLGIrep, LGIrep][sgno];
+  dsg=With[{vdbl=OptionValue["double"]}, If[vdbl===None, OptionValue["DSG"], vdbl]];
+  Irep=If[dsg, DLGIrep, LGIrep][sgno];
   {AGNo,gens}=Irep[kname][[{1,2}]];
-  getHLGElem[brav,AGNo,gens,"DSG"->OptionValue["DSG"]]
+  getHLGElem[brav,AGNo,gens,"DSG"->dsg]
 ]
 
 (* This function return the coset representatives of a little group with respect to the 
@@ -2518,12 +2531,13 @@ Module[{rots,idx},
   RotNameIndex=Association[Rule@@@Transpose[{allRotNames,idx}]];
 ];
 
-Options[getLGElem]={"DSG"->False};
+Options[getLGElem]={"DSG"->False, "double"->None};
 getLGElem[sgno_Integer,kname_,OptionsPattern[]]/;1<=sgno<=230&&StringQ[kname]:=
  Module[{ks,AGno,gens,brav,GMAGno,GMgens,G,mats,Gk0,Gk,dsg,Irep,tmp},
   ks=LGIrep[sgno]//Keys;
   If[!MemberQ[ks,kname],Print["getLGElem: kname ",kname," is not in ",ks]; Abort[]];
-  brav=getSGLatt[sgno];  dsg=OptionValue["DSG"];
+  brav=getSGLatt[sgno];
+  dsg=With[{vdbl=OptionValue["double"]}, If[vdbl===None, OptionValue["DSG"], vdbl]];
   Irep=If[dsg, DLGIrep, LGIrep];
   {AGno,gens}=Irep[sgno][kname][[{1,2}]];
   If[ListQ[gens[[1,2]]],
@@ -2542,16 +2556,17 @@ getLGElem[sgno_Integer,kname_,OptionsPattern[]]/;1<=sgno<=230&&StringQ[kname]:=
  ]
  
 getLGElem[sgno_Integer, k_, OptionsPattern[]]/;1<=sgno<=230&&VectorQ[k,NumericQ]:=
-  Module[{G,Gk,brav},   brav=getSGLatt[sgno];
+  Module[{G,Gk,brav,dsg},   brav=getSGLatt[sgno];
     G=getLGElem[sgno,"\[CapitalGamma]"];
     Gk=Select[G,keqmod[getRotMatOfK[brav,#[[1]]].k,k]&];
-    If[OptionValue["DSG"], Gk=Join[Gk,{"bar"<>#1,#2}&@@@Gk]];
+    dsg=With[{vdbl=OptionValue["double"]}, If[vdbl===None, OptionValue["DSG"], vdbl]];
+    If[dsg, Gk=Join[Gk,{"bar"<>#1,#2}&@@@Gk]];
     Gk
   ]
   
-Options[getSGElem]={"DSG"->False};
+Options[getSGElem]={"DSG"->False, "double"->None};
 getSGElem[sgno_Integer, OptionsPattern[]]/;1<=sgno<=230:=
-  getLGElem[sgno,"\[CapitalGamma]", "DSG"->OptionValue["DSG"]]
+  getLGElem[sgno,"\[CapitalGamma]", "DSG"->With[{vdbl=OptionValue["double"]}, If[vdbl===None, OptionValue["DSG"], vdbl]]]
 
 
 (* ::Subsection:: *)
@@ -2566,10 +2581,11 @@ getSGElem[sgno_Integer, OptionsPattern[]]/;1<=sgno<=230:=
    a(Ri,Rj)? Fortunately the answer is no. In fact only H of OrthBase and G,F,U of OrthBody have
    different corrdinates for different BZ types. However in all these cases a(Ri,Rj) happens
    to be the same for different BZ types. *) 
-Options[aCentExt]={"DSG"->False}; 
+Options[aCentExt]={"DSG"->False, "double"->None}; 
 aCentExt[sgno_Integer,kname_,BZtype_String,OptionsPattern[]]/;1<=sgno<=230&&StringQ[kname]:=
- Block[{u,brav,k,ks,Gk,fullBZtype,hsk,kn},
-   Gk=getLGElem[sgno,kname,"DSG"->OptionValue["DSG"]];   
+ Block[{u,brav,k,ks,Gk,fullBZtype,hsk,kn,dsg},
+   dsg=With[{vdbl=OptionValue["double"]}, If[vdbl===None, OptionValue["DSG"], vdbl]];
+   Gk=getLGElem[sgno,kname,"DSG"->dsg];   
    brav=getSGLatt[sgno];
    If[MemberQ[{"OrthBase","OrthBody","OrthFace","TetrBody","TrigPrim"},brav],
      fullBZtype=brav<>"("<>BZtype<>")", fullBZtype=brav];
@@ -2580,10 +2596,10 @@ aCentExt[sgno_Integer,kname_,BZtype_String,OptionsPattern[]]/;1<=sgno<=230&&Stri
      If[!MemberQ[ks,kn],Print["aCentExt: kname ",kn," is not in ",ks," for ",fullBZtype]; Abort[]];
      k=hsk[[Position[hsk[[All,1]],kn][[1,1]],3]]; 
    ];
-   aCentExt[brav,Gk,k,"DSG"->OptionValue["DSG"]]
+   aCentExt[brav,Gk,k,"DSG"->dsg]
  ]
 aCentExt[sgno_Integer,kname_,OptionsPattern[]]/;1<=sgno<=230&&StringQ[kname]:=
-   aCentExt[sgno,kname,"a","DSG"->OptionValue["DSG"]]
+   aCentExt[sgno,kname,"a","DSG"->With[{vdbl=OptionValue["double"]}, If[vdbl===None, OptionValue["DSG"], vdbl]]]
  
 aCentExt[brav_,Gk_,k_,OptionsPattern[]]/;VectorQ[k]:=
  Module[{Rmatsk,gi,vs,fullBZtype,hsk,N0,aog,g,a,adict},
@@ -2601,10 +2617,10 @@ aCentExt[brav_,Gk_,k_,OptionsPattern[]]/;VectorQ[k]:=
  
 (* Get the central extension of the little cogroup of k, with its elements in the same order 
    as in the corresponding abstract group. *)
-Options[getCentExt]={"DSG"->False};  
+Options[getCentExt]={"DSG"->False, "double"->None};  
 getCentExt[sgno_Integer,kname_,OptionsPattern[]]/;1<=sgno<=230&&StringQ[kname]:=
  Module[{adict,ks,AGno,gens,brav,pows,ngen,BZtype="a",ks2,set,Irep,dsg,times,power,ce},
-   dsg=OptionValue["DSG"];
+   dsg=With[{vdbl=OptionValue["double"]}, If[vdbl===None, OptionValue["DSG"], vdbl]];
    Irep=If[dsg, DLGIrep, LGIrep];
    ks=Irep[sgno]//Keys;
    ks=Select[ks,!VectorQ[Irep[sgno][#][[2,1,2]]]&];
@@ -2826,12 +2842,12 @@ reduceRep[{m_Integer,n_Integer},chars_]:=Module[{cls,ct,nc,ap},
    given in the BC book. For the kpoints whose irep infos are given in the BC book, this function
    is only used for checking purpose. *)
 
-Options[calcRep]={"DSG"->False};
+Options[calcRep]={"DSG"->False, "double"->None};
 calcRep[sgno_Integer,kinfo_,OptionsPattern[]]/;1<=sgno<=230:=
  Block[{k,kname,kname2,ktip,kBD,brav,prec=1*^-5,G0,G02,idx,re,AGno,gens,avRep,ct,LG,HLG,
   CE,idx2,idx3,dt,factor,sG02char,nc,clsidx,abc,reptype,Rs,Gmnchar,i,allow,n1,tmp,g,gE,Gk,a,
   dsg,G0nobar,posbarE,allow0,barEfac},
-  dsg=OptionValue["DSG"];  
+  dsg=With[{vdbl=OptionValue["double"]}, If[vdbl===None, OptionValue["DSG"], vdbl]];
   {k,kname,ktip}=kinfo[[1;;3]];
   brav=getSGLatt[sgno];
   G0=getLGElem[sgno,"\[CapitalGamma]","DSG"->dsg];
@@ -3476,10 +3492,11 @@ showLGIrepLabel[{m_,n_}]:=showRepLabel[{m,n}, "s"]
 showDLGIrepLabel[{m_,n_}]:=showRepLabel[{m,n}, "d"]
 
 
-Options[mapLGIrepLabel]={"DSG"->False};
+Options[mapLGIrepLabel]={"DSG"->False, "double"->None};
 mapLGIrepLabel[sgno_Integer, kname_String, OptionsPattern[]]/;1<=sgno<=230:=Module[
   {dsg,ir,kir,AGno, abc, lbtab, Rs, GMs,Mlks, dim, re},
-  dsg=OptionValue["DSG"]===True;
+  dsg=With[{vdbl=OptionValue["double"]}, If[vdbl===None, OptionValue["DSG"], vdbl]];
+  dsg=dsg===True;
   ir=If[dsg,DLGIrep[sgno],  LGIrep[sgno]];   kir=ir[kname];
   If[MissingQ[kir], Print["mapLGIrepLabel:  ",kname," should be in ",Keys[ir],"."]; Abort[]];
   AGno=kir[[1]];   abc=kir[[-1]];
@@ -3492,9 +3509,10 @@ mapLGIrepLabel[sgno_Integer, kname_String, OptionsPattern[]]/;1<=sgno<=230:=Modu
   re=Select[{Rs,Mlks,GMs,dim}\[Transpose],#[[2]]!=""&];
   Prepend[re,{StringTemplate["\!\(\*SubsuperscriptBox[\(G\), \(`1`\), \(`2`\)]\)"]@@AGno,"Mulliken","\[CapitalGamma] label","dim"}]
 ]
-mapLGIrepLabel[sgno_Integer, OptionsPattern[]]/;1<=sgno<=230:=Module[{keys},
+mapLGIrepLabel[sgno_Integer, OptionsPattern[]]/;1<=sgno<=230:=Module[{keys,dsg},
   keys=Keys[LGIrep[sgno]];
-  mapLGIrepLabel[sgno,#,"DSG"->OptionValue["DSG"]]&/@keys
+  dsg=With[{vdbl=OptionValue["double"]}, If[vdbl===None, OptionValue["DSG"], vdbl]];
+  mapLGIrepLabel[sgno,#,"DSG"->dsg]&/@keys
 ]
 
 
@@ -6030,14 +6048,14 @@ showKptBCStoBC[sgno_Integer, BZtype_String]:=Block[{u,v,w,\[Alpha],tab,tab0,i,kn
 ]
 
 
-Options[buildTr4BCSrep]={"DSG"->False};
+Options[buildTr4BCSrep]={"DSG"->False, "double"->None};
 buildTr4BCSrep[sgno_Integer, BZtype_String, OptionsPattern[]]:=Block[{u,v,w,BCSknames,Mabc,tmp,
   tab,i,j,BCSkp,BCSkpn,kn,chtab,trdat=<||>,kLGdat,rot,trans,srot,deg,ene,trace,nb,BCSrepname,
   dsg,sx,sC4z},
   kLGdat=allBCSkLGdat[[sgno]];
   Mabc=ToExpression["SpaceGroupIrep`Private`"<>StringTake[kLGdat["spgsym"],1]<>"abc"];
   {tmp,BCSknames,BCSkp,BCSkpn}=kptBCStoBC[sgno,BZtype]//Values; 
-  dsg=OptionValue["DSG"];
+  dsg=With[{vdbl=OptionValue["double"]}, If[vdbl===None, OptionValue["DSG"], vdbl]];
   
   trdat["nelec"]=0;   (* no use *)
   trdat["soc"]=If[dsg,1,0];
@@ -6080,8 +6098,8 @@ buildTr4BCSrep[sgno_Integer, BZtype_String, OptionsPattern[]]:=Block[{u,v,w,BCSk
 ]
 
 
-Options[krepBCStoBC]={"DSG"->False};
-krepBCStoBC[sgno_Integer, OptionsPattern[]]:=krepBCStoBC[sgno, "a", "DSG"->OptionValue["DSG"]]
+Options[krepBCStoBC]={"DSG"->False, "double"->None};
+krepBCStoBC[sgno_Integer, OptionsPattern[]]:=krepBCStoBC[sgno, "a", "DSG"->With[{vdbl=OptionValue["double"]}, If[vdbl===None, OptionValue["DSG"], vdbl]]]
 krepBCStoBC[sgno_Integer, BZtype_String, OptionsPattern[]]:=Block[{u,v,w,trdat,BCSknames,BCSkp,
   Mabc,BCSrepname,s0conv,BCtrdat,repinfo,rep,i,nrep,ff,re,BCknames,BCir,BCirL,ML,ML2r,BCrlt,BCSrlt,
   aUs,dsg,keyrlty},
@@ -6091,7 +6109,7 @@ krepBCStoBC[sgno_Integer, BZtype_String, OptionsPattern[]]:=Block[{u,v,w,trdat,B
     137,{-1,1,-1}/4, 138,{-1,1,-1}/4, 141,{0,2,-1}/8, 142,{0,2,-1}/8, 201,{-1,-1,-1}/4,
     203,{-1,-1,-1}/8, 222,{-1,-1,-1}/4, 224,{-1,-1,-1}/4, 227,{-1,-1,-1}/8,
     228,{-3,-3,-3}/8, _,{0,0,0}];
-  dsg=OptionValue["DSG"];
+  dsg=With[{vdbl=OptionValue["double"]}, If[vdbl===None, OptionValue["DSG"], vdbl]];
   {trdat,BCSknames,BCSkp,Mabc,BCSrepname}=Values@buildTr4BCSrep[sgno,BZtype,"DSG"->dsg];
   (* Print["Mabc=",Mabc,"-s0conv=",-s0conv[sgno]]; *)
   BCtrdat=convTraceToBC[sgno,trdat,Mabc,-s0conv[sgno]];  
@@ -6128,11 +6146,11 @@ krepBCStoBC[sgno_Integer, BZtype_String, OptionsPattern[]]:=Block[{u,v,w,trdat,B
   re
 ]
 
-Options[showKrepBCStoBC]={"DSG"->False};
-showKrepBCStoBC[sgno_Integer, OptionsPattern[]]:=showKrepBCStoBC[sgno, "a", "DSG"->OptionValue["DSG"]]
+Options[showKrepBCStoBC]={"DSG"->False, "double"->None};
+showKrepBCStoBC[sgno_Integer, OptionsPattern[]]:=showKrepBCStoBC[sgno, "a", "DSG"->With[{vdbl=OptionValue["double"]}, If[vdbl===None, OptionValue["DSG"], vdbl]]]
 showKrepBCStoBC[sgno_Integer, BZtype_String, OptionsPattern[]]:=Module[{tab,tabs,ncol=3,maxrow,
   hsep=0.5,h1,htot,tabs2,i,j,hs,htmp, bztp,ws,bg,Nk,dsg,tmp},
-  dsg=OptionValue["DSG"];
+  dsg=With[{vdbl=OptionValue["double"]}, If[vdbl===None, OptionValue["DSG"], vdbl]];
   tab=krepBCStoBC[sgno, BZtype, "DSG"->dsg];
   ws={2.9,1,1.8,2.3,1};   
   Nk=Length[tab];
@@ -6162,6 +6180,163 @@ showKrepBCStoBC[sgno_Integer, BZtype_String, OptionsPattern[]]:=Module[{tab,tabs
       ItemSize->Total[ws]+5*0.69,Alignment->{{Left,Center,Right}}],
     Grid[{Column/@tabs2},Alignment->{Left,Top}]},
     Dividers->{None,2->Black}, Alignment->Center]
+]
+
+
+(* ::Section:: *)
+(*Operations on SG elements*)
+
+
+(* Calculate the SG elements of RvOrRvList after shifting the origin by os. 
+   os is the vector from the old origin to the new origin, in the coordinates of the old origin. 
+   Compatible with MSG elements. *)
+shiftOrigin[sgno_Integer, os_][RvOrRvList_]/;VectorQ[os]&&Dimensions[os]=={3}:=Module[{brav, forOneRv},
+  brav=getSGLatt[sgno];
+  forOneRv[Rv_]:=Module[{newRv},
+     newRv={Rv[[1]], Rv[[2]] + getRotMat[brav,StringReplace[Rv[[1]],"bar"->""]].os-os};
+     If[Length[Rv]==3, newRv=Append[newRv,Rv[[3]]]];
+     newRv
+  ];
+  If[StringQ[RvOrRvList[[1]]], forOneRv[RvOrRvList], forOneRv/@RvOrRvList]
+]
+
+
+(*TMabc2t123 \:662f\:6676\:80de\:57fa\:77e2 (a,b,c) \:5230\:539f\:80de\:57fa\:77e2 (t1,t2,t3) \:95f4\:7684\:53d8\:6362\:77e9\:9635, \:5373 (t1,t2,t3)=(a,b,c).TMabc2t123,
+\:4e0e\:6b64\:540c\:65f6, \:539f\:80de\:57fa\:77e2\:4e0b\:7684\:5750\:6807 {x1,x2,x3} \:901a\:8fc7\:8be5\:77e9\:9635\:53d8\:6362\:540e\:4fbf\:662f\:6676\:80de\:57fa\:77e2\:4e0b\:7684\:5750\:6807 {x,y,z}, \:6709 {x,y,z}=TMabc2t123.{x1,x2,x3} *)
+TMabc2t123=<||>;
+(TMabc2t123[#]=JonesTM[#])&/@Values[BravLatt];
+(TMabc2t123[#]={{0,1,0},{-1,0,0},{0,0,1}} . JonesTM[#])&/@{"MonoPrim","MonoBase"};
+TMabc2t123["TrigPrim"]={{2,-1,-1},{1,1,-2},{1,1,1}}/3;
+
+
+(*\:7ed9\:51fa\:7a7a\:95f4\:7fa4\:4e2d\:5404\:65cb\:8f6c\:64cd\:4f5c\:5728 HM(Hermann-Mauguin) \:7b26\:53f7\:ff08\:5373\:56fd\:9645\:7b26\:53f7\:ff09\:4e2d\:7684\:4f4d\:7f6e*)
+HMPosition[brav_String]:=Switch[StringTake[brav,4],
+  "Tric", <|"E"->1,"I"->1|>,
+  "Mono", <|"E"->0,"I"->0,"C2z"->1,"\[Sigma]z"->1|>,
+  "Orth", <|"E"->0,"I"->0,"C2x"->1,"\[Sigma]x"->1,"C2y"->2,"\[Sigma]y"->2,"C2z"->3,"\[Sigma]z"->3|>,
+  "Tetr", <|"E"->0,"I"->0,"C2z"->1,"C4z+"->1,"C4z-"->1,"\[Sigma]z"->1,"S4z-"->1,"S4z+"->1,"C2x"->2,"C2y"->2,"\[Sigma]x"->2,"\[Sigma]y"->2,"C2a"->3,"C2b"->3,"\[Sigma]da"->3,"\[Sigma]db"->3|>,
+  "Trig", <|"E"->0,"I"->0,"S6-"->1,"S6+"->1,"C3+"->1,"C3-"->1,"C21p"->2,"C22p"->2,"C23p"->2,"\[Sigma]d1"->2,"\[Sigma]d2"->2,"\[Sigma]d3"->2|>,
+  "Hexa", <|"E"->0,"I"->0,"C3+"->1,"C3-"->1,"C2"->1,"C6+"->1,"C6-"->1,"S6-"->1,"S6+"->1,"\[Sigma]h"->1,"S3-"->1,"S3+"->1,"C21pp"->2,"C22pp"->2,"C23pp"->2,
+            "\[Sigma]v1"->2,"\[Sigma]v2"->2,"\[Sigma]v3"->2,"C21p"->3,"C22p"->3,"C23p"->3,"\[Sigma]d1"->3,"\[Sigma]d2"->3,"\[Sigma]d3"->3|>,
+  "Cubi", Association@Join[{"E"->0,"I"->0},
+             Thread[{"\[Sigma]x","\[Sigma]y","\[Sigma]z","C2x","C2y","C2z","C4x+","C4y+","C4z+","C4x-","C4y-","C4z-","S4x-","S4y-","S4z-","S4x+","S4y+","S4z+"}->1],
+             Thread[{"C31+","C32+","C33+","C34+","C31-","C32-","C33-","C34-","S61-","S62-","S63-","S64-","S61+","S62+","S63+","S64+"}->2],
+             Thread[{"C2a","C2b","C2c","C2d","C2e","C2f","\[Sigma]da","\[Sigma]db","\[Sigma]dc","\[Sigma]dd","\[Sigma]de","\[Sigma]df"}->3]]
+]
+HMPosition[sgno_Integer]:=HMPosition[getSGLatt[sgno]]
+
+
+(*\:5bf9\:4e8e\:7ed9\:5b9a\:7684\:7a7a\:95f4\:7fa4\:7fa4\:5143 {R,v} \:5206\:6790\:5176\:5bf9\:5e94\:64cd\:4f5c\:7684\:5bf9\:79f0\:5143\:7d20\:6240\:5728\:4f4d\:7f6ep\:ff0c\:6bd4\:5982\:8f6c\:8f74\:6216\:955c\:9762\:3002\:5982\:679c R \:662f\:6b63\:5f53\:65cb\:8f6c\:8fd8\:4f1a\:7ed9\:51fa v \:6cbf
+\:8f6c\:8f74\:65b9\:5411\:7684\:5206\:91cf vpara, \:82e5 vpara \:4e0d\:662f\:683c\:77e2\:8bf4\:660e\:8be5\:64cd\:4f5c\:662f\:87ba\:65cb\:ff1b\:5982\:679c R \:662f\:955c\:9762\:5219\:7ed9\:51fa\:7684 vpara \:662f v \:5e73\:884c\:4e8e\:955c\:9762\:7684\:5206\:91cf\:ff0c
+\:540c\:6837\:82e5 vpara \:4e0d\:662f\:683c\:77e2\:5219\:8be5\:64cd\:4f5c\:4e3a\:6ed1\:79fb\:3002 
+\:4f8b\:5982\:ff1a analyzeSeitz[67][{"\[Sigma]y",{1/2,1/2,0}}]  \:7684\:8f93\:51fa\:5982\:4e0b
+  {{"\[Sigma]y",{1/2,1/2,0}}, {"x","x","z"}, {1/2,1/2,0}, {"x",0,"z"}, {1/2,0,0}, {2,"a"}}
+\:8be5\:5217\:8868\:4e2d\:7b2c 2\:30013 \:9879\:5206\:522b\:4e3a p \:548c vpara, \:7b2c 4\:30015 \:9879\:5206\:522b\:4e3a p \:548c vpara \:5728\:76f8\:5e94\:6676\:80de\:57fa\:77e2\:4e0b\:7684\:5750\:6807\:3002\:7b2c 6 \:9879\:5219\:662f\:5206\:6790\:51fa\:7684
+\:8be5\:64cd\:4f5c\:5982\:679c\:51fa\:73b0\:5728\:7a7a\:95f4\:7fa4\:56fd\:9645\:7b26\:53f7(HM\:7b26\:53f7)\:4e2d\:5e94\:8be5\:5728\:54ea\:4e2a\:4f4d\:7f6e\:4ee5\:53ca\:662f\:4ec0\:4e48\:3002\:6bd4\:5982\:8fd9\:662f\:4e00\:4e2a a \:6ed1\:79fb\:9762\:ff0c\:5bf9\:5e94\:6b63\:4ea4\:683c\:7cfb\:7684\:7b2c2\:4e2a\:4f4d\:7f6e\:ff08\:65b9\:5411\:ff09\:3002
+\:6ce8\:610f\:540c\:4e00\:65b9\:5411\:4e0a\:53ef\:80fd\:6709\:591a\:4e2a\:64cd\:4f5c\:ff0c\:4f46\:6700\:7ec8\:51fa\:73b0\:5728HM\:7b26\:53f7\:4e2d\:7684\:53ea\:6709\:4e00\:4e2a\:ff0c\:9664\:4e86 4/m \:8fd9\:79cd\:8f74\:9762\:7ec4\:5408\:4f1a\:51fa\:73b0\:4e24\:4e2a\:3002
+\:6ce8\:610f\:8f93\:51fa\:4e2d\:7684 x,y,z \:4ee3\:8868\:4efb\:610f\:5b9e\:6570\:ff0c\:5e76\:975e\:7b1b\:5361\:5c14\:5750\:6807\:4e0b\:7684 x,y,z \:5206\:91cf\:3002
+\:5982\:679c\:6307\:5b9a\:9009\:9879 "describe"->True \:5219\:4f1a\:4ee5\:6587\:5b57\:5f62\:5f0f\:63cf\:8ff0\:8f93\:51fa\:7684\:5185\:5bb9\:3002
+\:6ce8\:ff1a\:6676\:80de\:57fa\:77e2 a,b,c \:5bf9\:4e8e\:540c\:4e00\:683c\:7cfb\:5f62\:5f0f\:90fd\:662f\:4e00\:6837\:7684\:ff0c\:5b83\:4e0eBC\:539f\:80de\:57fa\:77e2 t1,t2,t3 \:95f4\:7684\:53d8\:6362\:77e9\:9635\:4e3a TMabc2t123[brav]\:ff0c\:5373
+   \:5b83\:4eec\:7684\:57fa\:77e2\:77e9\:9635\:ff08\:57fa\:77e2\:90fd\:5f53\:6210\:5217\:77e9\:9635\:ff09\:95f4\:6ee1\:8db3  (a,b,c)=(t1,t2,t3).TMabc2t123^-1   
+*)
+Options[analyzeSeitz]={"describe"->False};
+analyzeSeitz[sgno_Integer,OptionsPattern[]][Rv_]/;StringQ[Rv[[1]]]:=Module[
+{brav,Rname,Rmat,tmp,O={0,0,0},TM,order,vpara,vpara2,x,y,z,sol,re,pHM,rottype,tmp2},
+  brav=getSGLatt[sgno];  TM=TMabc2t123[brav];
+  Rname=StringReplace[Rv[[1]],"bar"->""];  Rmat=getRotMat[brav,Rname];
+  pHM=HMPosition[brav];
+  Switch[StringTake[Rname,1],
+    "E",re={Rv,O,O,O,O,{pHM[Rname],"1"}},
+    "I",re={Rv,Rv[[2]]/2,O,TM . Rv[[2]]/2,O,{pHM[Rname],"-1"}},
+    "C", (*==========for proper rotation and screw rotation==========*)
+        order=ToExpression@StringTake[Rname,{2,2}];
+        tmp=powerSeitz[{Rmat,Rv[[2]]},order];
+        vpara=tmp[[2]]/order;  vpara2=TM . vpara;
+        Switch[order,
+           (*\:6ce8\:ff1aSG 226 (Fm-3c) \:4e2d {"C2a",{2,0,0}} \:7684 vpara \:662f {0\:ff0c0\:ff0c1} \:800c vpara2 \:662f {1/2,1/2,0}\:ff0c\:662f\:7eaf\:65cb\:8f6c; 
+             \:800c {"C2a",{1,0,0}} \:7684 vpara {0,0,1/2}\:ff0c vpara2 \:4e3a {1/4,1/4,0} \:662f\:87ba\:65cb\:8f74\:3002
+             vpara \:4e00\:5b9a\:662f\:6cbf\:8f6c\:8f74\:65b9\:5411\:ff0c\:53d6\:6a21\:540e\:5982\:679c\:4e3a O \:5219\:8bf4\:660e\:662f\:7eaf\:65cb\:8f6c\:3002\:8fd9\:91cc\:8bf4\:7684\:7eaf\:65cb\:8f6c\:5ffd\:7565\:4e86\:6cbf\:8f6c\:8f74\:6574\:6570\:500d\:683c\:77e2\:7684\:5e73\:79fb\:3002*)
+            2, rottype=If[modone[vpara]==O,"2","2_1"],
+            3, tmp=modone[vpara2]; If[brav=="CubiBody",tmp=modone[tmp*2]];
+               If[modone[vpara]==O, rottype="3",
+                 If[brav=="TrigPrim"||brav=="HexaPrim",
+                   Switch[Rname,
+                     "C3+", If[tmp[[3]]==1/3,rottype="3_1"];If[tmp[[3]]==2/3,rottype="3_2"],
+                     "C3-", If[tmp[[3]]==1/3,rottype="3_2"];If[tmp[[3]]==2/3,rottype="3_1"]  ],
+                   Switch[Rname,
+                     "C31+", If[tmp=={1,1,1}/3,rottype="3_1"];If[tmp=={2,2,2}/3,rottype="3_2"],
+                     "C32+", If[tmp=={2,2,1}/3,rottype="3_1"];If[tmp=={1,1,2}/3,rottype="3_2"],
+                     "C33+", If[tmp=={1,2,2}/3,rottype="3_1"];If[tmp=={2,1,1}/3,rottype="3_2"],
+                     "C34+", If[tmp=={2,1,2}/3,rottype="3_1"];If[tmp=={1,2,1}/3,rottype="3_2"],
+                     "C31-", If[tmp=={1,1,1}/3,rottype="3_2"];If[tmp=={2,2,2}/3,rottype="3_1"],
+                     "C32-", If[tmp=={2,2,1}/3,rottype="3_2"];If[tmp=={1,1,2}/3,rottype="3_1"],
+                     "C33-", If[tmp=={1,2,2}/3,rottype="3_2"];If[tmp=={2,1,1}/3,rottype="3_1"],
+                     "C34-", If[tmp=={2,1,2}/3,rottype="3_2"];If[tmp=={1,2,1}/3,rottype="3_1"]]
+                   ]
+                 ],
+            4, tmp=modone[vpara2];  tmp=DeleteCases[tmp,0]; 
+               If[tmp=={}, rottype="4", rottype=Switch[tmp[[1]],
+                   1/4, If[StringTake[Rname,{4,4}]=="+", "4_1", "4_3"],
+                   3/4, If[StringTake[Rname,{4,4}]=="+", "4_3", "4_1"],
+                   1/2, "4_2"]
+                 ],
+            6, tmp=modone[vpara2];
+               If[tmp==O, rottype="6", rottype=Switch[tmp[[3]],
+                   1/6, If[Rname=="C6+", "6_1", "6_5"],
+                   1/3, If[Rname=="C6+", "6_2", "6_4"],
+                   1/2, "6_3",
+                   2/3, If[Rname=="C6+", "6_4", "6_2"],
+                   5/6, If[Rname=="C6+", "6_5", "6_1"],
+                   1/6, If[Rname=="C6+", "6_1", "6_5"]]
+                 ]
+        ];
+        If[!VectorQ[vpara,NumericQ],rottype="undertimined"];
+        sol=Quiet[Solve[Thread[Rv[[2]]-vpara+Rmat . {x,y,z}-{x,y,z}==0],{x,y,z}],Solve::svars];
+        re={Rv,{x,y,z}/.sol[[1]],vpara,TM . {x,y,z}/.sol[[1]],vpara2,{pHM[Rname],rottype}}//Simplify,
+    "\[Sigma]", (*==========for mirror or glide==========*)
+    order=2;
+        tmp=powerSeitz[{Rmat,Rv[[2]]},order];
+        vpara=tmp[[2]]/order;  vpara2=TM . vpara;
+        tmp=modone[vpara2];
+        (* \:540c\:6837 vpara \:4e00\:5b9a\:662f\:5e73\:884c\:4e8e\:955c\:9762\:7684\:65b9\:5411, \:5982\:679c\:5b83\:662f\:683c\:77e2\:5c31\:5f53\:505a\:955c\:9762\:800c\:4e0d\:662f\:6ed1\:79fb\:9762\:ff0c\:8f6c\:6362\:540e\:7684 vpara2 \:53cd\:800c\:53ef\:80fd\:51fa\:73b0\:5206\:6570\:3002
+           \:6bd4\:5982 SSG 226\:ff0c {"\[Sigma]x",{1/2,1/2,1/2}} \:7684 vpara \:662f {1,0,0}, \:800c vpara2 \:662f {0,1/2,1/2}\:ff0c \:82e5\:6309 vpara2 \:5224\:65ad\:5219\:4e3a n \:6ed1\:79fb\:9762\:ff0c\:4f46\:5176\:5b9e\:5e94\:4e3a m*)
+        rottype=If[modone[vpara]==O, "m",
+          Switch[tmp,
+            {1/2,0,0}, "a", {0,1/2,0}, "b", {0,0,1/2}, "c",
+            {0,1/2,1/2}|{1/2,0,1/2}|{1/2,1/2,0}, "n",
+            {1/2,1/2,1/2}, If[brav!="CubiFace", "n", Switch[Rname,"\[Sigma]da"|"\[Sigma]db","c","\[Sigma]dc"|"\[Sigma]de","b","\[Sigma]dd"|"\[Sigma]df","a"]],
+            {1/4|3/4,1/4|3/4,1/4|3/4}, "d",
+            {0,1/4|3/4,1/4|3/4}|{1/4|3/4,0,1/4|3/4}|{1/4|3/4,1/4|3/4,0}, "d",
+            _,"unnamed glide"]
+        ];
+        (*\:6ce8: \:9762\:5fc3\:7acb\:65b9\:7684 216,225,227 \:4e2d\:7684 \[Sigma]dx \:5bf9\:5e94\:7684\:6ed1\:79fb\:6709\:7684\:672a\:5b9a\:4e49\:ff0c\:6bd4\:5982 {"\[Sigma]da",{0,1,0}} \:7684 vpara \:4e3a
+        {0,1,-(1/2)} \:800c vpara2 \:4e3a {1/4,-(1/4),1/2}, \:65e2\:4e0d\:7b26\:5408 d \:4e5f\:4e0d\:7b26\:5408 n \:6ed1\:79fb\:9762\:7684\:5b9a\:4e49 *)
+        If[brav=="TrigPrim"&&MatchQ[rottype,"a"|"b"|"n"],rottype="unnamed glide"];
+        (*\:83f1\:65b9\:683c\:5b50\:8981\:4e48\:662fm\:8981\:4e48\:662fc\:ff0c\:5176\:4ed6\:6ed1\:79fb\:4e0d\:7b26\:5408\:901a\:5e38\:7684 a,b,n \:7b49\:5b9a\:4e49. \:6bd4\:5982 SG160(R3m) \:7684 {"\[Sigma]d1",{0,0,1}}\:ff0c \:5176
+          vpara \:4e3a {0,1/2,1/2} \:800c vpara2 \:4e3a {-(1/3),-(1/6),1/3}, \:5373\:4f7fITA\:4e0a\:4e5f\:662f\:7528 g(\:9762\:5185\:5e73\:79fb\:77e2\:91cf) \:6765\:6807\:8bb0\:7684. *)
+        If[!VectorQ[vpara,NumericQ],rottype="undertimined"];
+        sol=Quiet[Solve[Thread[Rv[[2]]-vpara+Rmat . {x,y,z}-{x,y,z}==0],{x,y,z}],Solve::svars];
+        re={Rv,{x,y,z}/.sol[[1]],vpara,TM . {x,y,z}/.sol[[1]],vpara2,{pHM[Rname],rottype}}//Simplify,
+    "S", (*==========for rotoreflection==========*)
+        sol=Quiet[Solve[Thread[Rv[[2]]+Rmat . {x,y,z}-{x,y,z}==0],{x,y,z}],Solve::svars];
+        rottype=Switch[StringTake[Rname,2],"S3","-6","S4","-4","S6","-3"];
+        re={Rv,{x,y,z}/.sol[[1]],O,TM . {x,y,z}/.sol[[1]],O,{pHM[Rname],rottype}}//Simplify
+  ];
+  re=re/.{x->"x",y->"y",z->"z"};
+  If[!OptionValue["describe"], Return[re]];
+  tmp=showSeitz[Rv[[{1,2}]]];  tmp2=showSeitz[{Rv[[1]],re[[3]]}];
+  If[Length[Rv]==3&&Rv[[3]]==1, tmp=Style[Derivative[1][tmp],Red]; tmp2=Style[Derivative[1][tmp2],Red]];
+  Column@{Row[{tmp,": Lattice is "<>brav<> "."}],
+          Row[{"Position is p=",re[[2]], ", and translation along axis or mirror is \!\(\*SubscriptBox[\(v\), \(//\)]\)=",re[[3]],"."}],
+          Row[{"That is, if the origin is moved to ",re[[2]],", then ",tmp," becomes ",tmp2,"."}],
+          Row[{"If changed to \"crystal cell\", the above p and \!\(\*SubscriptBox[\(v\), \(//\)]\) become p=",re[[4]]," and \!\(\*SubscriptBox[\(v\), \(//\)]\)=",re[[5]],"."}],
+          Row[{"The type of ",tmp," is \"",re[[6,2]],"\", corresponding to the ",
+          <|0->"0-th",1->"1-st",2->"2-ed",3->"3-rd"|>@re[[6,1]]," position of the Hermann-Mauguin symbol."}],
+          tmp2=(BasicVectors[brav]\[Transpose] . Inverse[TMabc2t123[brav]])\[Transpose];
+          Row[{"The \"crystall cell\" is: ",
+          Sequence@@Flatten[{", ",Style[#1,Bold],"=",#2}&@@@({{"a","b","c"},tmp2}\[Transpose]),1][[2;;]],"."}],
+          "Note that the x,y,z in p and \!\(\*SubscriptBox[\(v\), \(//\)]\) mean arbitrary real numbers."
+  }
 ]
 
 

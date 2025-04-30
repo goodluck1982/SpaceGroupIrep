@@ -1,3 +1,22 @@
+035.  2025-05-01 02:42:13 v1.2.9
+
+    Add functions:  TMabc2t123, HMPosition, analyzeSeitz
+    TMabc2t123 gives the transformation matrix from crystal cell to BC primitive cell.
+    HMPosition gives the position of a rotation in the Hermann-Mauguin symbol.
+    analyzeSeitz analyzes the position and vpara of a space group element {R,v}, in which
+        vpara is the component of v parallel to the rotation axis or the mirror plane. 
+
+
+034.  2025-04-28 02:24:17
+
+    Add option "double" with the same effect with "DSG" for the following functions. 
+    Use either one is OK. But if both are specified explicitly, "double" takes effect. 
+       getHLGElem,  getLGElem,  getSGElem,  aCentExt,  getCentExt
+       calcRep, mapLGIrepLabel, buildTr4BCSrep, krepBCStoBC, showKrepBCStoBC
+
+    Add a function shiftOrigin which calculates the SG elements after shifting the origin.
+
+
 033.  2025-04-27 22:54:30
 
     Support negative n for powerRot and powerDRot, according to #36
